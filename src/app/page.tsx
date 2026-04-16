@@ -2,14 +2,19 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Tournament, User, Submission, Registration, Series, SearchParams } from '@/types';
-import {
-  fetchTournaments, fetchUsers, fetchRegistrations,
-  fetchSubmissions, fetchSeries,
-} from '@/lib/storage';
+import { fetchTournaments, fetchUsers, fetchRegistrations, fetchSubmissions, fetchSeries } from '@/lib/storage';
+import { getSession, setSession, clearSession } from '@/lib/auth';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import HomePage from '@/components/pages/HomePage';
 import SignUpPage from '@/components/pages/SignUpPage';
+import LoginPage from '@/components/pages/LoginPage';
+import AdminLoginPage from '@/components/pages/AdminLoginPage';
+import ForgotPasswordPage from '@/components/pages/ForgotPasswordPage';
+import RegisterAnglerPage from '@/components/pages/RegisterAnglerPage';
+import RegisterDirectorPage from '@/components/pages/RegisterDirectorPage';
+import RegisterJudgePage from '@/components/pages/RegisterJudgePage';
+import AdminDashboard from '@/components/pages/AdminDashboard';
 import SeriesPage from '@/components/pages/SeriesPage';
 import TournamentsPage from '@/components/pages/TournamentsPage';
 import ClubsPage from '@/components/pages/ClubsPage';
@@ -37,15 +42,11 @@ export default function App() {
           fetchTournaments(), fetchUsers(), fetchSubmissions(),
           fetchRegistrations(), fetchSeries(),
         ]);
-        setTournaments(t);
-        setUsers(u);
-        setSubmissions(s);
-        setRegistrations(r);
-        setSeries(sr);
-        if (typeof window !== 'undefined') {
-          const stored = sessionStorage.getItem('currentUser');
-          if (stored) setCurrentUser(JSON.parse(stored));
-        }
+        setTournaments(t); setUsers(u); setSubmissions(s);
+        setRegistrations(r); setSeries(sr);
+        // Restore session
+        const session = getSession();
+        if (session) setCurrentUser(session);
       } catch (err) {
         setError('Failed to connect to database.');
       } finally {
@@ -55,9 +56,14 @@ export default function App() {
     loadAll();
   }, []);
 
+  const handleLogin = useCallback((user: User) => {
+    setCurrentUser(user);
+    setSession(user);
+  }, []);
+
   const handleLogout = useCallback(() => {
     setCurrentUser(null);
-    if (typeof window !== 'undefined') sessionStorage.removeItem('currentUser');
+    clearSession();
     setView('home');
   }, []);
 
@@ -65,6 +71,8 @@ export default function App() {
     setSearchParams(params);
     setView('search-results');
   }, []);
+
+  const navigate = useCallback((v: string) => setView(v), []);
 
   if (isLoading) {
     return (
@@ -89,22 +97,32 @@ export default function App() {
     );
   }
 
+  // Pages that use their own full-screen layout (no shared header/footer)
+  const fullScreenViews = ['login', 'admin-login', 'forgot-password', 'register-angler', 'register-director', 'register-judge', 'admin-dashboard'];
+
+  if (view === 'login') return <LoginPage onNavigate={navigate} onLogin={handleLogin} />;
+  if (view === 'admin-login') return <AdminLoginPage onNavigate={navigate} onLogin={handleLogin} />;
+  if (view === 'forgot-password') return <ForgotPasswordPage onNavigate={navigate} />;
+  if (view === 'register-angler') return <RegisterAnglerPage onNavigate={navigate} onLogin={handleLogin} />;
+  if (view === 'register-director') return <RegisterDirectorPage onNavigate={navigate} onLogin={handleLogin} />;
+  if (view === 'register-judge') return <RegisterJudgePage onNavigate={navigate} onLogin={handleLogin} />;
+  if (view === 'admin-dashboard' && currentUser?.role === 'admin') {
+    return <AdminDashboard currentUser={currentUser} onNavigate={navigate} onLogout={handleLogout} />;
+  }
+  if (view === 'admin-dashboard') {
+    // Not admin - redirect to admin login
+    return <AdminLoginPage onNavigate={navigate} onLogin={handleLogin} />;
+  }
+
   const renderPage = () => {
     switch (view) {
-      case 'register':
-        return <SignUpPage onNavigate={setView} />;
-      case 'series':
-        return <SeriesPage onNavigate={setView} />;
-      case 'tournaments':
-        return <TournamentsPage tournaments={tournaments} onNavigate={setView} />;
-      case 'clubs':
-        return <ClubsPage onNavigate={setView} />;
-      case 'events':
-        return <EventsPage onNavigate={setView} />;
-      case 'features':
-        return <FeaturesPage onNavigate={setView} />;
-      case 'sponsor':
-        return <PartnerPage onNavigate={setView} />;
+      case 'register': return <SignUpPage onNavigate={navigate} />;
+      case 'series': return <SeriesPage onNavigate={navigate} />;
+      case 'tournaments': return <TournamentsPage tournaments={tournaments} onNavigate={navigate} />;
+      case 'clubs': return <ClubsPage onNavigate={navigate} />;
+      case 'events': return <EventsPage onNavigate={navigate} />;
+      case 'features': return <FeaturesPage onNavigate={navigate} />;
+      case 'sponsor': return <PartnerPage onNavigate={navigate} />;
       case 'search-results': {
         const query = searchParams.query.toLowerCase();
         const type = searchParams.type;
@@ -131,7 +149,7 @@ export default function App() {
         }
         return (
           <div className="flex-grow py-8 px-4 md:px-8 max-w-7xl mx-auto w-full">
-            <button onClick={() => setView('home')} className="text-blue-600 hover:text-blue-800 font-semibold mb-6 block">← Back to Home</button>
+            <button onClick={() => navigate('home')} className="text-blue-600 hover:text-blue-800 font-semibold mb-6 block">← Back to Home</button>
             <h1 className="text-3xl font-bold text-gray-800 mb-2">Search Results</h1>
             <p className="text-gray-600 mb-6">
               Searching for: <span className="font-semibold">{searchParams.query}</span> in{' '}
@@ -186,22 +204,18 @@ export default function App() {
             tournaments={tournaments}
             submissions={submissions}
             users={users}
-            onNavigate={setView}
+            onNavigate={navigate}
             onSearch={handleSearch}
           />
         );
     }
   };
 
-  const showFooter = !['register', 'login'].includes(view);
-
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <Header currentUser={currentUser} onNavigate={setView} onLogout={handleLogout} />
-      <main className="flex-grow">
-        {renderPage()}
-      </main>
-      {showFooter && <Footer onNavigate={setView} />}
+      <Header currentUser={currentUser} onNavigate={navigate} onLogout={handleLogout} />
+      <main className="flex-grow">{renderPage()}</main>
+      <Footer onNavigate={navigate} />
     </div>
   );
 }

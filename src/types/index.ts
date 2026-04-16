@@ -1,4 +1,4 @@
-export type UserRole = 'angler' | 'director' | 'admin' | 'sponsor';
+export type UserRole = 'angler' | 'director' | 'admin' | 'sponsor' | 'judge';
 export type UserStatus = 'active' | 'pending' | 'inactive' | 'paused';
 export type SubmissionStatus = 'pending' | 'approved' | 'denied';
 export type TournamentStatus = 'upcoming' | 'active' | 'completed';
@@ -22,6 +22,8 @@ export interface User {
   bannerImage?: string;
   bannerStartDate?: string;
   bannerEndDate?: string;
+  directorEmail?: string;
+  country?: string;
   createdAt: string;
 }
 
@@ -97,4 +99,56 @@ export interface ConfirmAction {
 export interface SortConfig {
   field: string;
   direction: 'asc' | 'desc';
+}
+
+export interface RBACPermissions {
+  canViewUsers: boolean;
+  canEditUsers: boolean;
+  canDeleteUsers: boolean;
+  canViewTournaments: boolean;
+  canCreateTournaments: boolean;
+  canEditTournaments: boolean;
+  canDeleteTournaments: boolean;
+  canViewSubmissions: boolean;
+  canApproveSubmissions: boolean;
+  canViewAdminDashboard: boolean;
+  canManageAds: boolean;
+  canManageSettings: boolean;
+}
+
+export function getRBACPermissions(role: UserRole): RBACPermissions {
+  switch (role) {
+    case 'admin':
+      return {
+        canViewUsers: true, canEditUsers: true, canDeleteUsers: true,
+        canViewTournaments: true, canCreateTournaments: true,
+        canEditTournaments: true, canDeleteTournaments: true,
+        canViewSubmissions: true, canApproveSubmissions: true,
+        canViewAdminDashboard: true, canManageAds: true, canManageSettings: true,
+      };
+    case 'director':
+      return {
+        canViewUsers: false, canEditUsers: false, canDeleteUsers: false,
+        canViewTournaments: true, canCreateTournaments: true,
+        canEditTournaments: true, canDeleteTournaments: false,
+        canViewSubmissions: true, canApproveSubmissions: true,
+        canViewAdminDashboard: false, canManageAds: false, canManageSettings: false,
+      };
+    case 'judge':
+      return {
+        canViewUsers: false, canEditUsers: false, canDeleteUsers: false,
+        canViewTournaments: true, canCreateTournaments: false,
+        canEditTournaments: false, canDeleteTournaments: false,
+        canViewSubmissions: true, canApproveSubmissions: true,
+        canViewAdminDashboard: false, canManageAds: false, canManageSettings: false,
+      };
+    default:
+      return {
+        canViewUsers: false, canEditUsers: false, canDeleteUsers: false,
+        canViewTournaments: true, canCreateTournaments: false,
+        canEditTournaments: false, canDeleteTournaments: false,
+        canViewSubmissions: false, canApproveSubmissions: false,
+        canViewAdminDashboard: false, canManageAds: false, canManageSettings: false,
+      };
+  }
 }
