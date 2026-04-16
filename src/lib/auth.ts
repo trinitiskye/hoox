@@ -347,3 +347,94 @@ export async function createDemoAdmin(): Promise<{ success: boolean; error: stri
   if (error) return { success: false, error };
   return { success: true, error: null };
 }
+
+// ============================================================
+// CREATE ALL DEMO ACCOUNTS
+// ============================================================
+
+export interface DemoAccountResult {
+  email: string;
+  role: string;
+  status: 'created' | 'updated' | 'error';
+  error?: string;
+}
+
+export async function createAllDemoAccounts(): Promise<DemoAccountResult[]> {
+  const password = hashPassword('demo123');
+  const results: DemoAccountResult[] = [];
+
+  const accounts = [
+    {
+      email: 'tournamentdirector@hoox.app',
+      name: 'Demo Director',
+      role: 'director' as const,
+      organization: 'HOOX Demo Club',
+      message: null,
+    },
+    {
+      email: 'angler@hoox.app',
+      name: 'Demo Angler',
+      role: 'angler' as const,
+      organization: null,
+      message: null,
+    },
+    {
+      email: 'judge@hoox.app',
+      name: 'Demo Judge',
+      role: 'judge' as const,
+      organization: null,
+      // connected to the demo director
+      message: 'tournamentdirector@hoox.app',
+    },
+    {
+      email: 'partner@hoox.app',
+      name: 'Demo Partner',
+      role: 'sponsor' as const,
+      organization: 'Demo Sponsor Co.',
+      message: null,
+    },
+  ];
+
+  for (const account of accounts) {
+    const { data: existing } = await getUserByEmail(account.email);
+
+    if (existing && existing.length > 0) {
+      // Update existing account - ensure correct role, status, and password
+      const { error } = await updateUser(existing[0].id, {
+        role: account.role,
+        status: 'active',
+        password_hash: password,
+        organization: account.organization,
+        message: account.message,
+      });
+      results.push({
+        email: account.email,
+        role: account.role,
+        status: error ? 'error' : 'updated',
+        error: error ?? undefined,
+      });
+    } else {
+      // Create new account
+      const { error } = await createUser({
+        name: account.name,
+        email: account.email,
+        password_hash: password,
+        role: account.role,
+        status: 'active',
+        organization: account.organization,
+        message: account.message,
+        address: null, city: null, state: null, zip: null,
+        phone: null, website: null, avatar: null,
+        banner_image: null, banner_start_date: null, banner_end_date: null,
+      });
+      results.push({
+        email: account.email,
+        role: account.role,
+        status: error ? 'error' : 'created',
+        error: error ?? undefined,
+      });
+    }
+  }
+
+  return results;
+}

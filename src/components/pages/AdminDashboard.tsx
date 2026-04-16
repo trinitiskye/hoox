@@ -4,11 +4,11 @@ import { useState, useEffect } from 'react';
 import {
   Users, Trophy, BarChart3, Image, Settings, LogOut, Globe,
   Fish, Shield, DollarSign, Calendar, FileEdit, Heart,
-  ChevronDown, TrendingUp, Scale, Megaphone
+  ChevronDown, TrendingUp, Scale, Megaphone, FlaskConical
 } from 'lucide-react';
 import { User, Tournament, Series, Submission } from '@/types';
 import { fetchUsers, fetchTournaments, fetchSeries, fetchSubmissions } from '@/lib/storage';
-import { clearSession } from '@/lib/auth';
+import { clearSession, createAllDemoAccounts, type DemoAccountResult } from '@/lib/auth';
 
 interface AdminDashboardProps {
   currentUser: User;
@@ -128,6 +128,16 @@ export default function AdminDashboard({ currentUser, onNavigate, onLogout }: Ad
 // DASHBOARD TAB
 // ============================================================
 function DashboardTab({ users, tournaments, series, submissions, directors, judges, anglers, partners, loading, onTabChange }: any) {
+  const [seeding, setSeeding] = useState(false);
+  const [seedResults, setSeedResults] = useState<DemoAccountResult[] | null>(null);
+
+  const handleSeedDemoAccounts = async () => {
+    setSeeding(true);
+    setSeedResults(null);
+    const results = await createAllDemoAccounts();
+    setSeedResults(results);
+    setSeeding(false);
+  };
   return (
     <div>
       <h1 className="text-3xl font-bold text-gray-900 mb-1">Hoox Command Center</h1>
@@ -139,6 +149,51 @@ function DashboardTab({ users, tournaments, series, submissions, directors, judg
         </div>
       ) : (
         <>
+          {/* Demo Accounts Setup */}
+          <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-5 mb-6">
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+              <div>
+                <h3 className="font-bold text-indigo-900 flex items-center gap-2 mb-1">
+                  <FlaskConical className="w-4 h-4" /> Demo Account Setup
+                </h3>
+                <p className="text-indigo-700 text-sm mb-1">Create all test accounts with password <code className="bg-indigo-100 px-1.5 py-0.5 rounded font-mono text-xs">demo123</code></p>
+                <div className="flex flex-wrap gap-2 text-xs text-indigo-600 mt-2">
+                  {[
+                    { label: 'Director', email: 'tournamentdirector@hoox.app' },
+                    { label: 'Angler', email: 'angler@hoox.app' },
+                    { label: 'Judge', email: 'judge@hoox.app' },
+                    { label: 'Partner', email: 'partner@hoox.app' },
+                  ].map(a => (
+                    <span key={a.email} className="bg-indigo-100 px-2 py-1 rounded-full">
+                      <span className="font-semibold">{a.label}:</span> {a.email}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <button
+                onClick={handleSeedDemoAccounts}
+                disabled={seeding}
+                className="px-5 py-2.5 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition disabled:opacity-50 whitespace-nowrap flex-shrink-0"
+              >
+                {seeding ? 'Creating...' : 'Create Demo Accounts'}
+              </button>
+            </div>
+
+            {/* Results */}
+            {seedResults && (
+              <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2">
+                {seedResults.map(r => (
+                  <div key={r.email} className={`rounded-lg p-2.5 text-xs ${r.status === 'error' ? 'bg-red-100 border border-red-200' : 'bg-green-100 border border-green-200'}`}>
+                    <div className={`font-semibold capitalize mb-0.5 ${r.status === 'error' ? 'text-red-700' : 'text-green-700'}`}>
+                      {r.status === 'error' ? '❌' : r.status === 'created' ? '✅ Created' : '✅ Updated'} {r.role}
+                    </div>
+                    <div className={r.status === 'error' ? 'text-red-600' : 'text-green-600'}>{r.email}</div>
+                    {r.error && <div className="text-red-500 mt-0.5">{r.error}</div>}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
           {/* Top Stats */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {[
