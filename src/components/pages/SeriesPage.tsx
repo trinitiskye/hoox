@@ -50,7 +50,7 @@ const DEMO_SERIES = [
 
 export default function SeriesPage({ onNavigate }: SeriesPageProps) {
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-white flex flex-col">
       {/* Hero */}
       <div className="bg-gradient-to-br from-teal-600 to-teal-800 py-16 px-4 text-center">
         <Trophy className="w-12 h-12 text-white/80 mx-auto mb-4" />

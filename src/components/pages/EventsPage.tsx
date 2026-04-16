@@ -60,7 +60,7 @@ interface EventsPageProps {
 
 export default function EventsPage({ onNavigate }: EventsPageProps) {
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-white flex flex-col">
       {/* Hero */}
       <div className="relative w-full h-64 overflow-hidden">
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1587502537745-84b86da1204f?w=1200')] bg-cover bg-center" />

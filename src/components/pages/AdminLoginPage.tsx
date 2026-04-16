@@ -36,7 +36,7 @@ export default function AdminLoginPage({ onNavigate, onLogin }: AdminLoginPagePr
   };
 
   return (
-    <div className="bg-blue-50 flex-grow flex items-center justify-center px-4 py-12">
+    <div className="bg-white flex-grow flex items-center justify-center px-4 py-12">
       <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-sm">
         <div className="flex justify-center mb-4">
           <div className="w-14 h-14 bg-blue-600 rounded-full flex items-center justify-center">

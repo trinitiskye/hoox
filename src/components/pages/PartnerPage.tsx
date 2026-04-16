@@ -34,7 +34,7 @@ export default function PartnerPage({ onNavigate }: PartnerPageProps) {
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-white flex items-center justify-center px-4">
         <div className="bg-white rounded-xl border border-gray-200 p-10 text-center max-w-md">
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <Handshake className="w-8 h-8 text-green-600" />
@@ -50,7 +50,7 @@ export default function PartnerPage({ onNavigate }: PartnerPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-white flex flex-col">
       {/* Hero */}
       <div className="bg-gradient-to-br from-blue-600 to-teal-600 py-14 px-4 text-center">
         <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">

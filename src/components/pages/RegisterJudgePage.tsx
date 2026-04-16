@@ -51,7 +51,7 @@ export default function RegisterJudgePage({ onNavigate, onLogin }: RegisterJudge
   // ── Success: pending director approval ──────────────────────────────────
   if (success?.type === 'pending_approval') {
     return (
-      <div className="bg-gray-50 flex-grow flex items-center justify-center px-4 py-12">
+      <div className="bg-white flex-grow flex items-center justify-center px-4 py-12">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 w-full max-w-md text-center">
           <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-5">
             <Clock className="w-8 h-8 text-yellow-600" />
@@ -93,7 +93,7 @@ export default function RegisterJudgePage({ onNavigate, onLogin }: RegisterJudge
   // ── Success: director not found, invite sent ─────────────────────────────
   if (success?.type === 'invite_sent') {
     return (
-      <div className="bg-gray-50 flex-grow flex items-center justify-center px-4 py-12">
+      <div className="bg-white flex-grow flex items-center justify-center px-4 py-12">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 w-full max-w-md text-center">
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5">
             <CheckCircle className="w-8 h-8 text-green-600" />
@@ -134,7 +134,7 @@ export default function RegisterJudgePage({ onNavigate, onLogin }: RegisterJudge
 
   // ── Registration form ────────────────────────────────────────────────────
   return (
-    <div className="bg-gray-50 flex-grow flex items-center justify-center px-4 py-12">
+    <div className="bg-white flex-grow flex items-center justify-center px-4 py-12">
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 w-full max-w-md">
         <div className="flex justify-center mb-4">
           <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center">

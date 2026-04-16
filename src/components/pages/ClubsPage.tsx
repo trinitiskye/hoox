@@ -44,7 +44,7 @@ export default function ClubsPage({ onNavigate }: ClubsPageProps) {
   const paged = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-white flex flex-col">
       {/* Hero */}
       <div className="bg-blue-600 py-12 px-4 text-center">
         <h1 className="text-4xl font-bold text-white mb-3">Fishing Clubs</h1>

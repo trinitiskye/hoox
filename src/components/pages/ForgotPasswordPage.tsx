@@ -13,7 +13,7 @@ export default function ForgotPasswordPage({ onNavigate }: ForgotPasswordPagePro
 
   if (submitted) {
     return (
-      <div className="bg-gray-50 flex-grow flex items-center justify-center px-4 py-12">
+      <div className="bg-white flex-grow flex items-center justify-center px-4 py-12">
         <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-sm text-center">
           <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <Mail className="w-7 h-7 text-green-600" />
@@ -31,7 +31,7 @@ export default function ForgotPasswordPage({ onNavigate }: ForgotPasswordPagePro
   }
 
   return (
-    <div className="bg-gray-50 flex-grow flex items-center justify-center px-4 py-12">
+    <div className="bg-white flex-grow flex items-center justify-center px-4 py-12">
       <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-sm">
         <div className="flex justify-center mb-6">
           <div className="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center">

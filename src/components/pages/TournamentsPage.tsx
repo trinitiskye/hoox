@@ -23,7 +23,7 @@ export default function TournamentsPage({ tournaments, onNavigate }: Tournaments
   const tabTournaments = activeTab === 'upcoming' ? upcoming : activeTab === 'inprocess' ? inProcess : archived;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-white flex flex-col">
       {/* Hero */}
       <div className="bg-gradient-to-br from-blue-600 to-teal-600 py-16 px-4 text-center">
         <Trophy className="w-12 h-12 text-white/80 mx-auto mb-4" />
