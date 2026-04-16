@@ -38,7 +38,7 @@ export default function RegisterJudgePage({ onNavigate, onLogin }: RegisterJudge
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
+    <div className="bg-gray-50 flex-grow flex items-center justify-center px-4 py-12">
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 w-full max-w-md">
         <div className="flex justify-center mb-4">
           <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center">

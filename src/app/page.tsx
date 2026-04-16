@@ -6,6 +6,7 @@ import { fetchTournaments, fetchUsers, fetchRegistrations, fetchSubmissions, fet
 import { getSession, setSession, clearSession } from '@/lib/auth';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import Breadcrumb from '@/components/layout/Breadcrumb';
 import HomePage from '@/components/pages/HomePage';
 import SignUpPage from '@/components/pages/SignUpPage';
 import LoginPage from '@/components/pages/LoginPage';
@@ -21,6 +22,24 @@ import ClubsPage from '@/components/pages/ClubsPage';
 import EventsPage from '@/components/pages/EventsPage';
 import FeaturesPage from '@/components/pages/FeaturesPage';
 import PartnerPage from '@/components/pages/PartnerPage';
+
+// Breadcrumb definitions for each view
+const BREADCRUMBS: Record<string, { label: string; view?: string }[]> = {
+  login:              [{ label: 'Login' }],
+  'admin-login':      [{ label: 'System Admin Login' }],
+  'forgot-password':  [{ label: 'Login', view: 'login' }, { label: 'Forgot Password' }],
+  register:           [{ label: 'Sign Up' }],
+  'register-angler':  [{ label: 'Sign Up', view: 'register' }, { label: 'Angler Account' }],
+  'register-director':[{ label: 'Sign Up', view: 'register' }, { label: 'Director Account' }],
+  'register-judge':   [{ label: 'Sign Up', view: 'register' }, { label: 'Judge Registration' }],
+  series:             [{ label: 'Series' }],
+  tournaments:        [{ label: 'Tournaments' }],
+  clubs:              [{ label: 'Clubs' }],
+  events:             [{ label: 'Events' }],
+  features:           [{ label: 'App Features' }],
+  sponsor:            [{ label: 'Become a Partner' }],
+  'search-results':   [{ label: 'Search Results' }],
+};
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -44,7 +63,6 @@ export default function App() {
         ]);
         setTournaments(t); setUsers(u); setSubmissions(s);
         setRegistrations(r); setSeries(sr);
-        // Restore session
         const session = getSession();
         if (session) setCurrentUser(session);
       } catch (err) {
@@ -97,32 +115,36 @@ export default function App() {
     );
   }
 
-  // Pages that use their own full-screen layout (no shared header/footer)
-  const fullScreenViews = ['login', 'admin-login', 'forgot-password', 'register-angler', 'register-director', 'register-judge', 'admin-dashboard'];
-
-  if (view === 'login') return <LoginPage onNavigate={navigate} onLogin={handleLogin} />;
-  if (view === 'admin-login') return <AdminLoginPage onNavigate={navigate} onLogin={handleLogin} />;
-  if (view === 'forgot-password') return <ForgotPasswordPage onNavigate={navigate} />;
-  if (view === 'register-angler') return <RegisterAnglerPage onNavigate={navigate} onLogin={handleLogin} />;
-  if (view === 'register-director') return <RegisterDirectorPage onNavigate={navigate} onLogin={handleLogin} />;
-  if (view === 'register-judge') return <RegisterJudgePage onNavigate={navigate} onLogin={handleLogin} />;
-  if (view === 'admin-dashboard' && currentUser?.role === 'admin') {
-    return <AdminDashboard currentUser={currentUser} onNavigate={navigate} onLogout={handleLogout} />;
-  }
+  // Admin dashboard has its own full layout
   if (view === 'admin-dashboard') {
-    // Not admin - redirect to admin login
-    return <AdminLoginPage onNavigate={navigate} onLogin={handleLogin} />;
+    if (currentUser?.role === 'admin') {
+      return <AdminDashboard currentUser={currentUser} onNavigate={navigate} onLogout={handleLogout} />;
+    }
+    return (
+      <div className="min-h-screen flex flex-col bg-white">
+        <Header currentUser={currentUser} onNavigate={navigate} onLogout={handleLogout} />
+        <Breadcrumb items={[{ label: 'System Admin Login' }]} onNavigate={navigate} />
+        <AdminLoginPage onNavigate={navigate} onLogin={handleLogin} />
+        <Footer onNavigate={navigate} />
+      </div>
+    );
   }
 
   const renderPage = () => {
     switch (view) {
-      case 'register': return <SignUpPage onNavigate={navigate} />;
-      case 'series': return <SeriesPage onNavigate={navigate} />;
-      case 'tournaments': return <TournamentsPage tournaments={tournaments} onNavigate={navigate} />;
-      case 'clubs': return <ClubsPage onNavigate={navigate} />;
-      case 'events': return <EventsPage onNavigate={navigate} />;
-      case 'features': return <FeaturesPage onNavigate={navigate} />;
-      case 'sponsor': return <PartnerPage onNavigate={navigate} />;
+      case 'login':              return <LoginPage onNavigate={navigate} onLogin={handleLogin} />;
+      case 'admin-login':        return <AdminLoginPage onNavigate={navigate} onLogin={handleLogin} />;
+      case 'forgot-password':    return <ForgotPasswordPage onNavigate={navigate} />;
+      case 'register':           return <SignUpPage onNavigate={navigate} />;
+      case 'register-angler':    return <RegisterAnglerPage onNavigate={navigate} onLogin={handleLogin} />;
+      case 'register-director':  return <RegisterDirectorPage onNavigate={navigate} onLogin={handleLogin} />;
+      case 'register-judge':     return <RegisterJudgePage onNavigate={navigate} onLogin={handleLogin} />;
+      case 'series':             return <SeriesPage onNavigate={navigate} />;
+      case 'tournaments':        return <TournamentsPage tournaments={tournaments} onNavigate={navigate} />;
+      case 'clubs':              return <ClubsPage onNavigate={navigate} />;
+      case 'events':             return <EventsPage onNavigate={navigate} />;
+      case 'features':           return <FeaturesPage onNavigate={navigate} />;
+      case 'sponsor':            return <PartnerPage onNavigate={navigate} />;
       case 'search-results': {
         const query = searchParams.query.toLowerCase();
         const type = searchParams.type;
@@ -149,10 +171,8 @@ export default function App() {
         }
         return (
           <div className="flex-grow py-8 px-4 md:px-8 max-w-7xl mx-auto w-full">
-            <button onClick={() => navigate('home')} className="text-blue-600 hover:text-blue-800 font-semibold mb-6 block">← Back to Home</button>
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">Search Results</h1>
             <p className="text-gray-600 mb-6">
-              Searching for: <span className="font-semibold">{searchParams.query}</span> in{' '}
+              Showing results for: <span className="font-semibold">{searchParams.query}</span> in{' '}
               <span className="font-semibold capitalize">{searchParams.type === 'all' ? 'All Categories' : searchParams.type}</span>
             </p>
             {results.length === 0 ? (
@@ -166,28 +186,24 @@ export default function App() {
                 {results.map((result, i) => (
                   <div key={`${result.resultType}-${result.id}-${i}`} className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
                     {result.resultType === 'tournament' && (
-                      <div>
-                        <span className="text-xs font-semibold text-blue-600 uppercase">Tournament</span>
+                      <div><span className="text-xs font-semibold text-blue-600 uppercase">Tournament</span>
                         <h3 className="text-xl font-bold text-gray-900 mt-2">{result.name}</h3>
                         {result.location && <p className="text-gray-600 mt-1">{result.location}</p>}
                       </div>
                     )}
                     {result.resultType === 'director' && (
-                      <div>
-                        <span className="text-xs font-semibold text-purple-600 uppercase">Tournament Director</span>
+                      <div><span className="text-xs font-semibold text-purple-600 uppercase">Tournament Director</span>
                         <h3 className="text-xl font-bold text-gray-900 mt-2">{result.name}</h3>
                         {result.organization && <p className="text-gray-600 mt-1">{result.organization}</p>}
                       </div>
                     )}
                     {result.resultType === 'angler' && (
-                      <div>
-                        <span className="text-xs font-semibold text-green-600 uppercase">Angler</span>
+                      <div><span className="text-xs font-semibold text-green-600 uppercase">Angler</span>
                         <h3 className="text-xl font-bold text-gray-900 mt-2">{result.name}</h3>
                       </div>
                     )}
                     {result.resultType === 'series' && (
-                      <div>
-                        <span className="text-xs font-semibold text-orange-600 uppercase">Series</span>
+                      <div><span className="text-xs font-semibold text-orange-600 uppercase">Series</span>
                         <h3 className="text-xl font-bold text-gray-900 mt-2">{result.name}</h3>
                       </div>
                     )}
@@ -211,10 +227,18 @@ export default function App() {
     }
   };
 
+  const breadcrumbItems = BREADCRUMBS[view];
+  const showBreadcrumb = !!breadcrumbItems;
+
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <Header currentUser={currentUser} onNavigate={navigate} onLogout={handleLogout} />
-      <main className="flex-grow">{renderPage()}</main>
+      {showBreadcrumb && (
+        <Breadcrumb items={breadcrumbItems} onNavigate={navigate} />
+      )}
+      <main className="flex-grow flex flex-col">
+        {renderPage()}
+      </main>
       <Footer onNavigate={navigate} />
     </div>
   );

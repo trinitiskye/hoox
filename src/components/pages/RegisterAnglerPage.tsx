@@ -42,7 +42,7 @@ export default function RegisterAnglerPage({ onNavigate, onLogin }: RegisterAngl
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
+    <div className="bg-gray-50 flex-grow flex items-center justify-center px-4 py-12">
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 w-full max-w-md">
         <h1 className="text-2xl font-bold text-gray-900 text-center mb-1">Create Angler Account</h1>
         <p className="text-gray-500 text-sm text-center mb-6">Join tournaments and track your catches</p>
