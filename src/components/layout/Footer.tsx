@@ -87,7 +87,7 @@ export default function Footer({ onNavigate }: FooterProps) {
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('judges')} className="text-gray-400 hover:text-cyan-400 transition text-sm">
+                <button onClick={() => onNavigate('register-judge')} className="text-gray-400 hover:text-cyan-400 transition text-sm">
                   Tournament Judges
                 </button>
               </li>

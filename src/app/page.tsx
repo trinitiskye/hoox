@@ -32,6 +32,7 @@ const BREADCRUMBS: Record<string, { label: string; view?: string }[]> = {
   'register-angler':  [{ label: 'Sign Up', view: 'register' }, { label: 'Angler Account' }],
   'register-director':[{ label: 'Sign Up', view: 'register' }, { label: 'Director Account' }],
   'register-judge':   [{ label: 'Sign Up', view: 'register' }, { label: 'Judge Registration' }],
+  'judges':           [{ label: 'Sign Up', view: 'register' }, { label: 'Judge Registration' }],
   series:             [{ label: 'Series' }],
   tournaments:        [{ label: 'Tournaments' }],
   clubs:              [{ label: 'Clubs' }],
@@ -139,6 +140,7 @@ export default function App() {
       case 'register-angler':    return <RegisterAnglerPage onNavigate={navigate} onLogin={handleLogin} />;
       case 'register-director':  return <RegisterDirectorPage onNavigate={navigate} onLogin={handleLogin} />;
       case 'register-judge':     return <RegisterJudgePage onNavigate={navigate} onLogin={handleLogin} />;
+      case 'judges':             return <RegisterJudgePage onNavigate={navigate} onLogin={handleLogin} />;
       case 'series':             return <SeriesPage onNavigate={navigate} />;
       case 'tournaments':        return <TournamentsPage tournaments={tournaments} onNavigate={navigate} />;
       case 'clubs':              return <ClubsPage onNavigate={navigate} />;

@@ -198,6 +198,11 @@ export async function registerDirector(data: {
   return { user, error: null };
 }
 
+export type JudgeRegistrationOutcome =
+  | 'pending_approval'   // director exists, judge is pending their approval
+  | 'invite_sent'        // director not found, invitation email would be sent
+  | 'error';
+
 export async function registerJudge(data: {
   name: string;
   email: string;
@@ -210,24 +215,29 @@ export async function registerJudge(data: {
   zip?: string;
   country?: string;
   phone?: string;
-}): Promise<{ user: User | null; error: string | null }> {
-  // Verify director exists
-  const { data: director } = await getUserByEmail(data.directorEmail.toLowerCase().trim());
-  if (!director || director.length === 0 || director[0].role !== 'director') {
-    return { user: null, error: 'Tournament Director email not found. Please verify the email address.' };
-  }
-
+}): Promise<{ user: User | null; outcome: JudgeRegistrationOutcome; directorName?: string; error: string | null }> {
+  // Check if judge email already exists
   const { data: existing } = await getUserByEmail(data.email.toLowerCase().trim());
   if (existing && existing.length > 0) {
-    return { user: null, error: 'An account with this email already exists.' };
+    return { user: null, outcome: 'error', error: 'An account with this email already exists.' };
   }
+
+  // Check if director exists
+  const { data: directorData } = await getUserByEmail(data.directorEmail.toLowerCase().trim());
+  const directorExists = directorData && directorData.length > 0 && directorData[0].role === 'director';
+  const directorName = directorExists ? directorData![0].name : undefined;
+
+  // Status depends on whether director exists:
+  // - If director exists: judge is 'pending' until director approves
+  // - If director doesn't exist: judge is created 'active' but unconnected; director gets invite
+  const status = directorExists ? 'pending' : 'active';
 
   const { data: created, error } = await createUser({
     name: data.name,
     email: data.email.toLowerCase().trim(),
     password_hash: hashPassword(data.password),
     role: 'judge',
-    status: 'active',
+    status,
     organization: data.organization || null,
     address: data.address || null,
     city: data.city || null,
@@ -236,16 +246,29 @@ export async function registerJudge(data: {
     phone: data.phone || null,
     website: null,
     avatar: null,
-    message: data.directorEmail, // store director email in message field for now
+    // Store director email in message field so director can find their judges
+    message: data.directorEmail.toLowerCase().trim(),
     banner_image: null,
     banner_start_date: null,
     banner_end_date: null,
   });
 
-  if (error || !created?.[0]) return { user: null, error: error || 'Registration failed.' };
+  if (error || !created?.[0]) {
+    return { user: null, outcome: 'error', error: error || 'Registration failed.' };
+  }
+
   const user = dbUserToApp(created[0]);
-  setSession(user);
-  return { user, error: null };
+
+  // Only set session if not pending approval
+  if (status === 'active') setSession(user);
+
+  // In production, send emails here via an edge function:
+  // - If directorExists: email director at data.directorEmail notifying them of pending judge approval
+  // - If !directorExists: email data.directorEmail inviting them to register as a Tournament Director
+  // For now we return the outcome so the UI can show the right message.
+
+  const outcome: JudgeRegistrationOutcome = directorExists ? 'pending_approval' : 'invite_sent';
+  return { user, outcome, directorName, error: null };
 }
 
 export async function registerPartner(data: {

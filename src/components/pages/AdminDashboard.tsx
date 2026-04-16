@@ -242,6 +242,17 @@ function DashboardTab({ users, tournaments, series, submissions, directors, judg
 function UsersTab({ users, onRefresh }: { users: User[]; onRefresh: () => void }) {
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
+  const [approvingId, setApprovingId] = useState<string | null>(null);
+
+  const pendingJudges = users.filter(u => u.role === 'judge' && u.status === 'pending');
+
+  const approveJudge = async (userId: string) => {
+    setApprovingId(userId);
+    const { updateUser } = await import('@/lib/supabase');
+    await updateUser(userId, { status: 'active' });
+    await onRefresh();
+    setApprovingId(null);
+  };
 
   const filtered = users.filter(u =>
     (roleFilter === 'all' || u.role === roleFilter) &&
@@ -261,6 +272,34 @@ function UsersTab({ users, onRefresh }: { users: User[]; onRefresh: () => void }
 
   return (
     <div>
+      {/* Pending Judge Approvals */}
+      {pendingJudges.length > 0 && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-5 mb-6">
+          <h3 className="font-bold text-yellow-900 mb-1 flex items-center gap-2">
+            ⏳ Pending Judge Approvals ({pendingJudges.length})
+          </h3>
+          <p className="text-yellow-700 text-sm mb-4">These judges are waiting for approval to be connected to their tournament director.</p>
+          <div className="space-y-3">
+            {pendingJudges.map(j => (
+              <div key={j.id} className="bg-white border border-yellow-200 rounded-lg p-4 flex items-center justify-between gap-4">
+                <div>
+                  <div className="font-medium text-gray-900">{j.name}</div>
+                  <div className="text-sm text-gray-500">{j.email}</div>
+                  <div className="text-xs text-gray-400 mt-0.5">Referred by director: {j.message || '—'}</div>
+                </div>
+                <button
+                  onClick={() => approveJudge(j.id)}
+                  disabled={approvingId === j.id}
+                  className="px-4 py-2 bg-green-600 text-white text-sm font-semibold rounded-lg hover:bg-green-700 transition disabled:opacity-50 whitespace-nowrap"
+                >
+                  {approvingId === j.id ? 'Approving...' : 'Approve'}
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-gray-900">User Management</h2>
         <span className="text-sm text-gray-500">{filtered.length} users</span>
