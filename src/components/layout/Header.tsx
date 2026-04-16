@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronDown, Fish, Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { User } from '@/types';
 
 interface HeaderProps {
@@ -11,137 +11,63 @@ interface HeaderProps {
 }
 
 export default function Header({ currentUser, onNavigate, onLogout }: HeaderProps) {
-  const [showEventsMenu, setShowEventsMenu] = useState(false);
-  const [showPartnersMenu, setShowPartnersMenu] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <header className="bg-white shadow-md border-b border-gray-200 sticky top-0 z-50">
-      <div className="px-4 py-4 md:py-6">
-        <div className="flex items-center justify-between max-w-7xl mx-auto">
+    <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 md:px-8">
+        <div className="flex items-center justify-between h-16">
+
           {/* Logo */}
-          <button 
-            onClick={() => onNavigate('home')}
-            className="flex items-center gap-2 md:gap-3 hover:opacity-80 transition"
-          >
-            <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-lg flex items-center justify-center">
-              <Fish className="w-6 h-6 md:w-8 md:h-8 text-white" />
-            </div>
-            <div className="hidden sm:block">
-              <h1 className="text-lg md:text-2xl font-bold text-gray-900">FishTournament Pro</h1>
-              <p className="text-xs md:text-sm text-gray-600 hidden md:block">Professional Tournament Management Platform</p>
-            </div>
-            <div className="sm:hidden">
-              <h1 className="text-lg font-bold text-gray-900">FishTournament</h1>
-            </div>
+          <button onClick={() => onNavigate('home')} className="flex items-center gap-2 hover:opacity-80 transition flex-shrink-0">
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <text x="2" y="28" fontSize="22" fontWeight="800" fill="#1a56db" fontFamily="Arial, sans-serif">HOOX</text>
+              <path d="M34 8 C34 8 38 12 36 17 C34 22 28 20 28 20" stroke="#1a56db" strokeWidth="2" strokeLinecap="round" fill="none"/>
+              <path d="M28 20 C28 20 26 24 28 27" stroke="#1a56db" strokeWidth="2" strokeLinecap="round" fill="none"/>
+              <path d="M16 32 Q20 36 36 34 Q38 34 38 32 Q38 30 36 30 Q24 32 18 28" stroke="#3b82f6" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+            </svg>
           </button>
 
           {/* Desktop Navigation */}
           {!currentUser ? (
             <>
-              <nav className="hidden lg:flex items-center gap-6">
-                {/* Events Dropdown */}
-                <div className="relative">
-                  <button
-                    onClick={() => setShowEventsMenu(!showEventsMenu)}
-                    onBlur={() => setTimeout(() => setShowEventsMenu(false), 200)}
-                    className="px-4 py-2 text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1"
-                  >
-                    Events
-                    <ChevronDown className={`w-4 h-4 transition-transform ${showEventsMenu ? 'rotate-180' : ''}`} />
-                  </button>
-                  
-                  {showEventsMenu && (
-                    <div className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-lg py-2 min-w-[200px] z-50">
-                      <button
-                        onClick={() => {
-                          onNavigate('expos');
-                          setShowEventsMenu(false);
-                        }}
-                        className="w-full text-left px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition"
-                      >
-                        Expos
-                      </button>
-                      <button
-                        onClick={() => {
-                          onNavigate('series');
-                          setShowEventsMenu(false);
-                        }}
-                        className="w-full text-left px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition"
-                      >
-                        Series
-                      </button>
-                      <button
-                        onClick={() => {
-                          onNavigate('tournaments');
-                          setShowEventsMenu(false);
-                        }}
-                        className="w-full text-left px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition"
-                      >
-                        Tournaments
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                <button
-                  onClick={() => onNavigate('features')}
-                  className="px-4 py-2 text-blue-600 hover:text-blue-800 font-semibold"
-                >
-                  Features
+              <nav className="hidden lg:flex items-center gap-1">
+                <button onClick={() => onNavigate('series')} className="px-4 py-2 text-gray-700 hover:text-blue-600 font-medium text-sm transition">
+                  Series
                 </button>
-
-                {/* Partners Dropdown */}
-                <div className="relative">
-                  <button
-                    onClick={() => setShowPartnersMenu(!showPartnersMenu)}
-                    onBlur={() => setTimeout(() => setShowPartnersMenu(false), 200)}
-                    className="px-4 py-2 text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1"
-                  >
-                    Partners
-                    <ChevronDown className={`w-4 h-4 transition-transform ${showPartnersMenu ? 'rotate-180' : ''}`} />
-                  </button>
-                  
-                  {showPartnersMenu && (
-                    <div className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-lg py-2 min-w-[200px] z-50">
-                      <button
-                        onClick={() => {
-                          onNavigate('partner-benefits');
-                          setShowPartnersMenu(false);
-                        }}
-                        className="w-full text-left px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition"
-                      >
-                        Benefits
-                      </button>
-                      <button
-                        onClick={() => {
-                          onNavigate('sponsor');
-                          setShowPartnersMenu(false);
-                        }}
-                        className="w-full text-left px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition"
-                      >
-                        Partner with us!
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                <button
-                  onClick={() => onNavigate('register')}
-                  className="px-4 py-2 text-blue-600 hover:text-blue-800 font-semibold"
-                >
-                  Register
+                <button onClick={() => onNavigate('tournaments')} className="px-4 py-2 text-gray-700 hover:text-blue-600 font-medium text-sm transition">
+                  Tournaments
                 </button>
-
-                <button
-                  onClick={() => onNavigate('login')}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold"
-                >
-                  Login
+                <button onClick={() => onNavigate('clubs')} className="px-4 py-2 text-gray-700 hover:text-blue-600 font-medium text-sm transition">
+                  Clubs
+                </button>
+                <button onClick={() => onNavigate('events')} className="px-4 py-2 text-gray-700 hover:text-blue-600 font-medium text-sm transition">
+                  Events
+                </button>
+                <button onClick={() => onNavigate('features')} className="px-4 py-2 text-gray-700 hover:text-blue-600 font-medium text-sm transition">
+                  App Features
+                </button>
+                <button onClick={() => onNavigate('sponsor')} className="px-4 py-2 text-gray-700 hover:text-blue-600 font-medium text-sm transition">
+                  Become a Partner
                 </button>
               </nav>
 
-              {/* Mobile Menu Button */}
+              <div className="hidden lg:flex items-center gap-3">
+                <button
+                  onClick={() => onNavigate('login')}
+                  className="px-5 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium text-sm transition"
+                >
+                  Login
+                </button>
+                <button
+                  onClick={() => onNavigate('register')}
+                  className="px-5 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-700 font-medium text-sm transition"
+                >
+                  Sign Up
+                </button>
+              </div>
+
+              {/* Mobile menu button */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="lg:hidden p-2 text-gray-700 hover:bg-gray-100 rounded-lg"
@@ -150,16 +76,13 @@ export default function Header({ currentUser, onNavigate, onLogout }: HeaderProp
               </button>
             </>
           ) : (
-            <div className="flex items-center gap-2 md:gap-4">
-              <span className="text-sm md:text-base text-gray-700 hidden sm:inline">
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gray-700 hidden sm:inline">
                 Welcome, <span className="font-semibold">{currentUser.name}</span>
-              </span>
-              <span className="text-sm text-gray-700 sm:hidden font-semibold">
-                {currentUser.name.split(' ')[0]}
               </span>
               <button
                 onClick={onLogout}
-                className="px-4 md:px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-semibold text-sm md:text-base"
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium text-sm transition"
               >
                 Logout
               </button>
@@ -167,94 +90,21 @@ export default function Header({ currentUser, onNavigate, onLogout }: HeaderProp
           )}
         </div>
 
-        {/* Mobile Navigation Menu */}
+        {/* Mobile Menu */}
         {!currentUser && mobileMenuOpen && (
-          <div className="lg:hidden mt-4 pb-4 border-t border-gray-200 pt-4">
-            <div className="flex flex-col space-y-2">
-              {/* Events Section */}
-              <div className="border-b border-gray-100 pb-2">
-                <p className="text-xs font-semibold text-gray-500 uppercase px-4 mb-2">Events</p>
-                <button
-                  onClick={() => {
-                    onNavigate('expos');
-                    setMobileMenuOpen(false);
-                  }}
-                  className="w-full text-left px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg"
-                >
-                  Expos
-                </button>
-                <button
-                  onClick={() => {
-                    onNavigate('series');
-                    setMobileMenuOpen(false);
-                  }}
-                  className="w-full text-left px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg"
-                >
-                  Series
-                </button>
-                <button
-                  onClick={() => {
-                    onNavigate('tournaments');
-                    setMobileMenuOpen(false);
-                  }}
-                  className="w-full text-left px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg"
-                >
-                  Tournaments
-                </button>
-              </div>
-
+          <div className="lg:hidden border-t border-gray-100 py-4 space-y-1">
+            {['series', 'tournaments', 'clubs', 'events', 'features', 'sponsor'].map((item) => (
               <button
-                onClick={() => {
-                  onNavigate('features');
-                  setMobileMenuOpen(false);
-                }}
-                className="text-left px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg font-semibold"
+                key={item}
+                onClick={() => { onNavigate(item); setMobileMenuOpen(false); }}
+                className="w-full text-left px-4 py-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg capitalize text-sm font-medium"
               >
-                Features
+                {item === 'features' ? 'App Features' : item === 'sponsor' ? 'Become a Partner' : item.charAt(0).toUpperCase() + item.slice(1)}
               </button>
-
-              {/* Partners Section */}
-              <div className="border-b border-gray-100 pb-2">
-                <p className="text-xs font-semibold text-gray-500 uppercase px-4 mb-2">Partners</p>
-                <button
-                  onClick={() => {
-                    onNavigate('partner-benefits');
-                    setMobileMenuOpen(false);
-                  }}
-                  className="w-full text-left px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg"
-                >
-                  Benefits
-                </button>
-                <button
-                  onClick={() => {
-                    onNavigate('sponsor');
-                    setMobileMenuOpen(false);
-                  }}
-                  className="w-full text-left px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg"
-                >
-                  Partner with us!
-                </button>
-              </div>
-
-              <button
-                onClick={() => {
-                  onNavigate('register');
-                  setMobileMenuOpen(false);
-                }}
-                className="text-left px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg font-semibold"
-              >
-                Register
-              </button>
-
-              <button
-                onClick={() => {
-                  onNavigate('login');
-                  setMobileMenuOpen(false);
-                }}
-                className="mx-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold text-center"
-              >
-                Login
-              </button>
+            ))}
+            <div className="flex gap-3 px-4 pt-3 border-t border-gray-100 mt-2">
+              <button onClick={() => { onNavigate('login'); setMobileMenuOpen(false); }} className="flex-1 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium text-sm text-center">Login</button>
+              <button onClick={() => { onNavigate('register'); setMobileMenuOpen(false); }} className="flex-1 py-2 bg-gray-900 text-white rounded-lg font-medium text-sm text-center">Sign Up</button>
             </div>
           </div>
         )}
