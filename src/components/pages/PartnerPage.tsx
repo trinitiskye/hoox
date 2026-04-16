@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { Handshake, Eye, EyeOff } from 'lucide-react';
 import AddressSelector, { AddressValue } from '@/components/ui/AddressSelector';
-import AddressSelector, { AddressValue } from '@/components/ui/AddressSelector';
 
 interface PartnerPageProps {
   onNavigate: (view: string) => void;
