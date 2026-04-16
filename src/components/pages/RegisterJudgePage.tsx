@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Scale, Eye, EyeOff, Clock, Mail, CheckCircle } from 'lucide-react';
 import { registerJudge } from '@/lib/auth';
 import { User } from '@/types';
+import AddressSelector, { AddressValue } from '@/components/ui/AddressSelector';
 
 interface RegisterJudgePageProps {
   onNavigate: (view: string) => void;
@@ -22,7 +23,7 @@ export default function RegisterJudgePage({ onNavigate, onLogin }: RegisterJudge
   const [success, setSuccess] = useState<SuccessState | null>(null);
   const [form, setForm] = useState({
     directorEmail: '', name: '', organization: '', phone: '',
-    address: '', city: '', state: '', country: 'United States', zip: '',
+    address: '', city: '', state: '', country: 'US', zip: '',
     email: '', password: '', confirmPassword: '',
   });
 
@@ -186,36 +187,13 @@ export default function RegisterJudgePage({ onNavigate, onLogin }: RegisterJudge
         {/* Address */}
         <h2 className="font-bold text-gray-900 mb-3">Address Information</h2>
         <hr className="mb-4 border-gray-100" />
-        <div className="space-y-4 mb-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Street Address *</label>
-            <input value={form.address} onChange={set('address')} placeholder="123 Main Street"
-              className="w-full px-4 py-3 bg-gray-100 rounded-xl border-0 text-sm focus:ring-2 focus:ring-green-500 focus:bg-white transition" />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">City *</label>
-              <input value={form.city} onChange={set('city')} placeholder="Los Angeles"
-                className="w-full px-4 py-3 bg-gray-100 rounded-xl border-0 text-sm focus:ring-2 focus:ring-green-500" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">State *</label>
-              <input value={form.state} onChange={set('state')} placeholder="CA"
-                className="w-full px-4 py-3 bg-gray-100 rounded-xl border-0 text-sm focus:ring-2 focus:ring-green-500" />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Country *</label>
-              <input value={form.country} onChange={set('country')} placeholder="United States"
-                className="w-full px-4 py-3 bg-gray-100 rounded-xl border-0 text-sm focus:ring-2 focus:ring-green-500" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Zip Code *</label>
-              <input value={form.zip} onChange={set('zip')} placeholder="90210"
-                className="w-full px-4 py-3 bg-gray-100 rounded-xl border-0 text-sm focus:ring-2 focus:ring-green-500" />
-            </div>
-          </div>
+        <div className="mb-6">
+          <AddressSelector
+            value={{ address: form.address, country: form.country, state: form.state, city: form.city, zip: form.zip }}
+            onChange={v => setForm(f => ({ ...f, address: v.address, country: v.country, state: v.state, city: v.city, zip: v.zip }))}
+            inputClass="w-full px-4 py-3 bg-gray-100 rounded-xl border-0 text-sm focus:ring-2 focus:ring-green-500 focus:bg-white transition"
+            required
+          />
         </div>
 
         {/* Login Info */}

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { registerAngler } from '@/lib/auth';
 import { User } from '@/types';
+import AddressSelector, { AddressValue } from '@/components/ui/AddressSelector';
 
 interface RegisterAnglerPageProps {
   onNavigate: (view: string) => void;
@@ -16,8 +17,10 @@ export default function RegisterAnglerPage({ onNavigate, onLogin }: RegisterAngl
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [form, setForm] = useState({
-    name: '', organization: '', address: '', city: '', state: '', zip: '',
-    email: '', phone: '', password: '', confirmPassword: '',
+    name: '', organization: '', email: '', phone: '', password: '', confirmPassword: '',
+  });
+  const [address, setAddress] = useState<AddressValue>({
+    address: '', country: 'US', state: '', city: '', zip: '',
   });
 
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -25,17 +28,11 @@ export default function RegisterAnglerPage({ onNavigate, onLogin }: RegisterAngl
 
   const handleSubmit = async () => {
     setError('');
-    if (!form.name || !form.email || !form.password) {
-      setError('Name, email, and password are required.'); return;
-    }
-    if (form.password.length < 6) {
-      setError('Password must be at least 6 characters.'); return;
-    }
-    if (form.password !== form.confirmPassword) {
-      setError('Passwords do not match.'); return;
-    }
+    if (!form.name || !form.email || !form.password) { setError('Name, email, and password are required.'); return; }
+    if (form.password.length < 6) { setError('Password must be at least 6 characters.'); return; }
+    if (form.password !== form.confirmPassword) { setError('Passwords do not match.'); return; }
     setLoading(true);
-    const { user, error: err } = await registerAngler(form);
+    const { user, error: err } = await registerAngler({ ...form, ...address });
     setLoading(false);
     if (err) { setError(err); return; }
     if (user) { onLogin(user); onNavigate('home'); }
@@ -52,42 +49,38 @@ export default function RegisterAnglerPage({ onNavigate, onLogin }: RegisterAngl
         <div className="space-y-4 mb-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Name</label>
-            <input value={form.name} onChange={set('name')} placeholder="David Chen" className="w-full px-4 py-3 bg-gray-100 rounded-xl border-0 text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white transition" />
+            <input value={form.name} onChange={set('name')} placeholder="David Chen"
+              className="w-full px-4 py-3 bg-gray-100 rounded-xl border-0 text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white transition" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Organization</label>
-            <input value={form.organization} onChange={set('organization')} placeholder="N/A" className="w-full px-4 py-3 bg-gray-100 rounded-xl border-0 text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white transition" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Street Address</label>
-            <input value={form.address} onChange={set('address')} placeholder="123 Main Street" className="w-full px-4 py-3 bg-gray-100 rounded-xl border-0 text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white transition" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">City</label>
-            <input value={form.city} onChange={set('city')} placeholder="Phoenix" className="w-full px-4 py-3 bg-gray-100 rounded-xl border-0 text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white transition" />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">State</label>
-              <input value={form.state} onChange={set('state')} placeholder="AZ" className="w-full px-4 py-3 bg-gray-100 rounded-xl border-0 text-sm focus:ring-2 focus:ring-blue-500" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Zip Code</label>
-              <input value={form.zip} onChange={set('zip')} placeholder="85001" className="w-full px-4 py-3 bg-gray-100 rounded-xl border-0 text-sm focus:ring-2 focus:ring-blue-500" />
-            </div>
+            <input value={form.organization} onChange={set('organization')} placeholder="N/A"
+              className="w-full px-4 py-3 bg-gray-100 rounded-xl border-0 text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white transition" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
-            <input type="email" value={form.email} onChange={set('email')} placeholder="david.chen@example.com" className="w-full px-4 py-3 bg-gray-100 rounded-xl border-0 text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white transition" />
+            <input type="email" value={form.email} onChange={set('email')} placeholder="david.chen@example.com"
+              className="w-full px-4 py-3 bg-gray-100 rounded-xl border-0 text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white transition" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Phone Number</label>
-            <input value={form.phone} onChange={set('phone')} placeholder="(555) 123-4567" className="w-full px-4 py-3 bg-gray-100 rounded-xl border-0 text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white transition" />
+            <input value={form.phone} onChange={set('phone')} placeholder="(555) 123-4567"
+              className="w-full px-4 py-3 bg-gray-100 rounded-xl border-0 text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white transition" />
           </div>
+        </div>
+
+        <h2 className="font-bold text-gray-900 mb-4">Address</h2>
+        <div className="mb-6">
+          <AddressSelector value={address} onChange={setAddress} required />
+        </div>
+
+        <h2 className="font-bold text-gray-900 mb-4">Password</h2>
+        <div className="space-y-4 mb-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
             <div className="relative">
-              <input type={showPassword ? 'text' : 'password'} value={form.password} onChange={set('password')} placeholder="Create a password" className="w-full px-4 py-3 bg-gray-100 rounded-xl border-0 text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white transition pr-10" />
+              <input type={showPassword ? 'text' : 'password'} value={form.password} onChange={set('password')} placeholder="Create a password"
+                className="w-full px-4 py-3 bg-gray-100 rounded-xl border-0 text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white transition pr-10" />
               <button type="button" onClick={() => setShowPassword(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -96,7 +89,8 @@ export default function RegisterAnglerPage({ onNavigate, onLogin }: RegisterAngl
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Confirm Password</label>
             <div className="relative">
-              <input type={showConfirm ? 'text' : 'password'} value={form.confirmPassword} onChange={set('confirmPassword')} placeholder="Confirm your password" className="w-full px-4 py-3 bg-gray-100 rounded-xl border-0 text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white transition pr-10" />
+              <input type={showConfirm ? 'text' : 'password'} value={form.confirmPassword} onChange={set('confirmPassword')} placeholder="Confirm your password"
+                className="w-full px-4 py-3 bg-gray-100 rounded-xl border-0 text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white transition pr-10" />
               <button type="button" onClick={() => setShowConfirm(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
                 {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -106,7 +100,8 @@ export default function RegisterAnglerPage({ onNavigate, onLogin }: RegisterAngl
 
         {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">{error}</div>}
 
-        <button onClick={handleSubmit} disabled={loading} className="w-full py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition disabled:opacity-50 mb-3">
+        <button onClick={handleSubmit} disabled={loading}
+          className="w-full py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition disabled:opacity-50 mb-3">
           {loading ? 'Creating Account...' : 'Create Account'}
         </button>
         <p className="text-center text-sm text-gray-500">

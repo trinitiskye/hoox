@@ -298,6 +298,7 @@ export function dbUserToApp(u: DbUser): User {
     bannerImage: u.banner_image ?? undefined,
     bannerStartDate: u.banner_start_date ?? undefined,
     bannerEndDate: u.banner_end_date ?? undefined,
+    country: u.country ?? undefined,
     createdAt: u.created_at,
   };
 }
@@ -395,6 +396,7 @@ export interface DbUser {
   banner_image: string | null;
   banner_start_date: string | null;
   banner_end_date: string | null;
+  country: string | null;
   created_at: string;
 }
 

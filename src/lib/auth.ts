@@ -137,6 +137,7 @@ export async function registerAngler(data: {
   state?: string;
   zip?: string;
   phone?: string;
+  country?: string;
 }): Promise<{ user: User | null; error: string | null }> {
   // Check if email exists
   const { data: existing } = await getUserByEmail(data.email.toLowerCase().trim());
@@ -181,6 +182,7 @@ export async function registerDirector(data: {
   zip?: string;
   phone?: string;
   website?: string;
+  country?: string;
 }): Promise<{ user: User | null; error: string | null }> {
   const { data: existing } = await getUserByEmail(data.email.toLowerCase().trim());
   if (existing && existing.length > 0) {
@@ -261,6 +263,7 @@ export async function registerJudge(data: {
     phone: data.phone || null,
     website: null,
     avatar: null,
+    country: data.country || null,
     // Store director email in message field so director can find their judges
     message: data.directorEmail.toLowerCase().trim(),
     banner_image: null,

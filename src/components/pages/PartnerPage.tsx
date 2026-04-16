@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { Handshake, Eye, EyeOff } from 'lucide-react';
+import AddressSelector, { AddressValue } from '@/components/ui/AddressSelector';
+import AddressSelector, { AddressValue } from '@/components/ui/AddressSelector';
 
 interface PartnerPageProps {
   onNavigate: (view: string) => void;
@@ -12,8 +14,14 @@ export default function PartnerPage({ onNavigate }: PartnerPageProps) {
   const [showConfirm, setShowConfirm] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [form, setForm] = useState({
-    contactName: '', organization: '', address: '', city: '', state: '', zip: '',
+    contactName: '', organization: '',
     phone: '', website: '', message: '', email: '', password: '', confirmPassword: '',
+  });
+  const [address, setAddress] = useState<AddressValue>({
+    address: '', country: 'US', state: '', city: '', zip: '',
+  });
+  const [address, setAddress] = useState<AddressValue>({
+    address: '', country: 'US', state: '', city: '', zip: '',
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -78,22 +86,13 @@ export default function PartnerPage({ onNavigate }: PartnerPageProps) {
               <input name="organization" value={form.organization} onChange={handleChange} placeholder="Enter your organization name" className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Street Address *</label>
-              <input name="address" value={form.address} onChange={handleChange} placeholder="123 Main Street" className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              <div className="col-span-2 md:col-span-1">
-                <label className="block text-sm font-medium text-gray-700 mb-1">City *</label>
-                <input name="city" value={form.city} onChange={handleChange} placeholder="Phoenix" className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">State *</label>
-                <input name="state" value={form.state} onChange={handleChange} placeholder="AZ" className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Zip Code *</label>
-                <input name="zip" value={form.zip} onChange={handleChange} placeholder="85001" className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500" />
-              </div>
+              <AddressSelector
+                value={address}
+                onChange={setAddress}
+                inputClass="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                labelClass="block text-sm font-medium text-gray-700 mb-1"
+                required
+              />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number *</label>
