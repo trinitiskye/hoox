@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import {
   Users, Trophy, BarChart3, Image, Settings, LogOut, Globe,
   Fish, Shield, DollarSign, Calendar, FileEdit, Heart,
-  ChevronDown, TrendingUp, Scale, Megaphone, FlaskConical
+  ChevronDown, TrendingUp, Scale, Megaphone, FlaskConical,
+  Eye, Pencil, Trash2, Pause, Play, ShieldOff, ShieldCheck
 } from 'lucide-react';
 import { User, Tournament, Series, Submission } from '@/types';
 import { fetchUsers, fetchTournaments, fetchSeries, fetchSubmissions } from '@/lib/storage';
@@ -297,36 +298,287 @@ function DashboardTab({ users, tournaments, series, submissions, directors, judg
 function UsersTab({ users, onRefresh }: { users: User[]; onRefresh: () => void }) {
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
-  const [approvingId, setApprovingId] = useState<string | null>(null);
+  const [subView, setSubView] = useState<'list' | 'view' | 'edit'>('list');
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<Partial<User>>({});
+  const [editSaving, setEditSaving] = useState(false);
+  const [editSuccess, setEditSuccess] = useState(false);
 
   const pendingJudges = users.filter(u => u.role === 'judge' && u.status === 'pending');
 
-  const approveJudge = async (userId: string) => {
-    setApprovingId(userId);
-    const { updateUser } = await import('@/lib/supabase');
-    await updateUser(userId, { status: 'active' });
-    await onRefresh();
-    setApprovingId(null);
-  };
-
   const filtered = users.filter(u =>
     (roleFilter === 'all' || u.role === roleFilter) &&
-    (u.name.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase()))
+    (u.name.toLowerCase().includes(search.toLowerCase()) ||
+     u.email.toLowerCase().includes(search.toLowerCase()))
   );
 
-  const roleBadge = (role: string) => {
-    const map: Record<string, string> = {
-      admin: 'bg-red-100 text-red-700',
-      director: 'bg-blue-100 text-blue-700',
-      judge: 'bg-purple-100 text-purple-700',
-      angler: 'bg-green-100 text-green-700',
-      sponsor: 'bg-orange-100 text-orange-700',
+  const roleBadge = (role: string) => ({
+    admin:    'bg-red-100 text-red-700',
+    director: 'bg-blue-100 text-blue-700',
+    judge:    'bg-purple-100 text-purple-700',
+    angler:   'bg-green-100 text-green-700',
+    sponsor:  'bg-orange-100 text-orange-700',
+  }[role] || 'bg-gray-100 text-gray-600');
+
+  const statusBadge = (status: string) => ({
+    active:   'bg-green-100 text-green-700',
+    pending:  'bg-yellow-100 text-yellow-700',
+    paused:   'bg-orange-100 text-orange-700',
+    banned:   'bg-red-100 text-red-700',
+    inactive: 'bg-gray-100 text-gray-500',
+  }[status] || 'bg-gray-100 text-gray-600');
+
+  const doAction = async (userId: string, action: 'approve' | 'pause' | 'unpause' | 'ban' | 'unban') => {
+    setActionLoading(userId + action);
+    const { updateUser } = await import('@/lib/supabase');
+    const statusMap: Record<string, string> = {
+      approve: 'active', pause: 'paused', unpause: 'active', ban: 'banned', unban: 'active',
     };
-    return map[role] || 'bg-gray-100 text-gray-600';
+    await updateUser(userId, { status: statusMap[action] });
+    await onRefresh();
+    // Refresh selectedUser if we're in view/edit
+    setActionLoading(null);
   };
 
+  const doDelete = async (userId: string) => {
+    const { deleteUser } = await import('@/lib/supabase');
+    await deleteUser(userId);
+    setDeleteTarget(null);
+    setSubView('list');
+    setSelectedUser(null);
+    await onRefresh();
+  };
+
+  const openView = (user: User) => { setSelectedUser(user); setSubView('view'); };
+  const openEdit = (user: User) => {
+    setSelectedUser(user);
+    setEditForm({ ...user });
+    setEditSuccess(false);
+    setSubView('edit');
+  };
+
+  const saveEdit = async () => {
+    if (!selectedUser) return;
+    setEditSaving(true);
+    const { updateUser } = await import('@/lib/supabase');
+    await updateUser(selectedUser.id, {
+      name: editForm.name,
+      email: editForm.email,
+      role: editForm.role,
+      organization: editForm.organization || null,
+      phone: editForm.phone || null,
+      address: editForm.address || null,
+      city: editForm.city || null,
+      state: editForm.state || null,
+      zip: editForm.zip || null,
+      website: editForm.website || null,
+    });
+    await onRefresh();
+    setEditSaving(false);
+    setEditSuccess(true);
+  };
+
+  // ── Delete Confirmation Modal ──────────────────────────────────────────────
+  const DeleteModal = () => deleteTarget ? (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4">
+      <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+        <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Trash2 className="w-7 h-7 text-red-600" />
+        </div>
+        <h2 className="text-xl font-bold text-gray-900 text-center mb-2">Delete Account?</h2>
+        <p className="text-gray-500 text-sm text-center mb-2">
+          You are about to permanently delete the account for:
+        </p>
+        <p className="text-center font-semibold text-gray-800 mb-4">{deleteTarget.name} ({deleteTarget.email})</p>
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+          <p className="text-red-700 text-sm font-semibold mb-1">⚠️ This action is irreversible</p>
+          <p className="text-red-600 text-sm">Once deleted, this account cannot be recovered. The user will receive an "Account not found" error if they attempt to log in.</p>
+        </div>
+        <div className="flex gap-3">
+          <button onClick={() => setDeleteTarget(null)}
+            className="flex-1 py-3 border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition">
+            Cancel
+          </button>
+          <button onClick={() => doDelete(deleteTarget.id)}
+            className="flex-1 py-3 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition">
+            Yes, Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  ) : null;
+
+  // ── View User ─────────────────────────────────────────────────────────────
+  if (subView === 'view' && selectedUser) {
+    const u = users.find(x => x.id === selectedUser.id) || selectedUser;
+    return (
+      <div>
+        <DeleteModal />
+        {/* Breadcrumb */}
+        <nav className="flex items-center gap-1 text-sm mb-6">
+          <button onClick={() => setSubView('list')} className="text-blue-600 hover:underline">User Management</button>
+          <span className="text-gray-300 mx-1">›</span>
+          <span className="text-gray-700 font-medium">{u.name}</span>
+          <span className="text-gray-300 mx-1">›</span>
+          <span className="text-gray-500">View</span>
+        </nav>
+
+        <div className="flex items-start justify-between mb-6 flex-wrap gap-3">
+          <h2 className="text-2xl font-bold text-gray-900">User Details</h2>
+          <div className="flex gap-2 flex-wrap">
+            <button onClick={() => openEdit(u)} className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition">
+              <Pencil className="w-3.5 h-3.5" /> Edit
+            </button>
+            {u.status === 'paused'
+              ? <button onClick={() => doAction(u.id, 'unpause')} disabled={!!actionLoading} className="flex items-center gap-1.5 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition disabled:opacity-50">
+                  <Play className="w-3.5 h-3.5" /> Unpause
+                </button>
+              : <button onClick={() => doAction(u.id, 'pause')} disabled={!!actionLoading} className="flex items-center gap-1.5 px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 transition disabled:opacity-50">
+                  <Pause className="w-3.5 h-3.5" /> Pause
+                </button>
+            }
+            {u.status === 'banned'
+              ? <button onClick={() => doAction(u.id, 'unban')} disabled={!!actionLoading} className="flex items-center gap-1.5 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition disabled:opacity-50">
+                  <ShieldCheck className="w-3.5 h-3.5" /> Unban
+                </button>
+              : <button onClick={() => doAction(u.id, 'ban')} disabled={!!actionLoading} className="flex items-center gap-1.5 px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 transition disabled:opacity-50">
+                  <ShieldOff className="w-3.5 h-3.5" /> Ban
+                </button>
+            }
+            <button onClick={() => setDeleteTarget(u)} className="flex items-center gap-1.5 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition">
+              <Trash2 className="w-3.5 h-3.5" /> Delete
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {[
+            { label: 'Full Name', value: u.name },
+            { label: 'Email', value: u.email },
+            { label: 'Role', value: u.role, badge: roleBadge(u.role) },
+            { label: 'Status', value: u.status || 'active', badge: statusBadge(u.status || 'active') },
+            { label: 'Organization', value: u.organization || '—' },
+            { label: 'Phone', value: u.phone || '—' },
+            { label: 'Address', value: u.address || '—' },
+            { label: 'City', value: u.city || '—' },
+            { label: 'State', value: u.state || '—' },
+            { label: 'Zip', value: u.zip || '—' },
+            { label: 'Website', value: u.website || '—' },
+            { label: 'Joined', value: new Date(u.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) },
+          ].map(f => (
+            <div key={f.label} className="bg-white border border-gray-200 rounded-xl p-4">
+              <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">{f.label}</div>
+              {f.badge
+                ? <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${f.badge}`}>{f.value}</span>
+                : <div className="text-gray-800 text-sm font-medium">{f.value}</div>
+              }
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // ── Edit User ─────────────────────────────────────────────────────────────
+  if (subView === 'edit' && selectedUser) {
+    const field = (key: keyof User, label: string, type = 'text') => (
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1.5">{label}</label>
+        <input
+          type={type}
+          value={(editForm[key] as string) || ''}
+          onChange={e => setEditForm(f => ({ ...f, [key]: e.target.value }))}
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
+      </div>
+    );
+
+    return (
+      <div>
+        <DeleteModal />
+        {/* Breadcrumb */}
+        <nav className="flex items-center gap-1 text-sm mb-6">
+          <button onClick={() => setSubView('list')} className="text-blue-600 hover:underline">User Management</button>
+          <span className="text-gray-300 mx-1">›</span>
+          <button onClick={() => setSubView('view')} className="text-blue-600 hover:underline">{selectedUser.name}</button>
+          <span className="text-gray-300 mx-1">›</span>
+          <span className="text-gray-500">Edit</span>
+        </nav>
+
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-gray-900">Edit User</h2>
+          <button onClick={() => setDeleteTarget(selectedUser)} className="flex items-center gap-1.5 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition">
+            <Trash2 className="w-3.5 h-3.5" /> Delete Account
+          </button>
+        </div>
+
+        <div className="bg-white border border-gray-200 rounded-xl p-6 max-w-2xl">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            {field('name', 'Full Name')}
+            {field('email', 'Email Address', 'email')}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Role</label>
+              <select
+                value={editForm.role || ''}
+                onChange={e => setEditForm(f => ({ ...f, role: e.target.value as any }))}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="angler">Angler</option>
+                <option value="director">Director</option>
+                <option value="judge">Judge</option>
+                <option value="sponsor">Partner</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Status</label>
+              <select
+                value={editForm.status || 'active'}
+                onChange={e => setEditForm(f => ({ ...f, status: e.target.value as any }))}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="active">Active</option>
+                <option value="pending">Pending</option>
+                <option value="paused">Paused</option>
+                <option value="banned">Banned</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+            {field('organization', 'Organization')}
+            {field('phone', 'Phone Number')}
+            {field('address', 'Street Address')}
+            {field('city', 'City')}
+            {field('state', 'State')}
+            {field('zip', 'Zip Code')}
+            {field('website', 'Website')}
+          </div>
+
+          {editSuccess && (
+            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
+              ✅ Changes saved successfully.
+            </div>
+          )}
+
+          <div className="flex gap-3">
+            <button onClick={() => setSubView('view')} className="px-5 py-2.5 border border-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition text-sm">
+              Cancel
+            </button>
+            <button onClick={saveEdit} disabled={editSaving} className="px-5 py-2.5 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition disabled:opacity-50 text-sm">
+              {editSaving ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── User List ─────────────────────────────────────────────────────────────
   return (
     <div>
+      <DeleteModal />
+
       {/* Pending Judge Approvals */}
       {pendingJudges.length > 0 && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-5 mb-6">
@@ -340,14 +592,11 @@ function UsersTab({ users, onRefresh }: { users: User[]; onRefresh: () => void }
                 <div>
                   <div className="font-medium text-gray-900">{j.name}</div>
                   <div className="text-sm text-gray-500">{j.email}</div>
-                  <div className="text-xs text-gray-400 mt-0.5">Referred by director: {j.message || '—'}</div>
+                  <div className="text-xs text-gray-400 mt-0.5">Director: {j.message || '—'}</div>
                 </div>
-                <button
-                  onClick={() => approveJudge(j.id)}
-                  disabled={approvingId === j.id}
-                  className="px-4 py-2 bg-green-600 text-white text-sm font-semibold rounded-lg hover:bg-green-700 transition disabled:opacity-50 whitespace-nowrap"
-                >
-                  {approvingId === j.id ? 'Approving...' : 'Approve'}
+                <button onClick={() => doAction(j.id, 'approve')} disabled={!!actionLoading}
+                  className="px-4 py-2 bg-green-600 text-white text-sm font-semibold rounded-lg hover:bg-green-700 transition disabled:opacity-50 whitespace-nowrap">
+                  Approve
                 </button>
               </div>
             ))}
@@ -355,17 +604,14 @@ function UsersTab({ users, onRefresh }: { users: User[]; onRefresh: () => void }
         </div>
       )}
 
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
         <h2 className="text-2xl font-bold text-gray-900">User Management</h2>
-        <span className="text-sm text-gray-500">{filtered.length} users</span>
+        <span className="text-sm text-gray-500">{filtered.length} of {users.length} users</span>
       </div>
+
       <div className="flex gap-3 mb-5 flex-wrap">
-        <input
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder="Search by name or email..."
-          className="flex-1 min-w-48 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
-        />
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name or email..."
+          className="flex-1 min-w-48 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500" />
         <select value={roleFilter} onChange={e => setRoleFilter(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm">
           <option value="all">All Roles</option>
           <option value="admin">Admin</option>
@@ -375,31 +621,71 @@ function UsersTab({ users, onRefresh }: { users: User[]; onRefresh: () => void }
           <option value="sponsor">Partner</option>
         </select>
       </div>
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-        <table className="w-full text-sm">
+
+      <div className="bg-white border border-gray-200 rounded-xl overflow-x-auto">
+        <table className="w-full text-sm min-w-[700px]">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
-              {['Name', 'Email', 'Role', 'Status', 'Joined'].map(h => (
-                <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">{h}</th>
+              {['Name', 'Email', 'Role', 'Status', 'Joined', 'Actions'].map(h => (
+                <th key={h} className={`px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase ${h === 'Actions' ? 'text-center' : ''}`}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {filtered.length === 0 ? (
-              <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-400">No users found</td></tr>
+              <tr><td colSpan={6} className="px-4 py-10 text-center text-gray-400">No users found</td></tr>
             ) : filtered.map(u => (
               <tr key={u.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 font-medium text-gray-900">{u.name}</td>
+                <td className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">{u.name}</td>
                 <td className="px-4 py-3 text-gray-600">{u.email}</td>
                 <td className="px-4 py-3">
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${roleBadge(u.role)}`}>{u.role}</span>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${roleBadge(u.role)}`}>{u.role === 'sponsor' ? 'partner' : u.role}</span>
                 </td>
                 <td className="px-4 py-3">
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${u.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
-                    {u.status || 'active'}
-                  </span>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${statusBadge(u.status || 'active')}`}>{u.status || 'active'}</span>
                 </td>
-                <td className="px-4 py-3 text-gray-500">{new Date(u.createdAt).toLocaleDateString()}</td>
+                <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{new Date(u.createdAt).toLocaleDateString()}</td>
+                <td className="px-4 py-3">
+                  <div className="flex items-center justify-center gap-1">
+                    {/* View */}
+                    <button onClick={() => openView(u)} title="View user"
+                      className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition" >
+                      <Eye className="w-4 h-4" />
+                    </button>
+                    {/* Edit */}
+                    <button onClick={() => openEdit(u)} title="Edit user"
+                      className="p-1.5 text-gray-500 hover:bg-gray-100 rounded-lg transition">
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    {/* Pause / Unpause */}
+                    {u.status === 'paused'
+                      ? <button onClick={() => doAction(u.id, 'unpause')} disabled={actionLoading === u.id + 'unpause'} title="Unpause account"
+                          className="p-1.5 text-green-500 hover:bg-green-50 rounded-lg transition disabled:opacity-40">
+                          <Play className="w-4 h-4" />
+                        </button>
+                      : <button onClick={() => doAction(u.id, 'pause')} disabled={actionLoading === u.id + 'pause'} title="Pause account"
+                          className="p-1.5 text-orange-500 hover:bg-orange-50 rounded-lg transition disabled:opacity-40">
+                          <Pause className="w-4 h-4" />
+                        </button>
+                    }
+                    {/* Ban / Unban */}
+                    {u.status === 'banned'
+                      ? <button onClick={() => doAction(u.id, 'unban')} disabled={actionLoading === u.id + 'unban'} title="Remove ban"
+                          className="p-1.5 text-green-500 hover:bg-green-50 rounded-lg transition disabled:opacity-40">
+                          <ShieldCheck className="w-4 h-4" />
+                        </button>
+                      : <button onClick={() => doAction(u.id, 'ban')} disabled={actionLoading === u.id + 'ban'} title="Ban account"
+                          className="p-1.5 text-red-400 hover:bg-red-50 rounded-lg transition disabled:opacity-40">
+                          <ShieldOff className="w-4 h-4" />
+                        </button>
+                    }
+                    {/* Delete */}
+                    <button onClick={() => setDeleteTarget(u)} title="Delete account"
+                      className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>

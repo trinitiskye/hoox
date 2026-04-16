@@ -1,5 +1,5 @@
 export type UserRole = 'angler' | 'director' | 'admin' | 'sponsor' | 'judge';
-export type UserStatus = 'active' | 'pending' | 'inactive' | 'paused';
+export type UserStatus = 'active' | 'pending' | 'inactive' | 'paused' | 'banned';
 export type SubmissionStatus = 'pending' | 'approved' | 'denied';
 export type TournamentStatus = 'upcoming' | 'active' | 'completed';
 

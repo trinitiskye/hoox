@@ -65,28 +65,43 @@ export function verifyPassword(password: string, hash: string): boolean {
 // LOGIN
 // ============================================================
 
-export async function loginUser(email: string, password: string): Promise<{ user: User | null; error: string | null }> {
+export type LoginErrorCode =
+  | 'connection_error'
+  | 'not_found'
+  | 'wrong_password'
+  | 'account_paused'
+  | 'account_banned'
+  | 'account_pending'
+  | 'account_inactive'
+  | 'not_admin'
+  | 'unknown';
+
+export async function loginUser(email: string, password: string): Promise<{ user: User | null; error: string | null; code?: LoginErrorCode }> {
   const { data, error } = await getUserByEmail(email.toLowerCase().trim());
 
-  if (error) return { user: null, error: 'Connection error. Please try again.' };
-  if (!data || data.length === 0) return { user: null, error: 'No account found with that email.' };
+  if (error) return { user: null, error: 'Connection error. Please try again.', code: 'connection_error' };
+  if (!data || data.length === 0) return { user: null, error: 'No account found with that email.', code: 'not_found' };
 
   const dbUser = data[0];
 
   if (!dbUser.password_hash) {
-    return { user: null, error: 'Account not set up correctly. Please contact support.' };
+    return { user: null, error: 'Account not set up correctly. Please contact support.', code: 'unknown' };
   }
 
   if (!verifyPassword(password, dbUser.password_hash)) {
-    return { user: null, error: 'Incorrect password.' };
+    return { user: null, error: 'Incorrect password.', code: 'wrong_password' };
   }
 
-  if (dbUser.status === 'inactive' || dbUser.status === 'paused') {
-    return { user: null, error: 'Your account is not active. Please contact support.' };
+  if (dbUser.status === 'paused') {
+    return { user: null, error: 'paused', code: 'account_paused' };
+  }
+
+  if (dbUser.status === 'banned' || dbUser.status === 'inactive') {
+    return { user: null, error: 'banned', code: 'account_banned' };
   }
 
   if (dbUser.status === 'pending') {
-    return { user: null, error: 'Your account is pending approval. You will receive an email when approved.' };
+    return { user: null, error: 'Your account is pending approval. You will receive an email when approved.', code: 'account_pending' };
   }
 
   const user = dbUserToApp(dbUser);
