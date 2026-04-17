@@ -71,6 +71,7 @@ export async function saveUser(u: Omit<User, 'id' | 'createdAt'>): Promise<User 
     phone: u.phone ?? null, website: u.website ?? null, avatar: u.avatar ?? null,
     message: u.message ?? null, banner_image: u.bannerImage ?? null,
     banner_start_date: u.bannerStartDate ?? null, banner_end_date: u.bannerEndDate ?? null,
+    country: (u as any).country ?? null,
     password_hash: null,
   });
   if (error || !data?.[0]) { console.error('saveUser:', error); return null; }

@@ -400,9 +400,10 @@ export interface DbUser {
   created_at: string;
 }
 
-export type DbUserInsert = Omit<DbUser, 'id' | 'created_at'> & {
+export type DbUserInsert = Omit<DbUser, 'id' | 'created_at' | 'country'> & {
   id?: string;
   created_at?: string;
+  country?: string | null;
 };
 
 export interface DbRegistration {
