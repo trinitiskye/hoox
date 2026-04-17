@@ -19,9 +19,6 @@ export default function PartnerPage({ onNavigate }: PartnerPageProps) {
   const [address, setAddress] = useState<AddressValue>({
     address: '', country: 'US', state: '', city: '', zip: '',
   });
-  const [address, setAddress] = useState<AddressValue>({
-    address: '', country: 'US', state: '', city: '', zip: '',
-  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm(f => ({ ...f, [e.target.name]: e.target.value }));
