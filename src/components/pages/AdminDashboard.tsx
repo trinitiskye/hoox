@@ -5,12 +5,13 @@ import {
   Users, Trophy, BarChart3, Image, Settings, LogOut, Globe,
   Fish, Shield, DollarSign, Calendar, FileEdit, Heart,
   ChevronDown, TrendingUp, Scale, Megaphone, FlaskConical,
-  Eye, Pencil, Trash2, Pause, Play, ShieldOff, ShieldCheck
+  Eye, EyeOff, Pencil, Trash2, Pause, Play, ShieldOff, ShieldCheck
 } from 'lucide-react';
 import { User, Tournament, Series, Submission } from '@/types';
 import { fetchUsers, fetchTournaments, fetchSeries, fetchSubmissions } from '@/lib/storage';
-import { clearSession, createAllDemoAccounts, type DemoAccountResult } from '@/lib/auth';
+import { clearSession, createAllDemoAccounts, changePassword, type DemoAccountResult } from '@/lib/auth';
 import AddressSelector from '@/components/ui/AddressSelector';
+import { Toast, useToast } from '@/components/ui/Toast';
 
 interface AdminDashboardProps {
   currentUser: User;
@@ -114,7 +115,7 @@ export default function AdminDashboard({ currentUser, onNavigate, onLogout }: Ad
             loading={loading} onTabChange={setActiveTab}
           />
         )}
-        {activeTab === 'Users' && <UsersTab users={users} onRefresh={() => fetchUsers().then(setUsers)} />}
+        {activeTab === 'Users' && <UsersTab users={users} onRefresh={() => fetchUsers().then(setUsers)} currentUser={currentUser} />}
         {activeTab === 'Tournaments' && <TournamentsTab tournaments={tournaments} />}
         {activeTab === 'Catch Submissions' && <SubmissionsTab submissions={submissions} />}
         {activeTab === 'Partners' && <PartnersTab partners={partners} />}
@@ -296,7 +297,7 @@ function DashboardTab({ users, tournaments, series, submissions, directors, judg
 // ============================================================
 // USERS TAB
 // ============================================================
-function UsersTab({ users, onRefresh }: { users: User[]; onRefresh: () => void }) {
+function UsersTab({ users, onRefresh, currentUser }: { users: User[]; onRefresh: () => void; currentUser: User }) {
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [subView, setSubView] = useState<'list' | 'view' | 'edit'>('list');
@@ -306,6 +307,16 @@ function UsersTab({ users, onRefresh }: { users: User[]; onRefresh: () => void }
   const [editForm, setEditForm] = useState<Partial<User>>({});
   const [editSaving, setEditSaving] = useState(false);
   const [editSuccess, setEditSuccess] = useState(false);
+
+  // Password change state
+  const [pwForm, setPwForm] = useState({ current: '', newPw: '', confirm: '' });
+  const [pwSaving, setPwSaving] = useState(false);
+  const [showPwCurrent, setShowPwCurrent] = useState(false);
+  const [showPwNew, setShowPwNew] = useState(false);
+  const [showPwConfirm, setShowPwConfirm] = useState(false);
+
+  // Toast
+  const { toasts, remove: removeToast, success: toastSuccess, error: toastError } = useToast();
 
   const pendingJudges = users.filter(u => u.role === 'judge' && u.status === 'pending');
 
@@ -379,6 +390,37 @@ function UsersTab({ users, onRefresh }: { users: User[]; onRefresh: () => void }
     await onRefresh();
     setEditSaving(false);
     setEditSuccess(true);
+    toastSuccess('User information saved successfully.');
+  };
+
+  const changePasswordForUser = async () => {
+    if (!selectedUser) return;
+    if (!pwForm.newPw) { toastError('Please enter a new password.'); return; }
+    if (pwForm.newPw.length < 6) { toastError('Password must be at least 6 characters.'); return; }
+    if (pwForm.newPw !== pwForm.confirm) { toastError('New passwords do not match.'); return; }
+
+    // Admin changing their own password requires current password
+    const isOwnAccount = selectedUser.id === currentUser.id;
+    if (isOwnAccount && !pwForm.current) {
+      toastError('Please enter your current password to change your own password.');
+      return;
+    }
+
+    setPwSaving(true);
+    const { success, error } = await changePassword({
+      userId: selectedUser.id,
+      currentPassword: isOwnAccount ? pwForm.current : undefined,
+      newPassword: pwForm.newPw,
+      isAdminOverride: !isOwnAccount,
+    });
+    setPwSaving(false);
+
+    if (error) {
+      toastError(error);
+    } else {
+      setPwForm({ current: '', newPw: '', confirm: '' });
+      toastSuccess(`Password updated successfully for ${selectedUser.name}. A confirmation email has been sent.`);
+    }
   };
 
   // ── Delete Confirmation Modal ──────────────────────────────────────────────
@@ -484,6 +526,7 @@ function UsersTab({ users, onRefresh }: { users: User[]; onRefresh: () => void }
 
   // ── Edit User ─────────────────────────────────────────────────────────────
   if (subView === 'edit' && selectedUser) {
+    const isOwnAccount = selectedUser.id === currentUser.id;
     const field = (key: keyof User, label: string, type = 'text') => (
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1.5">{label}</label>
@@ -498,6 +541,7 @@ function UsersTab({ users, onRefresh }: { users: User[]; onRefresh: () => void }
 
     return (
       <div>
+        <Toast toasts={toasts} onRemove={removeToast} />
         <DeleteModal />
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1 text-sm mb-6">
@@ -515,69 +559,188 @@ function UsersTab({ users, onRefresh }: { users: User[]; onRefresh: () => void }
           </button>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-xl p-6 max-w-2xl">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            {field('name', 'Full Name')}
-            {field('email', 'Email Address', 'email')}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Role</label>
-              <select
-                value={editForm.role || ''}
-                onChange={e => setEditForm(f => ({ ...f, role: e.target.value as any }))}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="angler">Angler</option>
-                <option value="director">Director</option>
-                <option value="judge">Judge</option>
-                <option value="sponsor">Partner</option>
-                <option value="admin">Admin</option>
-              </select>
+        {/* Two-column layout */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+
+          {/* LEFT — User Information */}
+          <div className="bg-white border border-gray-200 rounded-xl p-6">
+            <h3 className="font-semibold text-gray-800 mb-4 pb-3 border-b border-gray-100">User Information</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              {field('name', 'Full Name')}
+              {field('email', 'Email Address', 'email')}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Role</label>
+                <select
+                  value={editForm.role || ''}
+                  onChange={e => setEditForm(f => ({ ...f, role: e.target.value as any }))}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="angler">Angler</option>
+                  <option value="director">Director</option>
+                  <option value="judge">Judge</option>
+                  <option value="sponsor">Partner</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Status</label>
+                <select
+                  value={editForm.status || 'active'}
+                  onChange={e => setEditForm(f => ({ ...f, status: e.target.value as any }))}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="active">Active</option>
+                  <option value="pending">Pending</option>
+                  <option value="paused">Paused</option>
+                  <option value="banned">Banned</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+              {field('organization', 'Organization')}
+              {field('phone', 'Phone Number')}
+              <div className="md:col-span-2">
+                <AddressSelector
+                  value={{
+                    address: editForm.address || '',
+                    country: editForm.country || 'US',
+                    state: editForm.state || '',
+                    city: editForm.city || '',
+                    zip: editForm.zip || '',
+                  }}
+                  onChange={v => setEditForm(f => ({ ...f, address: v.address, country: v.country, state: v.state, city: v.city, zip: v.zip }))}
+                  inputClass="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  labelClass="block text-sm font-medium text-gray-700 mb-1.5"
+                />
+              </div>
+              {field('website', 'Website')}
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Status</label>
-              <select
-                value={editForm.status || 'active'}
-                onChange={e => setEditForm(f => ({ ...f, status: e.target.value as any }))}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="active">Active</option>
-                <option value="pending">Pending</option>
-                <option value="paused">Paused</option>
-                <option value="banned">Banned</option>
-                <option value="inactive">Inactive</option>
-              </select>
+
+            {editSuccess && (
+              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
+                ✅ Changes saved successfully.
+              </div>
+            )}
+            <div className="flex gap-3">
+              <button onClick={() => setSubView('view')} className="px-5 py-2.5 border border-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition text-sm">
+                Cancel
+              </button>
+              <button onClick={saveEdit} disabled={editSaving} className="px-5 py-2.5 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition disabled:opacity-50 text-sm">
+                {editSaving ? 'Saving...' : 'Save Changes'}
+              </button>
             </div>
-            {field('organization', 'Organization')}
-            {field('phone', 'Phone Number')}
-            <div className="md:col-span-2">
-              <AddressSelector
-                value={{
-                  address: editForm.address || '',
-                  country: editForm.country || 'US',
-                  state: editForm.state || '',
-                  city: editForm.city || '',
-                  zip: editForm.zip || '',
-                }}
-                onChange={v => setEditForm(f => ({ ...f, address: v.address, country: v.country, state: v.state, city: v.city, zip: v.zip }))}
-                inputClass="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                labelClass="block text-sm font-medium text-gray-700 mb-1.5"
-              />
-            </div>
-            {field('website', 'Website')}
           </div>
 
-          {editSuccess && (
-            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
-              ✅ Changes saved successfully.
-            </div>
-          )}
+          {/* RIGHT — Change Password */}
+          <div className="bg-white border border-gray-200 rounded-xl p-6">
+            <h3 className="font-semibold text-gray-800 mb-1 pb-3 border-b border-gray-100">Change Password</h3>
+            <p className="text-gray-500 text-sm mb-5 mt-3">
+              {isOwnAccount
+                ? 'Changing your own password requires your current password.'
+                : `Set a new password for ${selectedUser.name}. They will receive an email notification.`
+              }
+            </p>
 
-          <div className="flex gap-3">
-            <button onClick={() => setSubView('view')} className="px-5 py-2.5 border border-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition text-sm">
-              Cancel
-            </button>
-            <button onClick={saveEdit} disabled={editSaving} className="px-5 py-2.5 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition disabled:opacity-50 text-sm">
-              {editSaving ? 'Saving...' : 'Save Changes'}
+            <div className="space-y-4">
+              {/* Current password — only shown when admin is editing their OWN account */}
+              {isOwnAccount && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Current Password *</label>
+                  <div className="relative">
+                    <input
+                      type={showPwCurrent ? 'text' : 'password'}
+                      value={pwForm.current}
+                      onChange={e => setPwForm(f => ({ ...f, current: e.target.value }))}
+                      placeholder="Enter your current password"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10"
+                    />
+                    <button type="button" onClick={() => setShowPwCurrent(s => !s)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                      {showPwCurrent ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">New Password *</label>
+                <div className="relative">
+                  <input
+                    type={showPwNew ? 'text' : 'password'}
+                    value={pwForm.newPw}
+                    onChange={e => setPwForm(f => ({ ...f, newPw: e.target.value }))}
+                    placeholder="Min. 6 characters"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10"
+                  />
+                  <button type="button" onClick={() => setShowPwNew(s => !s)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                    {showPwNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                {/* Password strength hint */}
+                {pwForm.newPw && (
+                  <div className="mt-1.5 flex items-center gap-2">
+                    <div className="flex gap-1">
+                      {[1,2,3,4].map(i => (
+                        <div key={i} className={`h-1 w-8 rounded-full ${
+                          pwForm.newPw.length >= i * 3
+                            ? i <= 1 ? 'bg-red-400' : i <= 2 ? 'bg-orange-400' : i <= 3 ? 'bg-yellow-400' : 'bg-green-500'
+                            : 'bg-gray-200'
+                        }`} />
+                      ))}
+                    </div>
+                    <span className="text-xs text-gray-400">
+                      {pwForm.newPw.length < 4 ? 'Too short' : pwForm.newPw.length < 7 ? 'Weak' : pwForm.newPw.length < 10 ? 'Fair' : 'Strong'}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Confirm New Password *</label>
+                <div className="relative">
+                  <input
+                    type={showPwConfirm ? 'text' : 'password'}
+                    value={pwForm.confirm}
+                    onChange={e => setPwForm(f => ({ ...f, confirm: e.target.value }))}
+                    placeholder="Re-enter new password"
+                    className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10 ${
+                      pwForm.confirm && pwForm.newPw !== pwForm.confirm
+                        ? 'border-red-300 bg-red-50'
+                        : 'border-gray-300'
+                    }`}
+                  />
+                  <button type="button" onClick={() => setShowPwConfirm(s => !s)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                    {showPwConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                {pwForm.confirm && pwForm.newPw !== pwForm.confirm && (
+                  <p className="text-xs text-red-500 mt-1">Passwords do not match</p>
+                )}
+              </div>
+            </div>
+
+            <div className="mt-6 pt-4 border-t border-gray-100">
+              <button
+                onClick={changePasswordForUser}
+                disabled={pwSaving || !pwForm.newPw || !pwForm.confirm || pwForm.newPw !== pwForm.confirm}
+                className="w-full py-2.5 bg-gray-900 text-white font-semibold rounded-lg hover:bg-gray-700 transition disabled:opacity-40 text-sm"
+              >
+                {pwSaving ? 'Updating Password...' : 'Update Password'}
+              </button>
+              <p className="text-xs text-gray-400 text-center mt-3">
+                {isOwnAccount
+                  ? 'A confirmation email will be sent to your address.'
+                  : `A notification email will be sent to ${selectedUser.email}.`
+                }
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    );
+  }
             </button>
           </div>
         </div>

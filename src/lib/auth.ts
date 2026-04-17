@@ -3,7 +3,7 @@
 // Simple password-based auth stored in Supabase
 // NOTE: For production, migrate to Supabase Auth for proper security
 
-import { getUserByEmail, createUser, updateUser } from './supabase';
+import { getUserByEmail, getUserById, createUser, updateUser } from './supabase';
 import { dbUserToApp } from './supabase';
 import type { User, UserRole } from '@/types';
 
@@ -460,4 +460,40 @@ export async function createAllDemoAccounts(): Promise<DemoAccountResult[]> {
   }
 
   return results;
+}
+
+// ============================================================
+// CHANGE PASSWORD
+// ============================================================
+
+export async function changePassword(opts: {
+  userId: string;
+  currentPassword?: string;       // required when changing own password
+  newPassword: string;
+  isAdminOverride?: boolean;       // true when admin changes someone else's password
+}): Promise<{ success: boolean; error: string | null }> {
+  const { userId, currentPassword, newPassword, isAdminOverride } = opts;
+
+  if (newPassword.length < 6) {
+    return { success: false, error: 'New password must be at least 6 characters.' };
+  }
+
+  // If not an admin override, verify the current password first
+  if (!isAdminOverride) {
+    if (!currentPassword) {
+      return { success: false, error: 'Current password is required.' };
+    }
+    const { data } = await getUserById(userId);
+    if (!data?.[0]) return { success: false, error: 'User not found.' };
+    if (!verifyPassword(currentPassword, data[0].password_hash || '')) {
+      return { success: false, error: 'Current password is incorrect.' };
+    }
+  }
+
+  const { error } = await updateUser(userId, {
+    password_hash: hashPassword(newPassword),
+  });
+
+  if (error) return { success: false, error };
+  return { success: true, error: null };
 }
