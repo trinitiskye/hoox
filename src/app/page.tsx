@@ -52,6 +52,14 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState('home');
+
+  // Persist view in sessionStorage so browser refresh restores position
+  const navigate = useCallback((v: string) => {
+    setView(v);
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('hoox_view', v);
+    }
+  }, []);
   const [searchParams, setSearchParams] = useState<SearchParams>({ type: 'all', query: '' });
 
   useEffect(() => {
@@ -65,7 +73,14 @@ export default function App() {
         setTournaments(t); setUsers(u); setSubmissions(s);
         setRegistrations(r); setSeries(sr);
         const session = getSession();
-        if (session) setCurrentUser(session);
+        if (session) {
+          setCurrentUser(session);
+          // Restore last view so browser refresh doesn't lose position
+          if (typeof window !== 'undefined') {
+            const savedView = sessionStorage.getItem('hoox_view');
+            if (savedView) setView(savedView);
+          }
+        }
       } catch (err) {
         setError('Failed to connect to database.');
       } finally {
@@ -83,15 +98,14 @@ export default function App() {
   const handleLogout = useCallback(() => {
     setCurrentUser(null);
     clearSession();
+    if (typeof window !== 'undefined') sessionStorage.removeItem('hoox_view');
     setView('home');
   }, []);
 
   const handleSearch = useCallback((params: SearchParams) => {
     setSearchParams(params);
-    setView('search-results');
-  }, []);
-
-  const navigate = useCallback((v: string) => setView(v), []);
+    navigate('search-results');
+  }, [navigate]);
 
   if (isLoading) {
     return (

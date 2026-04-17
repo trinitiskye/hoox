@@ -80,6 +80,14 @@ export default function Header({ currentUser, onNavigate, onLogout }: HeaderProp
               <span className="text-sm text-gray-700 hidden sm:inline">
                 Welcome, <span className="font-semibold">{currentUser.name}</span>
               </span>
+              {currentUser.role === 'admin' && (
+                <button
+                  onClick={() => onNavigate('admin-dashboard')}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm transition"
+                >
+                  Dashboard
+                </button>
+              )}
               <button
                 onClick={onLogout}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium text-sm transition"
