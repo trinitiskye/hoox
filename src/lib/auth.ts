@@ -163,6 +163,7 @@ export async function registerAngler(data: {
     banner_image: null,
     banner_start_date: null,
     banner_end_date: null,
+    country: null,
   });
 
   if (error || !created?.[0]) return { user: null, error: error || 'Registration failed.' };
@@ -207,6 +208,7 @@ export async function registerDirector(data: {
     banner_image: null,
     banner_start_date: null,
     banner_end_date: null,
+    country: null,
   });
 
   if (error || !created?.[0]) return { user: null, error: error || 'Registration failed.' };
@@ -269,6 +271,7 @@ export async function registerJudge(data: {
     banner_image: null,
     banner_start_date: null,
     banner_end_date: null,
+    country: null,
   });
 
   if (error || !created?.[0]) {
@@ -325,6 +328,7 @@ export async function registerPartner(data: {
     banner_image: null,
     banner_start_date: null,
     banner_end_date: null,
+    country: null,
   });
 
   if (error || !created?.[0]) return { user: null, error: error || 'Registration failed.' };
@@ -360,6 +364,7 @@ export async function createDemoAdmin(): Promise<{ success: boolean; error: stri
     address: null, city: null, state: null, zip: null,
     phone: null, website: null, avatar: null, message: null,
     banner_image: null, banner_start_date: null, banner_end_date: null,
+    country: null,
   });
 
   if (error) return { success: false, error };
@@ -444,6 +449,7 @@ export async function createAllDemoAccounts(): Promise<DemoAccountResult[]> {
         address: null, city: null, state: null, zip: null,
         phone: null, website: null, avatar: null,
         banner_image: null, banner_start_date: null, banner_end_date: null,
+    country: null,
       });
       results.push({
         email: account.email,
