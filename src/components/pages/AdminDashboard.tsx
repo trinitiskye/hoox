@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Users, Trophy, BarChart3, Image, Settings, LogOut, Globe,
   Fish, Shield, DollarSign, Calendar, FileEdit, Heart,
@@ -560,7 +560,7 @@ function UsersTab({ users, onRefresh, currentUser }: { users: User[]; onRefresh:
         </div>
 
         {/* Two-column layout */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
           {/* LEFT — User Information */}
           <div className="bg-white border border-gray-200 rounded-xl p-6">
@@ -737,12 +737,6 @@ function UsersTab({ users, onRefresh, currentUser }: { users: User[]; onRefresh:
             </div>
           </div>
 
-        </div>
-      </div>
-    );
-  }
-            </button>
-          </div>
         </div>
       </div>
     );
