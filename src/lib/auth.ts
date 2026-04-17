@@ -271,7 +271,6 @@ export async function registerJudge(data: {
     banner_image: null,
     banner_start_date: null,
     banner_end_date: null,
-    country: null,
   });
 
   if (error || !created?.[0]) {
