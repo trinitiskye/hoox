@@ -53,10 +53,13 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState('home');
 
-  // Persist view in sessionStorage so browser refresh restores position
+  // Sync view to URL hash using replaceState (no new history entries)
+  // This lets refresh restore your position without the back button navigating away
   const navigate = useCallback((v: string) => {
     setView(v);
     if (typeof window !== 'undefined') {
+      const hash = v === 'home' ? window.location.pathname : `${window.location.pathname}#${v}`;
+      window.history.replaceState({ view: v }, '', hash);
       sessionStorage.setItem('hoox_view', v);
     }
   }, []);
@@ -75,9 +78,10 @@ export default function App() {
         const session = getSession();
         if (session) {
           setCurrentUser(session);
-          // Restore last view so browser refresh doesn't lose position
           if (typeof window !== 'undefined') {
-            const savedView = sessionStorage.getItem('hoox_view');
+            // Prefer URL hash, fall back to sessionStorage
+            const hashView = window.location.hash.replace('#', '');
+            const savedView = hashView || sessionStorage.getItem('hoox_view');
             if (savedView) setView(savedView);
           }
         }
@@ -98,7 +102,10 @@ export default function App() {
   const handleLogout = useCallback(() => {
     setCurrentUser(null);
     clearSession();
-    if (typeof window !== 'undefined') sessionStorage.removeItem('hoox_view');
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('hoox_view');
+      window.history.replaceState({}, '', window.location.pathname);
+    }
     setView('home');
   }, []);
 
