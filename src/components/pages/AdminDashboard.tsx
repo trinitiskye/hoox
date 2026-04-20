@@ -5,7 +5,12 @@ import {
   Users, Trophy, BarChart3, Image, Settings, LogOut, Globe,
   Fish, Shield, DollarSign, Calendar, FileEdit, Heart,
   ChevronDown, TrendingUp, Scale, Megaphone, FlaskConical,
-  Eye, EyeOff, Pencil, Trash2, Pause, Play, ShieldOff, ShieldCheck
+  Eye, EyeOff, Pencil, Trash2, Pause, Play, ShieldOff, ShieldCheck,
+  Plus, Edit2, Search, Filter, MapPin, Clock, CheckCircle, XCircle,
+  Database, Lock, BarChart2, CreditCard, Tag, Package, Building2,
+  Layers, BookOpen, Video, FileText, ChevronLeft, ChevronRight,
+  ExternalLink, Activity, PauseCircle, X, Check, Upload,
+  Award, UserCheck, Star, AlertCircle
 } from 'lucide-react';
 import { User, Tournament, Series, Submission } from '@/types';
 import { fetchUsers, fetchTournaments, fetchSeries, fetchSubmissions } from '@/lib/storage';
@@ -119,11 +124,21 @@ export default function AdminDashboard({ currentUser, onNavigate, onLogout }: Ad
             loading={loading} onTabChange={setActiveTab}
           />
         )}
-        {activeTab === 'Users' && <UsersTab key={usersTabKey} users={users} onRefresh={() => fetchUsers().then(setUsers)} currentUser={currentUser} />}
+        {activeTab === 'Users' && <UsersTab key={usersTabKey} users={users} onRefresh={() => { fetchUsers().then(setUsers); }} currentUser={currentUser} />}
         {activeTab === 'Tournaments' && <TournamentsTab tournaments={tournaments} />}
         {activeTab === 'Catch Submissions' && <SubmissionsTab submissions={submissions} />}
         {activeTab === 'Partners' && <PartnersTab partners={partners} />}
-        {activeTab !== 'Dashboard' && activeTab !== 'Users' && activeTab !== 'Tournaments' && activeTab !== 'Catch Submissions' && activeTab !== 'Partners' && (
+        {activeTab === 'Clubs' && <ClubsTab />}
+        {activeTab === 'Series' && <SeriesTab series={series} />}
+        {activeTab === 'Events' && <EventsTab />}
+        {activeTab === 'Advertising' && <AdvertisingTab />}
+        {activeTab === 'Monetization' && <MonetizationTab />}
+        {activeTab === 'CMS' && <CMSTab />}
+        {activeTab === 'Settings' && <SettingsTab />}
+        {activeTab !== 'Dashboard' && activeTab !== 'Users' && activeTab !== 'Tournaments' &&
+         activeTab !== 'Catch Submissions' && activeTab !== 'Partners' && activeTab !== 'Clubs' &&
+         activeTab !== 'Series' && activeTab !== 'Events' && activeTab !== 'Advertising' &&
+         activeTab !== 'Monetization' && activeTab !== 'CMS' && activeTab !== 'Settings' && (
           <ComingSoonTab tab={activeTab} />
         )}
       </main>
@@ -871,76 +886,201 @@ function UsersTab({ users, onRefresh, currentUser }: { users: User[]; onRefresh:
 // TOURNAMENTS TAB
 // ============================================================
 function TournamentsTab({ tournaments }: { tournaments: Tournament[] }) {
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const stats = [
+    { label: 'Total Tournaments', value: tournaments.length, sub: 'All tournaments', icon: Trophy, color: 'text-gray-400' },
+    { label: 'Upcoming', value: tournaments.filter(t => t.status === 'upcoming').length, sub: 'Not yet started', icon: Clock, color: 'text-blue-400' },
+    { label: 'Active', value: tournaments.filter(t => t.status === 'active').length, sub: 'In progress', icon: Activity, color: 'text-green-400' },
+    { label: 'Completed', value: tournaments.filter(t => t.status === 'completed').length, sub: 'Finished tournaments', icon: CheckCircle, color: 'text-gray-400' },
+  ];
+
+  const getDaysInMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  const getFirstDayOfMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+  const daysInMonth = getDaysInMonth(currentMonth);
+  const firstDay = getFirstDayOfMonth(currentMonth);
+  const today = new Date();
+  const monthName = currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Tournament Management</h2>
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b border-gray-200">
-            <tr>
-              {['Name', 'Location', 'Date', 'Status', 'Created By'].map(h => (
-                <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {tournaments.length === 0 ? (
-              <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-400">No tournaments yet</td></tr>
-            ) : tournaments.map(t => (
-              <tr key={t.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 font-medium text-gray-900">{t.name}</td>
-                <td className="px-4 py-3 text-gray-600">{t.city}, {t.state}</td>
-                <td className="px-4 py-3 text-gray-600">{t.startDate}</td>
-                <td className="px-4 py-3">
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                    t.status === 'active' ? 'bg-green-100 text-green-700' :
-                    t.status === 'completed' ? 'bg-gray-100 text-gray-600' :
-                    'bg-blue-100 text-blue-700'
-                  }`}>{t.status || 'upcoming'}</span>
-                </td>
-                <td className="px-4 py-3 text-gray-600">{t.createdBy}</td>
-              </tr>
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Tournament Management</h2>
+          <p className="text-gray-500 text-sm mt-0.5">Oversee all tournaments, review settings, and monitor activity</p>
+        </div>
+        <div className="flex gap-2">
+          <button className="flex items-center gap-2 px-4 py-2.5 bg-gray-900 text-white rounded-lg text-sm font-semibold hover:bg-gray-700 transition">
+            <Plus className="w-4 h-4" /> Add a Tournament
+          </button>
+          <button className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition">
+            <UserCheck className="w-4 h-4" /> Register Angler
+          </button>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {stats.map(s => (
+          <div key={s.label} className="bg-white border border-gray-200 rounded-xl p-5">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm text-gray-500">{s.label}</span>
+              <s.icon className={`w-5 h-5 ${s.color}`} />
+            </div>
+            <div className="text-3xl font-bold text-gray-900 mb-1">{s.value}</div>
+            <div className="text-xs text-gray-400">{s.sub}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Calendar + List */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Calendar */}
+        <div className="bg-white border border-gray-200 rounded-xl p-5">
+          <div className="flex items-center justify-between mb-4">
+            <button onClick={() => setCurrentMonth(m => new Date(m.getFullYear(), m.getMonth()-1))} className="p-1.5 hover:bg-gray-100 rounded-lg transition">
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <span className="font-semibold text-gray-900">{monthName}</span>
+            <button onClick={() => setCurrentMonth(m => new Date(m.getFullYear(), m.getMonth()+1))} className="p-1.5 hover:bg-gray-100 rounded-lg transition">
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="grid grid-cols-7 gap-1 mb-2">
+            {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => (
+              <div key={d} className="text-center text-xs font-medium text-gray-400 py-1">{d}</div>
             ))}
-          </tbody>
-        </table>
+          </div>
+          <div className="grid grid-cols-7 gap-1">
+            {Array.from({ length: firstDay }).map((_, i) => <div key={`e${i}`} />)}
+            {Array.from({ length: daysInMonth }).map((_, i) => {
+              const day = i + 1;
+              const isToday = today.getDate() === day && today.getMonth() === currentMonth.getMonth() && today.getFullYear() === currentMonth.getFullYear();
+              return (
+                <div key={day} className={`text-center text-sm py-1.5 rounded-lg cursor-pointer transition ${isToday ? 'bg-blue-600 text-white font-bold' : 'text-gray-700 hover:bg-gray-100'}`}>
+                  {day}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Tournament List */}
+        <div className="bg-white border border-gray-200 rounded-xl p-5">
+          <h3 className="font-semibold text-gray-900 mb-4">Tournaments ({tournaments.length})</h3>
+          {tournaments.length === 0 ? (
+            <div className="text-center py-12 text-gray-400">
+              <Trophy className="w-10 h-10 mx-auto mb-3 opacity-30" />
+              <p className="text-sm">No tournaments yet</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {tournaments.map(t => (
+                <div key={t.id} className="border border-gray-100 rounded-xl p-4 hover:border-gray-200 transition">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="font-semibold text-gray-900 mb-1">{t.name}</div>
+                      <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
+                        <Calendar className="w-3 h-3" /> {t.startDate}
+                      </div>
+                      <div className="flex items-center gap-1 text-xs text-gray-500 mb-2">
+                        <MapPin className="w-3 h-3" /> {t.city}, {t.state}
+                      </div>
+                      {t.createdBy && <div className="flex items-center gap-1 text-xs text-gray-400"><Users className="w-3 h-3" /> {t.createdBy}</div>}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${t.status === 'active' ? 'bg-green-100 text-green-700' : t.status === 'completed' ? 'bg-gray-100 text-gray-600' : 'bg-blue-100 text-blue-700'}`}>
+                        {t.status || 'upcoming'}
+                      </span>
+                      <button className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"><Edit2 className="w-3.5 h-3.5" /></button>
+                      <button className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"><Trash2 className="w-3.5 h-3.5" /></button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
 }
 
 // ============================================================
-// SUBMISSIONS TAB
+// CATCH SUBMISSIONS TAB
 // ============================================================
 function SubmissionsTab({ submissions }: { submissions: Submission[] }) {
+  const [sortField, setSortField] = useState('');
+  const [sortDir, setSortDir] = useState<'asc'|'desc'>('asc');
+
+  const toggleSort = (field: string) => {
+    if (sortField === field) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortField(field); setSortDir('asc'); }
+  };
+
+  const SortIcon = ({ field }: { field: string }) => (
+    <span className="ml-1 inline-flex flex-col" onClick={() => toggleSort(field)}>
+      <ChevronRight className={`w-3 h-3 -rotate-90 ${sortField === field && sortDir === 'asc' ? 'text-blue-500' : 'text-gray-300'}`} />
+    </span>
+  );
+
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Catch Submissions</h2>
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b border-gray-200">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Catch Submissions</h2>
+          <p className="text-gray-500 text-sm mt-0.5">View all tournaments and submit catches</p>
+        </div>
+      </div>
+
+      <div className="bg-white border border-gray-200 rounded-xl overflow-x-auto">
+        <table className="w-full text-sm min-w-[700px]">
+          <thead className="border-b border-gray-200">
             <tr>
-              {['Angler', 'Species', 'Size', 'Tournament', 'Status', 'Submitted'].map(h => (
-                <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">{h}</th>
-              ))}
+              <th className="px-5 py-3.5 text-left text-sm font-semibold text-blue-600 cursor-pointer" onClick={() => toggleSort('tournament')}>
+                Tournament <SortIcon field="tournament" />
+              </th>
+              <th className="px-5 py-3.5 text-left text-sm font-semibold text-blue-600 cursor-pointer" onClick={() => toggleSort('regCutoff')}>
+                Reg Cutoff <SortIcon field="regCutoff" />
+              </th>
+              <th className="px-5 py-3.5 text-left text-sm font-semibold text-blue-600 cursor-pointer" onClick={() => toggleSort('start')}>
+                Start <span className="ml-1 text-blue-400">↑</span>
+              </th>
+              <th className="px-5 py-3.5 text-left text-sm font-semibold text-blue-600 cursor-pointer" onClick={() => toggleSort('end')}>
+                End <SortIcon field="end" />
+              </th>
+              <th className="px-5 py-3.5 text-left text-sm font-semibold text-blue-600 cursor-pointer" onClick={() => toggleSort('lotw')}>
+                LOTW <SortIcon field="lotw" />
+              </th>
+              <th className="px-5 py-3.5 text-right text-sm font-semibold text-blue-600">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {submissions.length === 0 ? (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400">No submissions yet</td></tr>
+              <tr>
+                <td colSpan={6} className="px-5 py-16 text-center">
+                  <Fish className="w-10 h-10 mx-auto mb-3 text-gray-200" />
+                  <p className="text-gray-400 text-sm">No catch submissions yet</p>
+                </td>
+              </tr>
             ) : submissions.map(s => (
               <tr key={s.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 font-medium text-gray-900">{s.angler}</td>
-                <td className="px-4 py-3 text-gray-600">{s.species}</td>
-                <td className="px-4 py-3 text-gray-600">{s.size}"</td>
-                <td className="px-4 py-3 text-gray-600 text-xs">{s.tournamentId.slice(0, 8)}...</td>
-                <td className="px-4 py-3">
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                    s.status === 'approved' ? 'bg-green-100 text-green-700' :
-                    s.status === 'denied' ? 'bg-red-100 text-red-700' :
-                    'bg-yellow-100 text-yellow-700'
-                  }`}>{s.status}</span>
+                <td className="px-5 py-4">
+                  <div className="font-semibold text-gray-900">{s.tournamentId}</div>
+                  <div className="text-xs text-gray-500 mt-0.5">{s.angler}</div>
+                  <div className="flex gap-1.5 mt-1.5">
+                    <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">{s.status}</span>
+                  </div>
                 </td>
-                <td className="px-4 py-3 text-gray-500">{new Date(s.submittedAt).toLocaleDateString()}</td>
+                <td className="px-5 py-4 text-sm text-gray-600">—</td>
+                <td className="px-5 py-4 text-sm text-gray-600">{new Date(s.submittedAt).toLocaleDateString()}</td>
+                <td className="px-5 py-4 text-sm text-gray-600">—</td>
+                <td className="px-5 py-4 text-sm text-gray-500">N/A</td>
+                <td className="px-5 py-4 text-right">
+                  <div className="flex items-center justify-end gap-2">
+                    <button className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition"><Eye className="w-4 h-4" /></button>
+                    <button className="p-1.5 text-blue-400 hover:bg-blue-50 rounded-lg transition"><Fish className="w-4 h-4" /></button>
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -990,8 +1130,721 @@ function PartnersTab({ partners }: { partners: User[] }) {
 }
 
 // ============================================================
-// COMING SOON TAB
+// CLUBS TAB
 // ============================================================
+function ClubsTab() {
+  const [search, setSearch] = useState('');
+  const clubs = [
+    { name: 'All American Kayak Classic', city: 'Clinton', state: 'MS', country: 'USA', director: 'N/A', website: null },
+    { name: 'All Star Fishing Kayak Div.', city: 'Texas', state: 'TX', country: 'USA', director: 'N/A', website: null },
+    { name: 'Appalachian FFL', city: 'Appalachia', state: 'Multi-State', country: 'USA', director: 'N/A', website: null },
+    { name: 'B.A.S.S. Nation Kayak Series', city: 'Various', state: 'National', country: 'USA', director: 'N/A', website: null },
+    { name: 'BMA Mount Kayak Bass Fishing', city: 'Louisiana', state: 'LA', country: 'USA', director: 'N/A', website: null },
+    { name: 'BASSMASTER College Kayak Series', city: 'Various', state: 'National', country: 'USA', director: 'N/A', website: null },
+    { name: 'Bassmaster Parks and Recreation', city: 'Georgia', state: 'GA', country: 'USA', director: 'N/A', website: null },
+    { name: 'Bassgrabbers Tournament Trail', city: 'Various', state: 'Multi-State', country: 'USA', director: 'N/A', website: null },
+    { name: 'Testing New Club Name', city: 'Folsom', state: 'CA', country: 'USA', director: 'Test Director', website: 'Visit' },
+  ];
+
+  const filtered = clubs.filter(c =>
+    c.name.toLowerCase().includes(search.toLowerCase()) ||
+    c.city.toLowerCase().includes(search.toLowerCase()) ||
+    c.state.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Clubs Management</h2>
+          <p className="text-gray-500 text-sm mt-0.5">Manage fishing clubs and organizations</p>
+        </div>
+        <button className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition">
+          <Plus className="w-4 h-4" /> Add Club
+        </button>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="bg-white border border-gray-200 rounded-xl p-5">
+          <div className="text-3xl font-bold text-gray-900 mb-1">{clubs.length}</div>
+          <div className="text-sm text-gray-500">Total Clubs</div>
+        </div>
+        <div className="bg-white border border-gray-200 rounded-xl p-5">
+          <div className="text-3xl font-bold text-blue-600 mb-1">28</div>
+          <div className="text-sm text-gray-500">States Represented</div>
+        </div>
+        <div className="bg-white border border-gray-200 rounded-xl p-5">
+          <div className="text-3xl font-bold text-gray-900 mb-1">0</div>
+          <div className="text-sm text-gray-500">Total Members</div>
+        </div>
+      </div>
+
+      {/* Search */}
+      <div className="flex gap-3 mb-4">
+        <div className="relative flex-1 max-w-xs">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search clubs..."
+            className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500" />
+        </div>
+        <button className="flex items-center gap-1.5 px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition">
+          <Filter className="w-4 h-4" /> Filter
+        </button>
+      </div>
+
+      <div className="bg-white border border-gray-200 rounded-xl overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="border-b border-gray-200">
+            <tr>
+              {['Club Name', 'City', 'State', 'Country', 'Club Director', 'Website', 'Actions'].map(h => (
+                <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {filtered.map((c, i) => (
+              <tr key={i} className="hover:bg-gray-50">
+                <td className="px-4 py-3 font-medium text-blue-600 hover:underline cursor-pointer">{c.name}</td>
+                <td className="px-4 py-3 text-gray-600">{c.city}</td>
+                <td className="px-4 py-3 text-gray-600">{c.state}</td>
+                <td className="px-4 py-3 text-gray-600">{c.country}</td>
+                <td className="px-4 py-3 text-gray-500">{c.director}</td>
+                <td className="px-4 py-3">
+                  {c.website && <span className="text-blue-600 text-xs hover:underline cursor-pointer">{c.website}</span>}
+                </td>
+                <td className="px-4 py-3">
+                  <div className="flex gap-1.5">
+                    <button className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"><Pencil className="w-3.5 h-3.5" /></button>
+                    <button className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"><Trash2 className="w-3.5 h-3.5" /></button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <div className="px-4 py-3 border-t border-gray-100 text-xs text-gray-400">
+          Showing {filtered.length} of {clubs.length} clubs
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// SERIES TAB
+// ============================================================
+function SeriesTab({ series }: { series: Series[] }) {
+  const [activeFilter, setActiveFilter] = useState('All Series');
+  const filters = ['All Series', 'Current Series', 'Upcoming Series', 'Past Series'];
+
+  const stats = [
+    { label: 'Total Series', value: series.length, sub: 'All series', icon: TrendingUp },
+    { label: 'Active Series', value: series.length, sub: 'Active status', icon: Calendar },
+    { label: 'In Progress', value: 0, sub: 'Currently running', icon: Clock },
+    { label: 'Total Participants', value: 0, sub: 'Across all series', icon: Users },
+  ];
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Series Management</h2>
+          <p className="text-gray-500 text-sm mt-0.5">Manage tournament series, standings, and seasonal configurations</p>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {stats.map(s => (
+          <div key={s.label} className="bg-white border border-gray-200 rounded-xl p-5">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm text-gray-500">{s.label}</span>
+              <s.icon className="w-5 h-5 text-gray-300" />
+            </div>
+            <div className="text-3xl font-bold text-gray-900 mb-1">{s.value}</div>
+            <div className="text-xs text-gray-400">{s.sub}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Series Table */}
+      <div className="bg-white border border-gray-200 rounded-xl mb-6">
+        <div className="p-5 border-b border-gray-100 flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <TrendingUp className="w-4 h-4 text-gray-500" />
+              <span className="font-semibold text-gray-900">All Series</span>
+            </div>
+            <p className="text-gray-500 text-sm">View and manage all tournament series</p>
+          </div>
+          <div className="flex gap-2">
+            <button className="flex items-center gap-1.5 px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition">
+              Check Users DB
+            </button>
+            <button className="flex items-center gap-2 px-4 py-2.5 bg-gray-900 text-white rounded-lg text-sm font-semibold hover:bg-gray-700 transition">
+              <Plus className="w-4 h-4" /> Create Series
+            </button>
+          </div>
+        </div>
+
+        {/* Filter tabs */}
+        <div className="flex border-b border-gray-100 px-5">
+          {filters.map(f => {
+            const count = f === 'All Series' ? series.length : 0;
+            return (
+              <button key={f} onClick={() => setActiveFilter(f)}
+                className={`px-4 py-3 text-sm font-medium border-b-2 transition whitespace-nowrap ${activeFilter === f ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+                {f} {count}
+              </button>
+            );
+          })}
+        </div>
+
+        <table className="w-full text-sm">
+          <thead className="bg-gray-50 border-b border-gray-100">
+            <tr>
+              {['Image', 'Series Name', 'Description', 'Club', 'Start Date', 'End Date', 'Location', 'Actions'].map(h => (
+                <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {series.length === 0 ? (
+              <tr><td colSpan={8} className="px-4 py-12 text-center text-gray-400">No series yet</td></tr>
+            ) : series.map(s => (
+              <tr key={s.id} className="hover:bg-gray-50">
+                <td className="px-4 py-3">
+                  <div className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center">
+                    <Trophy className="w-5 h-5 text-gray-400" />
+                  </div>
+                </td>
+                <td className="px-4 py-3">
+                  <span className="px-1.5 py-0.5 bg-green-100 text-green-700 text-xs rounded mr-1">Active</span>
+                  <div className="font-medium text-blue-600 hover:underline cursor-pointer mt-0.5">{s.name}</div>
+                </td>
+                <td className="px-4 py-3 text-gray-600 text-xs max-w-xs">{s.description || '—'}</td>
+                <td className="px-4 py-3 text-gray-600 text-sm">—</td>
+                <td className="px-4 py-3 text-gray-600 text-sm">{new Date(s.createdAt).toLocaleDateString()}</td>
+                <td className="px-4 py-3 text-gray-600 text-sm">—</td>
+                <td className="px-4 py-3 text-gray-600 text-sm">—</td>
+                <td className="px-4 py-3">
+                  <div className="flex gap-1.5">
+                    <button className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"><Pencil className="w-3.5 h-3.5" /></button>
+                    <button className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"><Trash2 className="w-3.5 h-3.5" /></button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Bottom sections */}
+      {[
+        { icon: Calendar, title: 'Season Schedule', desc: 'Plan and schedule series seasons', empty: 'No schedules configured', btn: 'View Schedule' },
+        { icon: Trophy, title: 'Standings & Points', desc: 'Manage points systems and standings', empty: 'No standings data', btn: 'View Standings' },
+        { icon: Users, title: 'Series Directors', desc: 'Assign directors to manage series', empty: 'No directors assigned', btn: 'Manage Directors' },
+      ].map(section => (
+        <div key={section.title} className="bg-white border border-gray-200 rounded-xl p-6 mb-4">
+          <div className="flex items-center gap-2 mb-1">
+            <section.icon className="w-5 h-5 text-blue-600" />
+            <h3 className="font-semibold text-gray-900">{section.title}</h3>
+          </div>
+          <p className="text-gray-500 text-sm mb-6">{section.desc}</p>
+          <div className="text-center py-6 text-gray-400">
+            <p className="text-sm mb-4">{section.empty}</p>
+            <button className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition">{section.btn}</button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ============================================================
+// EVENTS TAB
+// ============================================================
+function EventsTab() {
+  const events = [
+    { name: "Eastern Main Sportsman's Show", type: 'Expo', status: 'Active', dates: ['Mar 20, 2026', 'Mar 21, 2026', 'Mar 22, 2026'], location: 'University of Main Fieldhouse', city: 'Orono, ME', fees: [{label:'Day Pass Adult', amount:'$10.00'},{label:'Day Pass Child', amount:'$0.00'},{label:'Weekend Pass Adult', amount:'$15.00'}], image: '🎣' },
+  ];
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Events Management</h2>
+          <p className="text-gray-500 text-sm mt-0.5">Manage expos and boat shows</p>
+        </div>
+        <button className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition">
+          <Plus className="w-4 h-4" /> Add Event
+        </button>
+      </div>
+
+      {/* Filters */}
+      <div className="bg-white border border-gray-200 rounded-xl p-4 mb-4">
+        <div className="grid grid-cols-2 gap-4 max-w-sm">
+          <div>
+            <label className="block text-xs font-semibold text-blue-600 mb-1.5">Filter by Type</label>
+            <select className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
+              <option value="">All Types</option>
+              <option>Expo</option>
+              <option>Boat Show</option>
+              <option>Tournament</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-blue-600 mb-1.5">Filter by Status</label>
+            <select className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
+              <option value="">All Status</option>
+              <option>Active</option>
+              <option>Upcoming</option>
+              <option>Completed</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <div className="px-5 py-3.5 border-b border-gray-100">
+          <span className="font-semibold text-gray-900">Events ({events.length})</span>
+        </div>
+        <table className="w-full text-sm">
+          <thead className="bg-gray-50 border-b border-gray-100">
+            <tr>
+              {['Image', 'Event', 'Dates', 'Fees', 'Location', 'Actions'].map(h => (
+                <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {events.map((e, i) => (
+              <tr key={i} className="hover:bg-gray-50">
+                <td className="px-4 py-4">
+                  <div className="w-14 h-14 bg-green-800 rounded-lg flex items-center justify-center text-2xl">{e.image}</div>
+                </td>
+                <td className="px-4 py-4">
+                  <div className="font-medium text-blue-600 hover:underline cursor-pointer mb-1.5">{e.name}</div>
+                  <div className="flex gap-1.5">
+                    <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">{e.type}</span>
+                    <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">{e.status}</span>
+                  </div>
+                </td>
+                <td className="px-4 py-4">
+                  {e.dates.map((d, di) => (
+                    <div key={di} className="flex items-center gap-1.5 text-xs text-gray-600 mb-1">
+                      <Calendar className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                      <span>{d}, 9:00 AM – 8:00 PM</span>
+                    </div>
+                  ))}
+                </td>
+                <td className="px-4 py-4">
+                  {e.fees.map((f, fi) => (
+                    <div key={fi} className="flex items-center gap-1.5 text-xs text-gray-600 mb-1">
+                      <DollarSign className="w-3 h-3 text-green-500 flex-shrink-0" />
+                      <span>{f.label}: <span className="font-semibold text-green-600">{f.amount}</span></span>
+                    </div>
+                  ))}
+                </td>
+                <td className="px-4 py-4 text-sm text-gray-600">
+                  <div className="flex items-start gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-gray-400 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <div>{e.location}</div>
+                      <div className="text-gray-400 text-xs">{e.city}</div>
+                    </div>
+                  </div>
+                </td>
+                <td className="px-4 py-4">
+                  <div className="flex gap-1.5">
+                    <button className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"><Edit2 className="w-3.5 h-3.5" /></button>
+                    <button className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"><Trash2 className="w-3.5 h-3.5" /></button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// ADVERTISING TAB
+// ============================================================
+function AdvertisingTab() {
+  const ads = [
+    { name: 'Wide Skyscraper Advertisement', company: 'Pro Fishing Company', status: 'Active', live: false, category: ['boats'], size: '160 × 600', position: 'Sidebar-Zone-1', start: '2/15/2026, 1:44 PM', end: '3/29/2026, 1:44 PM', url: 'http://www.yahoo.com...', cost: '$200.00' },
+    { name: 'Testing Banner Ad', company: '123 Fishing Company', status: 'Active', live: false, category: ['fishing-gear','tackle'], size: '300 × 250', position: 'Sidebar-Zone-1', start: '2/27/2026, 3:04 PM', end: '3/27/2026, 3:04 PM', url: 'http://www.yahoo.com...', cost: null },
+    { name: 'Testing footer zone 1 banner', company: 'Leaderboard company', status: 'Active', live: true, category: ['kayaks','boats'], size: '728 × 90', position: 'Footer-Zone-1', start: '3/4/2026, 8:11 AM', end: '4/25/2026, 8:11 AM', url: 'https://www.basspro.com...', cost: null },
+    { name: 'Testing footer zone 2 advertising banner', company: 'Footer zone 2 company name', status: 'Active', live: true, category: ['tackle','boats'], size: '728 × 90', position: 'Footer-Zone-2', start: '3/4/2026, 8:45 AM', end: '4/25/2026, 8:45 AM', url: 'http://www.test.com...', cost: null },
+    { name: 'Test Banner Footer Zone 3', company: 'Test Banner', status: 'Active', live: true, category: ['fishing-gear'], size: '728 × 90', position: 'Footer-Zone-3', start: '3/4/2026, 9:59 AM', end: '5/4/2026, 9:59 AM', url: 'http://www.test.com...', cost: null },
+  ];
+
+  const totalAds = ads.length;
+  const activeAds = ads.filter(a => a.status === 'Active').length;
+  const liveNow = ads.filter(a => a.live).length;
+  const monthlyRevenue = ads.reduce((sum, a) => sum + (a.cost ? parseInt(a.cost.replace(/\D/g,'')) : 0), 0);
+
+  const statCards = [
+    { label: 'Total Ads', value: totalAds, icon: Image, color: '' },
+    { label: 'Active', value: activeAds, icon: Play, color: 'text-green-500' },
+    { label: 'Paused', value: 0, icon: Pause, color: 'text-yellow-500' },
+    { label: 'Inactive', value: 0, icon: EyeOff, color: 'text-gray-400' },
+    { label: 'Currently Live', value: liveNow, icon: Calendar, color: 'text-blue-500' },
+  ];
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Advertising Management</h2>
+          <p className="text-gray-500 text-sm mt-0.5">Upload and manage banner advertisements for public-facing pages</p>
+        </div>
+        <button className="flex items-center gap-2 px-4 py-2.5 bg-gray-900 text-white rounded-lg text-sm font-semibold hover:bg-gray-700 transition">
+          <Plus className="w-4 h-4" /> Add Advertisement
+        </button>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+        {statCards.map(s => (
+          <div key={s.label} className="bg-white border border-gray-200 rounded-xl p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-gray-500">{s.label}</span>
+              <s.icon className={`w-4 h-4 ${s.color || 'text-gray-300'}`} />
+            </div>
+            <div className="text-2xl font-bold text-gray-900">{s.value}</div>
+          </div>
+        ))}
+        <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs text-green-700">Monthly Revenue</span>
+            <DollarSign className="w-4 h-4 text-green-500" />
+          </div>
+          <div className="text-2xl font-bold text-green-700">${monthlyRevenue.toFixed(2)}</div>
+          <div className="text-xs text-green-600 mt-0.5">From active ads</div>
+        </div>
+      </div>
+
+      {/* Ads List */}
+      <div className="bg-white border border-gray-200 rounded-xl mb-6">
+        <div className="px-5 py-4 border-b border-gray-100">
+          <h3 className="font-semibold text-gray-900">All Advertisements</h3>
+          <p className="text-gray-500 text-sm">Manage banner ads displayed on public-facing pages</p>
+        </div>
+        <div className="divide-y divide-gray-100">
+          {ads.map((ad, i) => (
+            <div key={i} className="px-5 py-4 flex items-start gap-4 hover:bg-gray-50">
+              <div className="w-20 h-16 bg-gray-100 border border-gray-200 rounded-lg flex items-center justify-center text-xs text-gray-400 flex-shrink-0 text-center px-1">
+                {ad.size} pixels
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap mb-1">
+                  <span className="font-semibold text-gray-900">{ad.name}</span>
+                  <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">{ad.status}</span>
+                  {ad.live && <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full flex items-center gap-1">● Live Now</span>}
+                </div>
+                <div className="text-sm text-gray-500 mb-1">Company: <span className="text-gray-700">{ad.company}</span></div>
+                <div className="flex flex-wrap gap-3 text-xs text-gray-500 mb-1">
+                  <span>Category: {ad.category.map(c => <span key={c} className="px-1.5 py-0.5 bg-gray-100 rounded mr-1">{c}</span>)}</span>
+                  <span>Size: {ad.size}</span>
+                  <span>Position: {ad.position}</span>
+                </div>
+                <div className="text-xs text-gray-400 mb-1 flex items-center gap-1"><Calendar className="w-3 h-3" /> Display: {ad.start} → {ad.end}</div>
+                <a href="#" className="text-xs text-blue-600 hover:underline">{ad.url}</a>
+                {ad.cost && <div className="text-xs text-gray-500 mt-0.5">Cost Per Month: <span className="text-green-600 font-semibold">{ad.cost}</span></div>}
+              </div>
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                <button className="flex items-center gap-1 px-2.5 py-1.5 text-blue-600 text-xs border border-blue-200 rounded-lg hover:bg-blue-50 transition"><Eye className="w-3 h-3" /> View</button>
+                <button className="flex items-center gap-1 px-2.5 py-1.5 text-gray-600 text-xs border border-gray-200 rounded-lg hover:bg-gray-50 transition"><Edit2 className="w-3 h-3" /> Edit</button>
+                <button className="flex items-center gap-1 px-2.5 py-1.5 text-yellow-600 text-xs border border-yellow-200 rounded-lg hover:bg-yellow-50 transition"><Pause className="w-3 h-3" /> Pause</button>
+                <button className="flex items-center gap-1 px-2.5 py-1.5 text-gray-500 text-xs border border-gray-200 rounded-lg hover:bg-gray-50 transition"><EyeOff className="w-3 h-3" /> Deactivate</button>
+                <button className="p-1.5 text-red-400 hover:bg-red-50 rounded-lg transition"><Trash2 className="w-3.5 h-3.5" /></button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Hero Images */}
+      <div className="bg-white border border-gray-200 rounded-xl p-5 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="font-semibold text-gray-900">Hero Images</h3>
+            <p className="text-gray-500 text-sm">Manage hero carousel images displayed on the home page</p>
+          </div>
+          <button className="flex items-center gap-2 px-3 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-700 transition">
+            <Plus className="w-3.5 h-3.5" /> Add Hero Image
+          </button>
+        </div>
+        <div className="border-2 border-dashed border-gray-200 rounded-xl py-12 text-center text-gray-400">
+          <Image className="w-8 h-8 mx-auto mb-2 opacity-30" />
+          <p className="text-sm">No hero images created yet</p>
+        </div>
+      </div>
+
+      {/* Banner Info */}
+      <div className="bg-white border border-gray-200 rounded-xl p-5">
+        <h3 className="font-semibold text-gray-900 mb-4">Banner Information</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <h4 className="text-sm font-semibold text-blue-600 mb-3">Ad Status:</h4>
+            <div className="space-y-2 text-sm text-gray-600">
+              <div><span className="text-green-600 font-medium">Active:</span> Ad is eligible to display during scheduled time</div>
+              <div><span className="text-yellow-600 font-medium">Paused:</span> Temporarily stopped, can be resumed</div>
+              <div><span className="text-gray-500 font-medium">Inactive:</span> Completely disabled, not displayed</div>
+            </div>
+          </div>
+          <div>
+            <h4 className="text-sm font-semibold text-blue-600 mb-3">Display Positions:</h4>
+            <div className="space-y-2 text-sm text-gray-600">
+              <div><span className="font-medium">Top Banner:</span> Displayed at the top of pages</div>
+              <div><span className="font-medium">Sidebar:</span> Shown in page sidebars</div>
+              <div><span className="font-medium">Footer:</span> Appears at the bottom of pages</div>
+              <div><span className="font-medium">In-Content:</span> Embedded within page content</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// MONETIZATION TAB
+// ============================================================
+function MonetizationTab() {
+  const [activeTab, setActiveTab] = useState('All Revenue');
+  const tabs = ['All Revenue', 'Tournament Registration Revenue', 'Ad Revenue'];
+
+  const revenueCards = [
+    { title: 'Total Registration Revenue', badge: '0 Registrations', badgeColor: 'bg-purple-100 text-purple-700', amount: '$0.00', sub: '0 registrations × $6.50', color: 'purple', bg: 'bg-purple-50 border-purple-100' },
+    { title: 'YTD Registration Revenue', badge: '0 Registrations', badgeColor: 'bg-teal-100 text-teal-700', amount: '$0.00', sub: '0 registrations × $6.50', color: 'teal', bg: 'bg-teal-50 border-teal-100' },
+    { title: 'APR 2026 Registration Revenue', badge: '0 Registrations', badgeColor: 'bg-orange-100 text-orange-700', amount: '$0.00', sub: '0 registrations × $6.50', color: 'orange', bg: 'bg-orange-50 border-orange-100' },
+    { title: 'Total Ad Revenue', badge: '5 Ads', badgeColor: 'bg-purple-100 text-purple-700', amount: '$400.00', sub: 'All-time ad revenue', color: 'purple', bg: 'bg-purple-50 border-purple-100' },
+    { title: 'YTD Ad Revenue', badge: '5 Ads', badgeColor: 'bg-teal-100 text-teal-700', amount: '$400.00', sub: 'Year-to-date revenue for 2026', color: 'teal', bg: 'bg-teal-50 border-teal-100' },
+    { title: 'APR 2026 Ad Revenue', badge: '3 Ads', badgeColor: 'bg-purple-100 text-purple-700', amount: '$0.00', sub: 'Revenue for current month', color: 'purple', bg: 'bg-purple-50 border-purple-100' },
+  ];
+
+  const toolCards = [
+    { icon: Package, title: 'Pricing Plans', desc: 'Create and manage subscription tiers and pricing', empty: 'No pricing plans configured', btn: 'Create Pricing Plan', btnStyle: 'bg-gray-900 text-white hover:bg-gray-700' },
+    { icon: CreditCard, title: 'Payment Processing', desc: 'Configure payment gateways and processing settings', empty: 'No payment gateway connected', btn: 'Connect Payment Gateway', btnStyle: 'bg-gray-900 text-white hover:bg-gray-700' },
+    { icon: BarChart2, title: 'Revenue Analytics', desc: 'View revenue trends and financial reports', empty: 'No revenue data available', btn: 'View Reports', btnStyle: 'border border-gray-300 text-gray-700 hover:bg-gray-50' },
+    { icon: Users, title: 'Subscription Management', desc: 'Manage user subscriptions and billing', empty: 'No active subscriptions', btn: 'View Subscriptions', btnStyle: 'border border-gray-300 text-gray-700 hover:bg-gray-50' },
+  ];
+
+  const amountColor: Record<string, string> = { purple: 'text-purple-600', teal: 'text-teal-600', orange: 'text-orange-600' };
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Monetization</h2>
+          <p className="text-gray-500 text-sm mt-0.5">Manage pricing, subscriptions, revenue, and payment processing</p>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-1 border-b border-gray-200 mb-6">
+        {tabs.map(t => (
+          <button key={t} onClick={() => setActiveTab(t)}
+            className={`px-4 py-2.5 text-sm font-medium border-b-2 transition ${activeTab === t ? 'border-green-500 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+            {t}
+          </button>
+        ))}
+      </div>
+
+      {/* Revenue Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        {revenueCards.map(c => (
+          <div key={c.title} className={`border rounded-xl p-5 ${c.bg}`}>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-semibold text-gray-800">{c.title}</span>
+              <DollarSign className={`w-5 h-5 ${amountColor[c.color]}`} />
+            </div>
+            <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium mb-3 ${c.badgeColor}`}>{c.badge}</span>
+            <div className={`text-3xl font-bold mb-1 ${amountColor[c.color]}`}>{c.amount}</div>
+            <div className={`text-xs ${amountColor[c.color]} opacity-70`}>{c.sub}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Tool Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {toolCards.map(t => (
+          <div key={t.title} className="bg-white border border-gray-200 rounded-xl p-5">
+            <div className="flex items-center gap-2 mb-2">
+              <t.icon className="w-5 h-5 text-green-600" />
+              <h3 className="font-semibold text-gray-900 text-sm">{t.title}</h3>
+            </div>
+            <p className="text-xs text-gray-500 mb-4">{t.desc}</p>
+            <div className="text-xs text-gray-400 mb-4">{t.empty}</div>
+            <button className={`w-full py-2 rounded-lg text-sm font-medium transition ${t.btnStyle}`}>{t.btn}</button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// CMS TAB
+// ============================================================
+function CMSTab() {
+  const [activeSection, setActiveSection] = useState('Pages');
+  const sections = ['Pages', 'Media Library', 'Content Sections'];
+  const pages = [
+    { title: 'Home', slug: '/', status: 'published', updated: '2/17/2026' },
+    { title: 'Services', slug: '/services', status: 'published', updated: '2/17/2026' },
+    { title: 'Fishing Expos', slug: '/events/expos', status: 'published', updated: '2/17/2026' },
+    { title: 'Sign Up', slug: '/signup-choice', status: 'published', updated: '2/17/2026' },
+    { title: 'Login', slug: '/login', status: 'published', updated: '2/17/2026' },
+  ];
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Website Content Management</h2>
+          <p className="text-gray-500 text-sm mt-0.5">Manage pages, content sections, and media assets across your platform</p>
+        </div>
+        <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+          <FileEdit className="w-6 h-6 text-purple-600" />
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {[
+          { label: 'Total Pages', value: pages.length, sub: `${pages.filter(p=>p.status==='published').length} published`, icon: BookOpen },
+          { label: 'Draft Pages', value: 0, sub: 'Awaiting publication', icon: FileText },
+          { label: 'Media Assets', value: 14, sub: 'Images, videos, files', icon: Image },
+          { label: 'Content Sections', value: 1, sub: 'Across all pages', icon: Layers },
+        ].map(s => (
+          <div key={s.label} className="bg-white border border-gray-200 rounded-xl p-5">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm text-gray-500">{s.label}</span>
+              <s.icon className="w-5 h-5 text-gray-300" />
+            </div>
+            <div className="text-3xl font-bold text-gray-900 mb-1">{s.value}</div>
+            <div className="text-xs text-gray-400">{s.sub}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Section Tabs */}
+      <div className="bg-white border border-gray-200 rounded-xl">
+        <div className="flex border-b border-gray-200">
+          {sections.map(s => (
+            <button key={s} onClick={() => setActiveSection(s)}
+              className={`flex-1 flex items-center justify-center gap-2 py-3.5 text-sm font-medium transition rounded-t-xl ${activeSection === s ? 'bg-white text-gray-900 border-b-2 border-transparent' : 'bg-gray-50 text-gray-500 hover:text-gray-700'}`}>
+              {s === 'Pages' && <BookOpen className="w-4 h-4" />}
+              {s === 'Media Library' && <Image className="w-4 h-4" />}
+              {s === 'Content Sections' && <Settings className="w-4 h-4" />}
+              {s}
+            </button>
+          ))}
+        </div>
+
+        <div className="p-5">
+          {activeSection === 'Pages' && (
+            <>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="font-semibold text-gray-900">Pages Management</h3>
+                  <p className="text-gray-500 text-sm">Create and manage website pages</p>
+                </div>
+                <button className="flex items-center gap-2 px-4 py-2.5 bg-gray-900 text-white rounded-lg text-sm font-semibold hover:bg-gray-700 transition">
+                  <Plus className="w-4 h-4" /> Create New Page
+                </button>
+              </div>
+              <table className="w-full text-sm">
+                <thead className="border-b border-gray-100">
+                  <tr>
+                    {['Title', 'Slug', 'Status', 'Last Updated', 'Actions'].map(h => (
+                      <th key={h} className={`py-3 text-xs font-semibold text-gray-500 uppercase ${h === 'Actions' ? 'text-right' : 'text-left'}`}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {pages.map(p => (
+                    <tr key={p.slug} className="hover:bg-gray-50">
+                      <td className="py-3.5 font-medium text-gray-900">{p.title}</td>
+                      <td className="py-3.5 text-gray-500 font-mono text-xs">{p.slug}</td>
+                      <td className="py-3.5">
+                        <span className="px-2.5 py-1 bg-gray-900 text-white text-xs rounded-full font-medium">{p.status}</span>
+                      </td>
+                      <td className="py-3.5 text-gray-500 text-xs">{p.updated}</td>
+                      <td className="py-3.5 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <button className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"><Eye className="w-3.5 h-3.5" /></button>
+                          <button className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition"><Edit2 className="w-3.5 h-3.5" /></button>
+                          <button className="p-1.5 text-red-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition"><Trash2 className="w-3.5 h-3.5" /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
+          )}
+          {activeSection === 'Media Library' && (
+            <div className="text-center py-16 text-gray-400">
+              <Image className="w-12 h-12 mx-auto mb-3 opacity-20" />
+              <p className="text-sm">Media library coming soon</p>
+              <button className="mt-4 flex items-center gap-2 px-4 py-2.5 bg-gray-900 text-white rounded-lg text-sm font-semibold hover:bg-gray-700 transition mx-auto">
+                <Upload className="w-4 h-4" /> Upload Media
+              </button>
+            </div>
+          )}
+          {activeSection === 'Content Sections' && (
+            <div className="text-center py-16 text-gray-400">
+              <Layers className="w-12 h-12 mx-auto mb-3 opacity-20" />
+              <p className="text-sm">Content sections editor coming soon</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// SETTINGS TAB
+// ============================================================
+function SettingsTab() {
+  const cards = [
+    { icon: BarChart2, color: 'bg-blue-100 text-blue-600', title: 'Reports & Analytics', desc: 'View system analytics, reports, and performance metrics', btn: 'View Analytics' },
+    { icon: Settings, color: 'bg-gray-100 text-gray-600', title: 'Platform Settings', desc: 'Configure platform-wide settings and preferences', btn: 'Manage Settings' },
+    { icon: Database, color: 'bg-blue-100 text-blue-600', title: 'Database Management', desc: 'Manage database, backups, and data integrity', btn: 'Database Tools' },
+    { icon: Lock, color: 'bg-blue-100 text-blue-600', title: 'Security & Access', desc: 'Manage security settings, access controls, and permissions', btn: 'Security Settings' },
+  ];
+
+  return (
+    <div>
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-gray-900">Settings</h2>
+        <p className="text-gray-500 text-sm mt-0.5">Manage platform settings, security, analytics, and database</p>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {cards.map(c => (
+          <div key={c.title} className="bg-white border border-gray-200 rounded-xl p-6">
+            <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-4 ${c.color}`}>
+              <c.icon className="w-5 h-5" />
+            </div>
+            <h3 className="font-bold text-gray-900 mb-2">{c.title}</h3>
+            <p className="text-gray-500 text-sm mb-6 leading-relaxed">{c.desc}</p>
+            <button className="w-full py-2.5 bg-gray-900 text-white rounded-lg text-sm font-semibold hover:bg-gray-700 transition">{c.btn}</button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+
 function ComingSoonTab({ tab }: { tab: string }) {
   return (
     <div className="flex items-center justify-center py-24">
