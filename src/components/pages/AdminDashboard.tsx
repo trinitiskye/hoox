@@ -27,6 +27,7 @@ const NAV_TABS = [
 
 export default function AdminDashboard({ currentUser, onNavigate, onLogout }: AdminDashboardProps) {
   const [activeTab, setActiveTab] = useState('Dashboard');
+  const [usersTabKey, setUsersTabKey] = useState(0);
   const [users, setUsers] = useState<User[]>([]);
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [series, setSeries] = useState<Series[]>([]);
@@ -92,7 +93,10 @@ export default function AdminDashboard({ currentUser, onNavigate, onLogout }: Ad
             {NAV_TABS.map(tab => (
               <button
                 key={tab}
-                onClick={() => setActiveTab(tab)}
+                onClick={() => {
+                  setActiveTab(tab);
+                  if (tab === 'Users') setUsersTabKey(k => k + 1);
+                }}
                 className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition ${
                   activeTab === tab
                     ? 'border-teal-500 text-teal-600'
@@ -115,7 +119,7 @@ export default function AdminDashboard({ currentUser, onNavigate, onLogout }: Ad
             loading={loading} onTabChange={setActiveTab}
           />
         )}
-        {activeTab === 'Users' && <UsersTab users={users} onRefresh={() => fetchUsers().then(setUsers)} currentUser={currentUser} />}
+        {activeTab === 'Users' && <UsersTab key={usersTabKey} users={users} onRefresh={() => fetchUsers().then(setUsers)} currentUser={currentUser} />}
         {activeTab === 'Tournaments' && <TournamentsTab tournaments={tournaments} />}
         {activeTab === 'Catch Submissions' && <SubmissionsTab submissions={submissions} />}
         {activeTab === 'Partners' && <PartnersTab partners={partners} />}
