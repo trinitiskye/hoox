@@ -319,7 +319,7 @@ function DashboardTab({ users, tournaments, series, submissions, directors, judg
 function UsersTab({ users, onRefresh, currentUser }: { users: User[]; onRefresh: () => void; currentUser: User }) {
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
-  const [subView, setSubView] = useState<'list' | 'view' | 'edit'>('list');
+  const [subView, setSubView] = useState<'dashboard' | 'list' | 'view' | 'edit'>('dashboard');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -564,6 +564,8 @@ function UsersTab({ users, onRefresh, currentUser }: { users: User[]; onRefresh:
         <DeleteModal />
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1 text-sm mb-6">
+          <button onClick={() => setSubView('dashboard')} className="text-blue-600 hover:underline">Users</button>
+          <span className="text-gray-300 mx-1">›</span>
           <button onClick={() => setSubView('list')} className="text-blue-600 hover:underline">User Management</button>
           <span className="text-gray-300 mx-1">›</span>
           <button onClick={() => setSubView('view')} className="text-blue-600 hover:underline">{selectedUser.name}</button>
@@ -761,10 +763,126 @@ function UsersTab({ users, onRefresh, currentUser }: { users: User[]; onRefresh:
     );
   }
 
+  // ── User Dashboard ────────────────────────────────────────────────────────
+  if (subView === 'dashboard') {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const activeUsers   = users.filter(u => u.status === 'active');
+    const newThisMonth  = users.filter(u => new Date(u.createdAt) >= thirtyDaysAgo);
+    const admins        = users.filter(u => u.role === 'admin');
+    const directors     = users.filter(u => u.role === 'director');
+    const anglers       = users.filter(u => u.role === 'angler');
+    const judges        = users.filter(u => u.role === 'judge');
+    const partners      = users.filter(u => u.role === 'sponsor');
+
+    const roleCards = [
+      { label: 'System Admins',         value: admins.length,    sub: 'System administrators',   icon: Shield,     filter: 'admin' },
+      { label: 'Tournament Directors',   value: directors.length, sub: 'Tournament directors',     icon: Trophy,     filter: 'director' },
+      { label: 'Anglers',               value: anglers.length,   sub: 'Registered anglers',       icon: Users,      filter: 'angler' },
+      { label: 'Judges',                value: judges.length,    sub: 'Active judges',            icon: Scale,      filter: 'judge' },
+      { label: 'Partners',              value: partners.length,  sub: 'Active partners',          icon: Heart,      filter: 'sponsor' },
+    ];
+
+    const toolCards = [
+      { icon: Users,      color: 'bg-blue-100 text-blue-600',   title: 'User Directory',       desc: 'View and manage all user accounts',                  btn: 'View All Users',      primary: true,  action: () => setSubView('list') },
+      { icon: Shield,     color: 'bg-purple-100 text-purple-600', title: 'Role Management',    desc: 'Assign and modify user roles and permissions',        btn: 'Manage Roles',        primary: false, action: () => {} },
+      { icon: Megaphone,  color: 'bg-teal-100 text-teal-600',   title: 'User Communication',   desc: 'Send notifications and announcements to users',       btn: 'Send Notification',   primary: false, action: () => {} },
+      { icon: Activity,   color: 'bg-green-100 text-green-600', title: 'User Activity',        desc: 'Monitor user activity and engagement',                btn: 'View Activity',       primary: false, action: () => {} },
+    ];
+
+    return (
+      <div>
+        {/* Header */}
+        <div className="flex items-start justify-between mb-6 flex-wrap gap-3">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">User Management</h2>
+            <p className="text-gray-500 text-sm mt-0.5">Manage user accounts, roles, and permissions across the platform</p>
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            {[
+              { label: 'Add a Partner',             filter: 'sponsor' },
+              { label: 'Add a Tournament Director',  filter: 'director' },
+              { label: 'Add a Judge',               filter: 'judge' },
+              { label: 'Add an Angler',             filter: 'angler' },
+            ].map(b => (
+              <button key={b.label} onClick={() => setSubView('list')}
+                className="px-4 py-2.5 bg-gray-900 text-white rounded-lg text-sm font-semibold hover:bg-gray-700 transition whitespace-nowrap">
+                {b.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Top stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
+          {[
+            { label: 'Total Users',     value: users.length,         sub: 'All registered users',      icon: Users,     onClick: () => setSubView('list') },
+            { label: 'Active Users',    value: activeUsers.length,   sub: 'Active in last 30 days',    icon: Activity,  onClick: () => { setRoleFilter('all'); setSubView('list'); } },
+            { label: 'New This Month',  value: newThisMonth.length,  sub: 'New registrations',         icon: UserCheck, onClick: () => setSubView('list') },
+          ].map(s => (
+            <button key={s.label} onClick={s.onClick}
+              className="bg-white border border-gray-200 rounded-xl p-5 text-left hover:border-blue-300 hover:shadow-sm transition group">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm text-gray-500">{s.label}</span>
+                <s.icon className="w-5 h-5 text-gray-300 group-hover:text-blue-400 transition" />
+              </div>
+              <div className="text-3xl font-bold text-gray-900 mb-1 group-hover:text-blue-600 transition">{s.value}</div>
+              <div className="text-xs text-gray-400">{s.sub}</div>
+            </button>
+          ))}
+        </div>
+
+        {/* Role breakdown */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+          {roleCards.map(r => (
+            <button key={r.label} onClick={() => { setRoleFilter(r.filter); setSubView('list'); }}
+              className="bg-white border border-gray-200 rounded-xl p-4 text-left hover:border-blue-300 hover:shadow-sm transition group">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs text-gray-500">{r.label}</span>
+                <r.icon className="w-4 h-4 text-gray-300 group-hover:text-blue-400 transition" />
+              </div>
+              <div className="text-2xl font-bold text-gray-900 mb-1">{r.value}</div>
+              <div className="text-xs text-gray-400">{r.sub}</div>
+            </button>
+          ))}
+        </div>
+
+        {/* Tool cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {toolCards.map(t => (
+            <div key={t.title} className="bg-white border border-gray-200 rounded-xl p-5">
+              <div className="flex items-center gap-2 mb-2">
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${t.color}`}>
+                  <t.icon className="w-4 h-4" />
+                </div>
+                <h3 className="font-semibold text-gray-900 text-sm">{t.title}</h3>
+              </div>
+              <p className="text-gray-500 text-sm mb-5 leading-relaxed">{t.desc}</p>
+              <button onClick={t.action}
+                className={`w-full py-2.5 rounded-lg text-sm font-semibold transition ${
+                  t.primary
+                    ? 'bg-gray-900 text-white hover:bg-gray-700'
+                    : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
+                }`}>
+                {t.btn}
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   // ── User List ─────────────────────────────────────────────────────────────
   return (
     <div>
       <DeleteModal />
+      {/* Breadcrumb */}
+      <nav className="flex items-center gap-1 text-sm mb-5">
+        <button onClick={() => setSubView('dashboard')} className="text-blue-600 hover:underline">Users</button>
+        <span className="text-gray-300 mx-1">›</span>
+        <span className="text-gray-700 font-medium">User Management</span>
+      </nav>
 
       {/* Pending Judge Approvals */}
       {pendingJudges.length > 0 && (
