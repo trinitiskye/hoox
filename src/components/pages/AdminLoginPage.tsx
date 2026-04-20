@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Shield, Eye, EyeOff, Key } from 'lucide-react';
-import { loginAdmin, createDemoAdmin } from '@/lib/auth';
+import { Shield, Eye, EyeOff } from 'lucide-react';
+import { loginAdmin } from '@/lib/auth';
 import { User } from '@/types';
 
 interface AdminLoginPageProps {
@@ -11,20 +11,11 @@ interface AdminLoginPageProps {
 }
 
 export default function AdminLoginPage({ onNavigate, onLogin }: AdminLoginPageProps) {
-  const [email, setEmail] = useState('cher.chronis@gmail.com');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [demoMsg, setDemoMsg] = useState('');
-
-  const handleCreateDemo = async () => {
-    setLoading(true); setDemoMsg('');
-    const { success, error } = await createDemoAdmin();
-    setLoading(false);
-    if (success) { setDemoMsg('✅ Demo admin account ready! Use the credentials above to sign in.'); setPassword('DemoAdmin123!'); }
-    else setDemoMsg('❌ Error: ' + error);
-  };
 
   const handleLogin = async () => {
     if (!email || !password) { setError('Please enter email and password.'); return; }
@@ -39,27 +30,17 @@ export default function AdminLoginPage({ onNavigate, onLogin }: AdminLoginPagePr
     <div className="bg-white flex-grow flex items-center justify-center px-4 py-12">
       <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-sm">
         <div className="flex justify-center mb-4">
-          <div className="w-14 h-14 bg-blue-600 rounded-full flex items-center justify-center">
+          <div className="w-14 h-14 bg-gray-900 rounded-full flex items-center justify-center">
             <Shield className="w-7 h-7 text-white" />
           </div>
         </div>
         <h1 className="text-2xl font-bold text-gray-900 text-center mb-1">System Admin Access</h1>
         <p className="text-gray-500 text-sm text-center mb-6">Administrative login for platform management</p>
 
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
-          <p className="text-blue-700 font-semibold text-sm flex items-center gap-1.5 mb-2"><Key className="w-4 h-4" /> Demo Admin Credentials</p>
-          <p className="text-blue-700 text-sm"><span className="font-semibold">Email:</span> cher.chronis@gmail.com</p>
-          <p className="text-blue-700 text-sm mb-3"><span className="font-semibold">Password:</span> DemoAdmin123!</p>
-          <button onClick={handleCreateDemo} disabled={loading}
-            className="w-full py-2 bg-white border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition disabled:opacity-50">
-            {loading ? 'Creating...' : 'Create Demo Admin Account'}
-          </button>
-          {demoMsg && <p className="text-xs mt-2 text-gray-600">{demoMsg}</p>}
-        </div>
-
         <div className="mb-4">
           <label className="block text-sm font-semibold text-gray-800 mb-1.5">Email Address</label>
           <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+            placeholder="admin@example.com"
             className="w-full px-4 py-3 bg-gray-100 border-0 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white transition" />
         </div>
         <div className="mb-6">
