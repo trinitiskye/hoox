@@ -124,6 +124,12 @@ export default function App() {
   const handleLogin = useCallback((user: User) => {
     setCurrentUser(user);
     setSession(user);
+    // Reset nav stack so back button never returns to login/register screens
+    navStackRef.current = ['home'];
+    if (typeof window !== 'undefined') {
+      // Clear any pre-auth history entries by replacing current state
+      window.history.replaceState({ hoox: true, view: 'home' }, '');
+    }
   }, []);
 
   const handleLogout = useCallback(() => {
