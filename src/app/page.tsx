@@ -193,8 +193,8 @@ export default function App() {
       case 'clubs':              return <ClubsPage onNavigate={navigate} />;
       case 'events':             return <EventsPage onNavigate={navigate} />;
       case 'features':           return <FeaturesPage onNavigate={navigate} />;
-      case 'search-results':     return <HomePage currentUser={currentUser} onNavigate={navigate} searchParams={searchParams} onSearch={handleSearch} />;
-      default:                   return <HomePage currentUser={currentUser} onNavigate={navigate} searchParams={searchParams} onSearch={handleSearch} />;
+      case 'search-results':     return <HomePage tournaments={tournaments} submissions={submissions} users={users} onNavigate={navigate} onSearch={handleSearch} />;
+      default:                   return <HomePage tournaments={tournaments} submissions={submissions} users={users} onNavigate={navigate} onSearch={handleSearch} />;
     }
   };
 
