@@ -1,6 +1,4 @@
 'use client';
-export const runtime = 'edge';
-
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import PublicLayout from '@/components/layout/PublicLayout';
