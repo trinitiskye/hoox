@@ -23,7 +23,12 @@ import EventsPage from '@/components/pages/EventsPage';
 import FeaturesPage from '@/components/pages/FeaturesPage';
 import PartnerPage from '@/components/pages/PartnerPage';
 
-// Breadcrumb definitions for each view
+// Auth views use replaceState — pressing back skips them
+const AUTH_VIEWS = new Set([
+  'login', 'admin-login', 'register', 'register-angler',
+  'register-director', 'register-judge', 'forgot-password', 'sponsor',
+]);
+
 const BREADCRUMBS: Record<string, { label: string; view?: string }[]> = {
   login:              [{ label: 'Login' }],
   'admin-login':      [{ label: 'System Admin Login' }],
@@ -52,16 +57,35 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState('home');
+  const [searchParams, setSearchParams] = useState<SearchParams>({ type: 'all', query: '' });
+
+  // navigate: auth views replace history entry (no back button entry)
+  //           app views push a new entry (back button works)
   const navigate = useCallback((v: string) => {
     setView(v);
     localStorage.setItem('hoox_view', v);
-    if (typeof window !== 'undefined') {
-      // replaceState only — no pushState — so browser back exits the site cleanly
-      window.history.replaceState({ hooxView: v }, '', window.location.pathname);
+    if (typeof window === 'undefined') return;
+    if (AUTH_VIEWS.has(v)) {
+      window.history.replaceState({ view: v }, '');
+    } else {
+      window.history.pushState({ view: v }, '');
     }
   }, []);
-  const [searchParams, setSearchParams] = useState<SearchParams>({ type: 'all', query: '' });
 
+  // popstate: browser back/forward — simply restore the view stored in history state
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    window.history.replaceState({ view: 'home' }, '');
+    const onPopState = (e: PopStateEvent) => {
+      const v = e.state?.view ?? 'home';
+      setView(v);
+      localStorage.setItem('hoox_view', v);
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
+
+  // Load data and restore session on mount
   useEffect(() => {
     async function loadAll() {
       try {
@@ -75,11 +99,11 @@ export default function App() {
         const session = getSession();
         if (session) {
           setCurrentUser(session);
-          if (typeof window !== 'undefined') {
-            const savedView = localStorage.getItem('hoox_view');
-            if (savedView) {
-              setView(savedView);
-              window.history.replaceState({ hooxView: savedView }, '', window.location.pathname);
+          const savedView = localStorage.getItem('hoox_view');
+          if (savedView) {
+            setView(savedView);
+            if (typeof window !== 'undefined') {
+              window.history.replaceState({ view: savedView }, '');
             }
           }
         }
@@ -95,16 +119,20 @@ export default function App() {
   const handleLogin = useCallback((user: User) => {
     setCurrentUser(user);
     setSession(user);
+    // Replace current history entry — auth pages won't be in the back stack
+    if (typeof window !== 'undefined') {
+      window.history.replaceState({ view: 'home' }, '');
+    }
   }, []);
 
   const handleLogout = useCallback(() => {
     setCurrentUser(null);
     clearSession();
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('hoox_view');
-      window.history.replaceState({ hooxView: 'home' }, '', window.location.pathname);
-    }
+    localStorage.removeItem('hoox_view');
     setView('home');
+    if (typeof window !== 'undefined') {
+      window.history.replaceState({ view: 'home' }, '');
+    }
   }, []);
 
   const handleSearch = useCallback((params: SearchParams) => {
@@ -135,7 +163,6 @@ export default function App() {
     );
   }
 
-  // Admin dashboard has its own full layout
   if (view === 'admin-dashboard') {
     if (currentUser?.role === 'admin') {
       return <AdminDashboard currentUser={currentUser} onNavigate={navigate} onLogout={handleLogout} />;
@@ -160,106 +187,24 @@ export default function App() {
       case 'register-director':  return <RegisterDirectorPage onNavigate={navigate} onLogin={handleLogin} />;
       case 'register-judge':     return <RegisterJudgePage onNavigate={navigate} onLogin={handleLogin} />;
       case 'judges':             return <RegisterJudgePage onNavigate={navigate} onLogin={handleLogin} />;
+      case 'sponsor':            return <PartnerPage onNavigate={navigate} />;
       case 'series':             return <SeriesPage onNavigate={navigate} />;
-      case 'tournaments':        return <TournamentsPage tournaments={tournaments} onNavigate={navigate} />;
+      case 'tournaments':        return <TournamentsPage onNavigate={navigate} />;
       case 'clubs':              return <ClubsPage onNavigate={navigate} />;
       case 'events':             return <EventsPage onNavigate={navigate} />;
       case 'features':           return <FeaturesPage onNavigate={navigate} />;
-      case 'sponsor':            return <PartnerPage onNavigate={navigate} />;
-      case 'search-results': {
-        const query = searchParams.query.toLowerCase();
-        const type = searchParams.type;
-        let results: any[] = [];
-        if (type === 'all' || type === 'tournaments') {
-          results = [...results, ...tournaments.filter(t =>
-            t.name.toLowerCase().includes(query) || t.location?.toLowerCase().includes(query)
-          ).map(t => ({ ...t, resultType: 'tournament' }))];
-        }
-        if (type === 'all' || type === 'directors') {
-          results = [...results, ...users.filter(u =>
-            u.role === 'director' && (u.name.toLowerCase().includes(query) || u.organization?.toLowerCase().includes(query))
-          ).map(u => ({ ...u, resultType: 'director' }))];
-        }
-        if (type === 'all' || type === 'anglers') {
-          results = [...results, ...users.filter(u =>
-            u.role === 'angler' && u.name.toLowerCase().includes(query)
-          ).map(u => ({ ...u, resultType: 'angler' }))];
-        }
-        if (type === 'all' || type === 'series') {
-          results = [...results, ...series.filter(s =>
-            s.name.toLowerCase().includes(query)
-          ).map(s => ({ ...s, resultType: 'series' }))];
-        }
-        return (
-          <div className="flex-grow py-8 px-4 md:px-8 max-w-7xl mx-auto w-full">
-            <p className="text-gray-600 mb-6">
-              Showing results for: <span className="font-semibold">{searchParams.query}</span> in{' '}
-              <span className="font-semibold capitalize">{searchParams.type === 'all' ? 'All Categories' : searchParams.type}</span>
-            </p>
-            {results.length === 0 ? (
-              <div className="text-center py-12 bg-white rounded-lg shadow">
-                <p className="text-gray-600 text-lg">No results found</p>
-                <p className="text-gray-500 mt-2">Try adjusting your search criteria</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <p className="text-gray-600 mb-4">Found {results.length} result{results.length !== 1 ? 's' : ''}</p>
-                {results.map((result, i) => (
-                  <div key={`${result.resultType}-${result.id}-${i}`} className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-                    {result.resultType === 'tournament' && (
-                      <div><span className="text-xs font-semibold text-blue-600 uppercase">Tournament</span>
-                        <h3 className="text-xl font-bold text-gray-900 mt-2">{result.name}</h3>
-                        {result.location && <p className="text-gray-600 mt-1">{result.location}</p>}
-                      </div>
-                    )}
-                    {result.resultType === 'director' && (
-                      <div><span className="text-xs font-semibold text-purple-600 uppercase">Tournament Director</span>
-                        <h3 className="text-xl font-bold text-gray-900 mt-2">{result.name}</h3>
-                        {result.organization && <p className="text-gray-600 mt-1">{result.organization}</p>}
-                      </div>
-                    )}
-                    {result.resultType === 'angler' && (
-                      <div><span className="text-xs font-semibold text-green-600 uppercase">Angler</span>
-                        <h3 className="text-xl font-bold text-gray-900 mt-2">{result.name}</h3>
-                      </div>
-                    )}
-                    {result.resultType === 'series' && (
-                      <div><span className="text-xs font-semibold text-orange-600 uppercase">Series</span>
-                        <h3 className="text-xl font-bold text-gray-900 mt-2">{result.name}</h3>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        );
-      }
-      default:
-        return (
-          <HomePage
-            tournaments={tournaments}
-            submissions={submissions}
-            users={users}
-            onNavigate={navigate}
-            onSearch={handleSearch}
-          />
-        );
+      case 'search-results':     return <HomePage currentUser={currentUser} onNavigate={navigate} searchParams={searchParams} onSearch={handleSearch} />;
+      default:                   return <HomePage currentUser={currentUser} onNavigate={navigate} searchParams={searchParams} onSearch={handleSearch} />;
     }
   };
 
   const breadcrumbItems = BREADCRUMBS[view];
-  const showBreadcrumb = !!breadcrumbItems;
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <Header currentUser={currentUser} onNavigate={navigate} onLogout={handleLogout} />
-      {showBreadcrumb && (
-        <Breadcrumb items={breadcrumbItems} onNavigate={navigate} />
-      )}
-      <main className="flex-grow flex flex-col">
-        {renderPage()}
-      </main>
+      {breadcrumbItems && <Breadcrumb items={breadcrumbItems} onNavigate={navigate} />}
+      {renderPage()}
       <Footer onNavigate={navigate} />
     </div>
   );
