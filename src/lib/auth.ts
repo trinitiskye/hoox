@@ -16,7 +16,7 @@ const SESSION_KEY = 'hoox_session';
 export function getSession(): User | null {
   if (typeof window === 'undefined') return null;
   try {
-    const stored = sessionStorage.getItem(SESSION_KEY);
+    const stored = localStorage.getItem(SESSION_KEY);
     return stored ? JSON.parse(stored) : null;
   } catch {
     return null;
@@ -25,12 +25,12 @@ export function getSession(): User | null {
 
 export function setSession(user: User): void {
   if (typeof window === 'undefined') return;
-  sessionStorage.setItem(SESSION_KEY, JSON.stringify(user));
+  localStorage.setItem(SESSION_KEY, JSON.stringify(user));
 }
 
 export function clearSession(): void {
   if (typeof window === 'undefined') return;
-  sessionStorage.removeItem(SESSION_KEY);
+  localStorage.removeItem(SESSION_KEY);
 }
 
 // ============================================================

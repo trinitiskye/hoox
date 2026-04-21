@@ -56,7 +56,7 @@ export default function App() {
   const navigate = useCallback((v: string) => {
     setView(v);
     if (typeof window !== 'undefined') {
-      sessionStorage.setItem('hoox_view', v);
+      localStorage.setItem('hoox_view', v);
     }
   }, []);
   const [searchParams, setSearchParams] = useState<SearchParams>({ type: 'all', query: '' });
@@ -75,7 +75,7 @@ export default function App() {
         if (session) {
           setCurrentUser(session);
           if (typeof window !== 'undefined') {
-            const savedView = sessionStorage.getItem('hoox_view');
+            const savedView = localStorage.getItem('hoox_view');
             if (savedView) setView(savedView);
           }
         }
@@ -97,7 +97,7 @@ export default function App() {
     setCurrentUser(null);
     clearSession();
     if (typeof window !== 'undefined') {
-      sessionStorage.removeItem('hoox_view');
+      localStorage.removeItem('hoox_view');
     }
     setView('home');
   }, []);
