@@ -52,48 +52,13 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState('home');
-  // AUTH_VIEWS: these should never be navigated back to when logged in
-  const AUTH_VIEWS = ['login', 'admin-login', 'register', 'register-angler',
-    'register-director', 'register-judge', 'forgot-password', 'sponsor'];
-
   const navigate = useCallback((v: string) => {
     setView(v);
     localStorage.setItem('hoox_view', v);
-    // Store first post-login view as session root (used to prevent back to auth screens)
-    const session = getSession();
-    if (session && !localStorage.getItem('hoox_session_root')) {
-      localStorage.setItem('hoox_session_root', v);
-    }
     if (typeof window !== 'undefined') {
-      window.history.pushState({ hooxView: v }, '', window.location.pathname);
+      // replaceState only — no pushState — so browser back exits the site cleanly
+      window.history.replaceState({ hooxView: v }, '', window.location.pathname);
     }
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    // Tag the initial page load entry with current view
-    window.history.replaceState({ hooxView: 'home' }, '', window.location.pathname);
-
-    const handlePopState = (e: PopStateEvent) => {
-      const targetView = e.state?.hooxView ?? 'home';
-      const session = getSession();
-
-      // If logged in and back would go to an auth screen, skip it
-      if (session && AUTH_VIEWS.includes(targetView)) {
-        // Push a new entry for the session root so back works from here too
-        const root = localStorage.getItem('hoox_session_root') ?? 'home';
-        window.history.replaceState({ hooxView: root }, '', window.location.pathname);
-        setView(root);
-        localStorage.setItem('hoox_view', root);
-        return;
-      }
-
-      setView(targetView);
-      localStorage.setItem('hoox_view', targetView);
-    };
-
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
   }, []);
   const [searchParams, setSearchParams] = useState<SearchParams>({ type: 'all', query: '' });
 
@@ -130,7 +95,6 @@ export default function App() {
   const handleLogin = useCallback((user: User) => {
     setCurrentUser(user);
     setSession(user);
-    // Will be set when navigate() is called right after login
   }, []);
 
   const handleLogout = useCallback(() => {
@@ -138,7 +102,6 @@ export default function App() {
     clearSession();
     if (typeof window !== 'undefined') {
       localStorage.removeItem('hoox_view');
-      localStorage.removeItem('hoox_session_root');
       window.history.replaceState({ hooxView: 'home' }, '', window.location.pathname);
     }
     setView('home');
