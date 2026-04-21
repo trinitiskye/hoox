@@ -52,38 +52,47 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState('home');
-  // Keep a ref to the nav stack so popstate handler always sees current value
   const navStackRef = useRef<string[]>(['home']);
+  // The session floor — back button never goes below this view
+  const sessionRootRef = useRef<string>('home');
 
   const navigate = useCallback((v: string) => {
     setView(v);
-    navStackRef.current = [...navStackRef.current, v];
+    const stack = navStackRef.current;
+    // First navigate after login (empty stack) establishes the session floor
+    if (stack.length === 0) {
+      sessionRootRef.current = v;
+      navStackRef.current = [v];
+    } else if (stack[stack.length - 1] !== v) {
+      navStackRef.current = [...stack, v];
+    }
     localStorage.setItem('hoox_view', v);
-    // Push a new history entry so popstate fires when back is pressed
     if (typeof window !== 'undefined') {
       window.history.pushState({ hoox: true, view: v }, '');
     }
   }, []);
 
-  // On mount: push a barrier entry so back button fires popstate instead of leaving the site
+  // Trap browser back button inside the app
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    window.history.pushState({ hoox: true, view: 'home' }, '');
+    // Push barrier so popstate fires before browser can leave the site
+    window.history.pushState({ hoox: true }, '');
 
     const handlePopState = () => {
-      // Immediately push another barrier so back can never leave hoox.app
+      // Re-push barrier immediately so user can never navigate away
       window.history.pushState({ hoox: true }, '');
 
       const stack = navStackRef.current;
-      if (stack.length > 1) {
-        // Go back one step in our own nav stack
+      const floor = sessionRootRef.current;
+      // Only go back if we're above the session floor
+      if (stack.length > 1 && stack[stack.length - 1] !== floor) {
         const newStack = stack.slice(0, -1);
         navStackRef.current = newStack;
         const prevView = newStack[newStack.length - 1];
         setView(prevView);
         localStorage.setItem('hoox_view', prevView);
       }
-      // If stack has only one entry, we're already at root — stay here
+      // At the floor — stay here, don't navigate anywhere
     };
 
     window.addEventListener('popstate', handlePopState);
@@ -124,11 +133,11 @@ export default function App() {
   const handleLogin = useCallback((user: User) => {
     setCurrentUser(user);
     setSession(user);
-    // Reset nav stack so back button never returns to login/register screens
-    navStackRef.current = ['home'];
+    // Clear pre-auth stack — the next navigate() call sets the new session floor
+    navStackRef.current = [];
+    sessionRootRef.current = 'home'; // will be overwritten by next navigate()
     if (typeof window !== 'undefined') {
-      // Clear any pre-auth history entries by replacing current state
-      window.history.replaceState({ hoox: true, view: 'home' }, '');
+      window.history.replaceState({ hoox: true }, '');
     }
   }, []);
 
