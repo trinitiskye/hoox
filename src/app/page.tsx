@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Tournament, User, Submission, Registration, Series, SearchParams } from '@/types';
 import { fetchTournaments, fetchUsers, fetchRegistrations, fetchSubmissions, fetchSeries } from '@/lib/storage';
 import { getSession, setSession, clearSession } from '@/lib/auth';
@@ -52,12 +52,42 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState('home');
+  // Keep a ref to the nav stack so popstate handler always sees current value
+  const navStackRef = useRef<string[]>(['home']);
 
   const navigate = useCallback((v: string) => {
     setView(v);
+    navStackRef.current = [...navStackRef.current, v];
+    localStorage.setItem('hoox_view', v);
+    // Push a new history entry so popstate fires when back is pressed
     if (typeof window !== 'undefined') {
-      localStorage.setItem('hoox_view', v);
+      window.history.pushState({ hoox: true, view: v }, '');
     }
+  }, []);
+
+  // On mount: push a barrier entry so back button fires popstate instead of leaving the site
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    window.history.pushState({ hoox: true, view: 'home' }, '');
+
+    const handlePopState = () => {
+      // Immediately push another barrier so back can never leave hoox.app
+      window.history.pushState({ hoox: true }, '');
+
+      const stack = navStackRef.current;
+      if (stack.length > 1) {
+        // Go back one step in our own nav stack
+        const newStack = stack.slice(0, -1);
+        navStackRef.current = newStack;
+        const prevView = newStack[newStack.length - 1];
+        setView(prevView);
+        localStorage.setItem('hoox_view', prevView);
+      }
+      // If stack has only one entry, we're already at root — stay here
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   }, []);
   const [searchParams, setSearchParams] = useState<SearchParams>({ type: 'all', query: '' });
 
@@ -76,7 +106,10 @@ export default function App() {
           setCurrentUser(session);
           if (typeof window !== 'undefined') {
             const savedView = localStorage.getItem('hoox_view');
-            if (savedView) setView(savedView);
+            if (savedView && savedView !== 'home') {
+              setView(savedView);
+              navStackRef.current = ['home', savedView];
+            }
           }
         }
       } catch (err) {
@@ -96,6 +129,7 @@ export default function App() {
   const handleLogout = useCallback(() => {
     setCurrentUser(null);
     clearSession();
+    navStackRef.current = ['home'];
     if (typeof window !== 'undefined') {
       localStorage.removeItem('hoox_view');
     }
