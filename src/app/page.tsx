@@ -189,7 +189,7 @@ export default function App() {
       case 'judges':             return <RegisterJudgePage onNavigate={navigate} onLogin={handleLogin} />;
       case 'sponsor':            return <PartnerPage onNavigate={navigate} />;
       case 'series':             return <SeriesPage onNavigate={navigate} />;
-      case 'tournaments':        return <TournamentsPage onNavigate={navigate} />;
+      case 'tournaments':        return <TournamentsPage tournaments={tournaments} onNavigate={navigate} />;
       case 'clubs':              return <ClubsPage onNavigate={navigate} />;
       case 'events':             return <EventsPage onNavigate={navigate} />;
       case 'features':           return <FeaturesPage onNavigate={navigate} />;
