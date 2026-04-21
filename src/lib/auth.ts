@@ -26,11 +26,15 @@ export function getSession(): User | null {
 export function setSession(user: User): void {
   if (typeof window === 'undefined') return;
   localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+  // Also set cookie so middleware can read it server-side
+  document.cookie = `hoox_session=${encodeURIComponent(JSON.stringify(user))}; path=/; max-age=86400; SameSite=Lax`;
 }
 
 export function clearSession(): void {
   if (typeof window === 'undefined') return;
   localStorage.removeItem(SESSION_KEY);
+  // Clear the cookie too
+  document.cookie = 'hoox_session=; path=/; max-age=0';
 }
 
 // ============================================================

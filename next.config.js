@@ -4,9 +4,6 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  // Static export for Cloudflare Pages
-  output: 'export',
-  trailingSlash: true,
 }
 
 module.exports = nextConfig
