@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Tournament, User, Submission, Registration, Series, SearchParams } from '@/types';
 import { fetchTournaments, fetchUsers, fetchRegistrations, fetchSubmissions, fetchSeries } from '@/lib/storage';
 import { getSession, setSession, clearSession } from '@/lib/auth';
@@ -52,47 +52,44 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState('home');
-  const navStackRef = useRef<string[]>(['home']);
-  // The session floor — back button never goes below this view
-  const sessionRootRef = useRef<string>('home');
+  // AUTH_VIEWS: these should never be navigated back to when logged in
+  const AUTH_VIEWS = ['login', 'admin-login', 'register', 'register-angler',
+    'register-director', 'register-judge', 'forgot-password', 'sponsor'];
 
   const navigate = useCallback((v: string) => {
     setView(v);
-    const stack = navStackRef.current;
-    // First navigate after login (empty stack) establishes the session floor
-    if (stack.length === 0) {
-      sessionRootRef.current = v;
-      navStackRef.current = [v];
-    } else if (stack[stack.length - 1] !== v) {
-      navStackRef.current = [...stack, v];
-    }
     localStorage.setItem('hoox_view', v);
+    // Store first post-login view as session root (used to prevent back to auth screens)
+    const session = getSession();
+    if (session && !localStorage.getItem('hoox_session_root')) {
+      localStorage.setItem('hoox_session_root', v);
+    }
     if (typeof window !== 'undefined') {
-      window.history.pushState({ hoox: true, view: v }, '');
+      window.history.pushState({ hooxView: v }, '', window.location.pathname);
     }
   }, []);
 
-  // Trap browser back button inside the app
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    // Push barrier so popstate fires before browser can leave the site
-    window.history.pushState({ hoox: true }, '');
+    // Tag the initial page load entry with current view
+    window.history.replaceState({ hooxView: 'home' }, '', window.location.pathname);
 
-    const handlePopState = () => {
-      // Re-push barrier immediately so user can never navigate away
-      window.history.pushState({ hoox: true }, '');
+    const handlePopState = (e: PopStateEvent) => {
+      const targetView = e.state?.hooxView ?? 'home';
+      const session = getSession();
 
-      const stack = navStackRef.current;
-      const floor = sessionRootRef.current;
-      // Only go back if we're above the session floor
-      if (stack.length > 1 && stack[stack.length - 1] !== floor) {
-        const newStack = stack.slice(0, -1);
-        navStackRef.current = newStack;
-        const prevView = newStack[newStack.length - 1];
-        setView(prevView);
-        localStorage.setItem('hoox_view', prevView);
+      // If logged in and back would go to an auth screen, skip it
+      if (session && AUTH_VIEWS.includes(targetView)) {
+        // Push a new entry for the session root so back works from here too
+        const root = localStorage.getItem('hoox_session_root') ?? 'home';
+        window.history.replaceState({ hooxView: root }, '', window.location.pathname);
+        setView(root);
+        localStorage.setItem('hoox_view', root);
+        return;
       }
-      // At the floor — stay here, don't navigate anywhere
+
+      setView(targetView);
+      localStorage.setItem('hoox_view', targetView);
     };
 
     window.addEventListener('popstate', handlePopState);
@@ -115,9 +112,9 @@ export default function App() {
           setCurrentUser(session);
           if (typeof window !== 'undefined') {
             const savedView = localStorage.getItem('hoox_view');
-            if (savedView && savedView !== 'home') {
+            if (savedView) {
               setView(savedView);
-              navStackRef.current = ['home', savedView];
+              window.history.replaceState({ hooxView: savedView }, '', window.location.pathname);
             }
           }
         }
@@ -133,20 +130,16 @@ export default function App() {
   const handleLogin = useCallback((user: User) => {
     setCurrentUser(user);
     setSession(user);
-    // Clear pre-auth stack — the next navigate() call sets the new session floor
-    navStackRef.current = [];
-    sessionRootRef.current = 'home'; // will be overwritten by next navigate()
-    if (typeof window !== 'undefined') {
-      window.history.replaceState({ hoox: true }, '');
-    }
+    // Will be set when navigate() is called right after login
   }, []);
 
   const handleLogout = useCallback(() => {
     setCurrentUser(null);
     clearSession();
-    navStackRef.current = ['home'];
     if (typeof window !== 'undefined') {
       localStorage.removeItem('hoox_view');
+      localStorage.removeItem('hoox_session_root');
+      window.history.replaceState({ hooxView: 'home' }, '', window.location.pathname);
     }
     setView('home');
   }, []);
