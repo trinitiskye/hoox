@@ -358,6 +358,9 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
   const [editSaving, setEditSaving] = useState(false);
   const [editSuccess, setEditSuccess] = useState(false);
 
+  // Edit page tab state
+  const [editTab, setEditTab] = useState<'profile' | 'account' | 'security'>('profile');
+
   // Password change state
   const [pwForm, setPwForm] = useState({ current: '', newPw: '', confirm: '' });
   const [pwSaving, setPwSaving] = useState(false);
@@ -588,10 +591,19 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
       </div>
     );
 
+    const roleBadgeColor = (role: string) => ({
+      admin:    'bg-red-100 text-red-700',
+      director: 'bg-blue-100 text-blue-700',
+      judge:    'bg-purple-100 text-purple-700',
+      angler:   'bg-green-100 text-green-700',
+      sponsor:  'bg-orange-100 text-orange-700',
+    }[role] || 'bg-gray-100 text-gray-600');
+
     return (
       <div>
         <Toast toasts={toasts} onRemove={removeToast} />
         <DeleteModal />
+
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1 text-sm mb-6">
           <button onClick={() => onNavigate('/admin/users')} className="text-blue-600 hover:underline">Users</button>
@@ -603,18 +615,60 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
           <span className="text-gray-500">Edit</span>
         </nav>
 
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">Edit User</h2>
+        {/* Header */}
+        <div className="flex items-center justify-between mb-2 flex-wrap gap-3">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">{selectedUser.name}</h2>
+            <div className="flex items-center gap-2 mt-1">
+              <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${roleBadgeColor(selectedUser.role)}`}>
+                {selectedUser.role === 'sponsor' ? 'partner' : selectedUser.role}
+              </span>
+              <span className="text-gray-400 text-sm">{selectedUser.email}</span>
+            </div>
+          </div>
           <button onClick={() => setDeleteTarget(selectedUser)} className="flex items-center gap-1.5 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition">
             <Trash2 className="w-3.5 h-3.5" /> Delete Account
           </button>
         </div>
 
-        {/* Two-column layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Three tabs */}
+        <div className="flex border-b border-gray-200 mb-6">
+          {(['profile', 'account', 'security'] as const).map(tab => {
+            const labels = { profile: 'Profile', account: 'Account Info', security: 'Security Settings' };
+            return (
+              <button key={tab} onClick={() => setEditTab(tab)}
+                className={`px-5 py-3 text-sm font-medium border-b-2 transition -mb-px ${
+                  editTab === tab
+                    ? 'border-blue-600 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}>
+                {labels[tab]}
+              </button>
+            );
+          })}
+        </div>
 
-          {/* LEFT — User Information */}
-          <div className="bg-white border border-gray-200 rounded-xl p-6">
+        {/* ── Profile Tab ── */}
+        {editTab === 'profile' && (
+          <div className="bg-white border border-gray-200 rounded-xl p-6 max-w-2xl">
+            <h3 className="font-semibold text-gray-800 mb-4 pb-3 border-b border-gray-100">
+              {selectedUser.role === 'sponsor' ? 'Partner' :
+               selectedUser.role === 'director' ? 'Tournament Director' :
+               selectedUser.role.charAt(0).toUpperCase() + selectedUser.role.slice(1)} Profile
+            </h3>
+            <div className="flex items-center gap-4 py-8 text-center justify-center text-gray-400">
+              <div>
+                <div className="text-4xl mb-3">👤</div>
+                <p className="text-sm font-medium text-gray-500">Profile fields coming soon</p>
+                <p className="text-xs text-gray-400 mt-1">Role-specific profile information will appear here</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Account Info Tab ── */}
+        {editTab === 'account' && (
+          <div className="bg-white border border-gray-200 rounded-xl p-6 max-w-2xl">
             <h3 className="font-semibold text-gray-800 mb-4 pb-3 border-b border-gray-100">User Information</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               {field('name', 'Full Name')}
@@ -665,7 +719,6 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
               </div>
               {field('website', 'Website')}
             </div>
-
             {editSuccess && (
               <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
                 ✅ Changes saved successfully.
@@ -680,9 +733,11 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
               </button>
             </div>
           </div>
+        )}
 
-          {/* RIGHT — Change Password */}
-          <div className="bg-white border border-gray-200 rounded-xl p-6">
+        {/* ── Security Settings Tab ── */}
+        {editTab === 'security' && (
+          <div className="bg-white border border-gray-200 rounded-xl p-6 max-w-lg">
             <h3 className="font-semibold text-gray-800 mb-1 pb-3 border-b border-gray-100">Change Password</h3>
             <p className="text-gray-500 text-sm mb-5 mt-3">
               {isOwnAccount
@@ -690,9 +745,7 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
                 : `Set a new password for ${selectedUser.name}. They will receive an email notification.`
               }
             </p>
-
             <div className="space-y-4">
-              {/* Current password — only shown when admin is editing their OWN account */}
               {isOwnAccount && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">Current Password *</label>
@@ -711,7 +764,6 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
                   </div>
                 </div>
               )}
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">New Password *</label>
                 <div className="relative">
@@ -727,7 +779,6 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
                     {showPwNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
-                {/* Password strength hint */}
                 {pwForm.newPw && (
                   <div className="mt-1.5 flex items-center gap-2">
                     <div className="flex gap-1">
@@ -745,7 +796,6 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
                   </div>
                 )}
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Confirm New Password *</label>
                 <div className="relative">
@@ -755,9 +805,7 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
                     onChange={e => setPwForm(f => ({ ...f, confirm: e.target.value }))}
                     placeholder="Re-enter new password"
                     className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10 ${
-                      pwForm.confirm && pwForm.newPw !== pwForm.confirm
-                        ? 'border-red-300 bg-red-50'
-                        : 'border-gray-300'
+                      pwForm.confirm && pwForm.newPw !== pwForm.confirm ? 'border-red-300 bg-red-50' : 'border-gray-300'
                     }`}
                   />
                   <button type="button" onClick={() => setShowPwConfirm(s => !s)}
@@ -770,7 +818,6 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
                 )}
               </div>
             </div>
-
             <div className="mt-6 pt-4 border-t border-gray-100">
               <button
                 onClick={changePasswordForUser}
@@ -787,8 +834,8 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
               </p>
             </div>
           </div>
+        )}
 
-        </div>
       </div>
     );
   }
