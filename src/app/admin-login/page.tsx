@@ -13,7 +13,7 @@ export default function Page() {
     <PublicLayout>
       <AdminLoginPage
         onNavigate={navigate}
-        onLogin={(user) => { login(user); router.push('/admin'); }}
+        onLogin={(user) => { login(user); router.replace('/admin'); }}
       />
     </PublicLayout>
   );

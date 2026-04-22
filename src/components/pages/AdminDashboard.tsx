@@ -22,7 +22,27 @@ interface AdminDashboardProps {
   currentUser: User;
   onNavigate: (view: string) => void;
   onLogout: () => void;
+  initialTab?: string;
 }
+
+const TAB_TO_PATH: Record<string, string> = {
+  'Dashboard':        '/admin',
+  'Users':            '/admin/users',
+  'Partners':         '/admin/partners',
+  'Clubs':            '/admin/clubs',
+  'Series':           '/admin/series',
+  'Tournaments':      '/admin/tournaments',
+  'Events':           '/admin/events',
+  'Catch Submissions':'/admin/catch-submissions',
+  'Advertising':      '/admin/advertising',
+  'Monetization':     '/admin/monetization',
+  'CMS':              '/admin/cms',
+  'Settings':         '/admin/settings',
+};
+
+const PATH_TO_TAB: Record<string, string> = Object.fromEntries(
+  Object.entries(TAB_TO_PATH).map(([k, v]) => [v, k])
+);
 
 const NAV_TABS = [
   'Dashboard', 'Users', 'Partners', 'Clubs', 'Series',
@@ -30,8 +50,8 @@ const NAV_TABS = [
   'Advertising', 'Monetization', 'CMS', 'Settings'
 ];
 
-export default function AdminDashboard({ currentUser, onNavigate, onLogout }: AdminDashboardProps) {
-  const [activeTab, setActiveTab] = useState('Dashboard');
+export default function AdminDashboard({ currentUser, onNavigate, onLogout, initialTab }: AdminDashboardProps) {
+  const [activeTab, setActiveTab] = useState(initialTab || 'Dashboard');
   const [usersTabKey, setUsersTabKey] = useState(0);
   const [users, setUsers] = useState<User[]>([]);
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
@@ -101,6 +121,7 @@ export default function AdminDashboard({ currentUser, onNavigate, onLogout }: Ad
                 onClick={() => {
                   setActiveTab(tab);
                   if (tab === 'Users') setUsersTabKey(k => k + 1);
+                  onNavigate(TAB_TO_PATH[tab]);
                 }}
                 className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition ${
                   activeTab === tab

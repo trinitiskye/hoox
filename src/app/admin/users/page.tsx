@@ -11,7 +11,7 @@ export default function AdminPage() {
   return (
     <AdminDashboard
       currentUser={currentUser}
-      initialTab="Dashboard"
+      initialTab="Users"
       onNavigate={(view) => {
         if (view.startsWith('/admin')) router.push(view);
         else router.push(toPath(view));

@@ -1,6 +1,4 @@
 'use client';
-export const runtime = 'edge';
-
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/AuthContext';
 import PublicLayout from '@/components/layout/PublicLayout';
@@ -15,7 +13,7 @@ export default function Page() {
     <PublicLayout>
       <RegisterDirectorPage
         onNavigate={navigate}
-        onLogin={(user) => { login(user); router.push('/'); }}
+        onLogin={(user) => { login(user); router.replace('/'); }}
       />
     </PublicLayout>
   );

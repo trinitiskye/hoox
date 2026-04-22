@@ -17,6 +17,18 @@ export const ROUTES: Record<string, string> = {
   'features':           '/features',
   'admin-dashboard':    '/admin',
   'admin':              '/admin',
+  '/admin':             '/admin',
+  '/admin/users':       '/admin/users',
+  '/admin/partners':    '/admin/partners',
+  '/admin/clubs':       '/admin/clubs',
+  '/admin/series':      '/admin/series',
+  '/admin/tournaments': '/admin/tournaments',
+  '/admin/events':      '/admin/events',
+  '/admin/catch-submissions': '/admin/catch-submissions',
+  '/admin/advertising': '/admin/advertising',
+  '/admin/monetization':'/admin/monetization',
+  '/admin/cms':         '/admin/cms',
+  '/admin/settings':    '/admin/settings',
   'search-results':     '/search',
 };
 

@@ -13,7 +13,7 @@ export default function Page() {
     <PublicLayout>
       <LoginPage
         onNavigate={navigate}
-        onLogin={(user) => { login(user); router.push(user.role === 'admin' ? '/admin' : '/'); }}
+        onLogin={(user) => { login(user); router.replace(user.role === 'admin' ? '/admin' : '/'); }}
       />
     </PublicLayout>
   );
