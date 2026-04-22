@@ -1051,6 +1051,7 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
               {field('organization', 'Organization')}
               {field('phone', 'Phone Number')}
               <div className="md:col-span-2">
+                <AddressSelector
                   value={{
                     address: editForm.address || '',
                     country: editForm.country || 'US',
