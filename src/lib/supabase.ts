@@ -406,10 +406,13 @@ export interface DbUser {
   created_at: string;
 }
 
-export type DbUserInsert = Omit<DbUser, 'id' | 'created_at' | 'country'> & {
+export type DbUserInsert = Omit<DbUser, 'id' | 'created_at' | 'country' | 'display_name' | 'club_affiliations' | 'sponsors'> & {
   id?: string;
   created_at?: string;
   country?: string | null;
+  display_name?: string | null;
+  club_affiliations?: { name: string; website: string }[] | null;
+  sponsors?: { name: string; website: string }[] | null;
 };
 
 export interface DbRegistration {
