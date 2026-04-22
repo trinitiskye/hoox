@@ -358,7 +358,8 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
   const [editSaving, setEditSaving] = useState(false);
   const [editSuccess, setEditSuccess] = useState(false);
 
-  // Edit page tab state
+  // View/Edit page tab state
+  const [viewTab, setViewTab] = useState<'profile' | 'account'>('profile');
   const [editTab, setEditTab] = useState<'profile' | 'account' | 'security'>('profile');
 
   // Password change state
@@ -511,17 +512,30 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
     return (
       <div>
         <DeleteModal />
+
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1 text-sm mb-6">
+          <button onClick={() => onNavigate('/admin/users')} className="text-blue-600 hover:underline">Users</button>
+          <span className="text-gray-300 mx-1">›</span>
           <button onClick={() => onNavigate('/admin/users/list')} className="text-blue-600 hover:underline">User Management</button>
           <span className="text-gray-300 mx-1">›</span>
-          <span className="text-gray-700 font-medium">{u.name}</span>
-          <span className="text-gray-300 mx-1">›</span>
-          <span className="text-gray-500">View</span>
+          <span className="text-gray-500">{u.name}</span>
         </nav>
 
-        <div className="flex items-start justify-between mb-6 flex-wrap gap-3">
-          <h2 className="text-2xl font-bold text-gray-900">User Details</h2>
+        {/* Header */}
+        <div className="flex items-start justify-between mb-2 flex-wrap gap-3">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">{u.name}</h2>
+            <div className="flex items-center gap-2 mt-1">
+              <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${roleBadge(u.role)}`}>
+                {u.role === 'sponsor' ? 'partner' : u.role}
+              </span>
+              <span className="text-gray-400 text-sm">{u.email}</span>
+              <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${statusBadge(u.status || 'active')}`}>
+                {u.status || 'active'}
+              </span>
+            </div>
+          </div>
           <div className="flex gap-2 flex-wrap">
             <button onClick={() => openEdit(u)} className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition">
               <Pencil className="w-3.5 h-3.5" /> Edit
@@ -548,30 +562,73 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {[
-            { label: 'Full Name', value: u.name },
-            { label: 'Email', value: u.email },
-            { label: 'Role', value: u.role, badge: roleBadge(u.role) },
-            { label: 'Status', value: u.status || 'active', badge: statusBadge(u.status || 'active') },
-            { label: 'Organization', value: u.organization || '—' },
-            { label: 'Phone', value: u.phone || '—' },
-            { label: 'Address', value: u.address || '—' },
-            { label: 'City', value: u.city || '—' },
-            { label: 'State', value: u.state || '—' },
-            { label: 'Zip', value: u.zip || '—' },
-            { label: 'Website', value: u.website || '—' },
-            { label: 'Joined', value: new Date(u.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) },
-          ].map(f => (
-            <div key={f.label} className="bg-white border border-gray-200 rounded-xl p-4">
-              <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">{f.label}</div>
-              {f.badge
-                ? <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${f.badge}`}>{f.value}</span>
-                : <div className="text-gray-800 text-sm font-medium">{f.value}</div>
-              }
-            </div>
-          ))}
+        {/* Two tabs */}
+        <div className="flex border-b border-gray-200 mb-6">
+          {(['profile', 'account'] as const).map(tab => {
+            const labels = { profile: 'Profile', account: 'Account Info' };
+            return (
+              <button key={tab} onClick={() => setViewTab(tab)}
+                className={`px-5 py-3 text-sm font-medium border-b-2 transition -mb-px ${
+                  viewTab === tab
+                    ? 'border-blue-600 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}>
+                {labels[tab]}
+              </button>
+            );
+          })}
         </div>
+
+        {/* ── Profile Tab ── */}
+        {viewTab === 'profile' && (
+          <div className="bg-white border border-gray-200 rounded-xl p-6 max-w-2xl">
+            <h3 className="font-semibold text-gray-800 mb-4 pb-3 border-b border-gray-100">
+              {u.role === 'sponsor' ? 'Partner' :
+               u.role === 'director' ? 'Tournament Director' :
+               u.role.charAt(0).toUpperCase() + u.role.slice(1)} Profile
+            </h3>
+            <div className="flex flex-col items-center justify-center py-10 text-center text-gray-400">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                <Users className="w-8 h-8 text-gray-300" />
+              </div>
+              <p className="text-sm font-medium text-gray-500">Profile information coming soon</p>
+              <p className="text-xs text-gray-400 mt-1">Role-specific profile details will appear here</p>
+            </div>
+          </div>
+        )}
+
+        {/* ── Account Info Tab ── */}
+        {viewTab === 'account' && (
+          <div className="bg-white border border-gray-200 rounded-xl p-6 max-w-2xl">
+            <h3 className="font-semibold text-gray-800 mb-5 pb-3 border-b border-gray-100">Account Information</h3>
+            <div className="space-y-0 divide-y divide-gray-100">
+              {[
+                { label: 'Full Name',     value: u.name },
+                { label: 'Email',         value: u.email },
+                { label: 'Role',          value: u.role === 'sponsor' ? 'partner' : u.role, badge: roleBadge(u.role) },
+                { label: 'Status',        value: u.status || 'active', badge: statusBadge(u.status || 'active') },
+                { label: 'Organization',  value: u.organization || '—' },
+                { label: 'Phone',         value: u.phone || '—' },
+                { label: 'Address',       value: u.address || '—' },
+                { label: 'City',          value: u.city || '—' },
+                { label: 'State',         value: u.state || '—' },
+                { label: 'Zip',           value: u.zip || '—' },
+                { label: 'Country',       value: u.country || '—' },
+                { label: 'Website',       value: u.website || '—' },
+                { label: 'Member Since',  value: new Date(u.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) },
+              ].map(f => (
+                <div key={f.label} className="flex items-center justify-between py-3">
+                  <span className="text-sm text-gray-500 w-36 flex-shrink-0">{f.label}</span>
+                  {f.badge
+                    ? <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${f.badge}`}>{f.value}</span>
+                    : <span className="text-sm font-medium text-gray-900 text-right">{f.value}</span>
+                  }
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
       </div>
     );
   }
