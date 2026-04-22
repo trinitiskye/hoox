@@ -21,6 +21,7 @@ import { Toast, useToast } from '@/components/ui/Toast';
 interface AdminDashboardProps {
   currentUser: User;
   onNavigate: (view: string) => void;
+  onNavigateReplace: (view: string) => void;
   onLogout: () => void;
   initialTab?: string;
   usersSubView?: string;
@@ -52,7 +53,7 @@ const NAV_TABS = [
   'Advertising', 'Monetization', 'CMS', 'Settings'
 ];
 
-export default function AdminDashboard({ currentUser, onNavigate, onLogout, initialTab, usersSubView, usersSelectedId }: AdminDashboardProps) {
+export default function AdminDashboard({ currentUser, onNavigate, onNavigateReplace, onLogout, initialTab, usersSubView, usersSelectedId }: AdminDashboardProps) {
   const [activeTab, setActiveTab] = useState(initialTab || 'Dashboard');
   const [usersTabKey, setUsersTabKey] = useState(0);
   const [users, setUsers] = useState<User[]>([]);
@@ -123,7 +124,7 @@ export default function AdminDashboard({ currentUser, onNavigate, onLogout, init
                 onClick={() => {
                   setActiveTab(tab);
                   if (tab === 'Users') setUsersTabKey(k => k + 1);
-                  onNavigate(TAB_TO_PATH[tab]);
+                  onNavigateReplace(TAB_TO_PATH[tab]);
                 }}
                 className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition ${
                   activeTab === tab
