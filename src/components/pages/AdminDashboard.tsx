@@ -365,25 +365,33 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
   // Judge profile form state
   const [judgeProfile, setJudgeProfile] = useState<{
     displayName: string;
-    organization: string;
-    address: string;
-    city: string;
-    state: string;
-    zip: string;
-    country: string;
-    email: string;
-    phone: string;
-    website: string;
     clubAffiliations: { name: string; website: string }[];
     sponsors: { name: string; website: string }[];
     newClub: { name: string; website: string };
     newSponsor: { name: string; website: string };
   }>({
-    displayName: '', organization: '', address: '', city: '',
-    state: '', zip: '', country: '', email: '', phone: '', website: '',
+    displayName: '',
     clubAffiliations: [], sponsors: [],
     newClub: { name: '', website: '' }, newSponsor: { name: '', website: '' },
   });
+
+  // Pre-fill edit forms whenever selectedUser changes (handles direct URL nav)
+  useEffect(() => {
+    if (!selectedUser) return;
+    // Always pre-fill account info form from user data
+    setEditForm({ ...selectedUser });
+    // Pre-fill judge profile form from saved profile data
+    if (selectedUser.role === 'judge') {
+      setJudgeProfile(p => ({
+        ...p,
+        displayName:      selectedUser.displayName || '',
+        clubAffiliations: selectedUser.clubAffiliations || [],
+        sponsors:         selectedUser.sponsors || [],
+        newClub:          { name: '', website: '' },
+        newSponsor:       { name: '', website: '' },
+      }));
+    }
+  }, [selectedUser]);
 
   // Password change state
   const [pwForm, setPwForm] = useState({ current: '', newPw: '', confirm: '' });
@@ -448,18 +456,11 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
     if (user.role === 'judge') {
       setJudgeProfile(p => ({
         ...p,
-        displayName: user.displayName || user.name || '',
-        organization: user.organization || '',
-        address: user.address || '',
-        city: user.city || '',
-        state: user.state || '',
-        zip: user.zip || '',
-        country: user.country || '',
-        email: user.email || '',
-        phone: user.phone || '',
-        website: user.website || '',
+        displayName: user.displayName || '',
         clubAffiliations: user.clubAffiliations || [],
         sponsors: user.sponsors || [],
+        newClub: { name: '', website: '' },
+        newSponsor: { name: '', website: '' },
       }));
     }
     onNavigate(`/admin/users/${user.id}/edit`);
@@ -632,40 +633,30 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
 
             {u.role === 'judge' && (
               <div className="space-y-0 divide-y divide-gray-100">
+                {/* Avatar */}
                 {u.avatar && (
                   <div className="flex items-center justify-between py-3">
                     <span className="text-sm text-gray-500 w-36 flex-shrink-0">Avatar</span>
                     <img src={u.avatar} alt="Avatar" className="w-10 h-10 rounded-full object-cover" />
                   </div>
                 )}
-                {[
-                  { label: 'Display Name',  value: u.displayName || u.name },
-                  { label: 'Organization',  value: u.organization || '—' },
-                  { label: 'Street Address',value: u.address || '—' },
-                  { label: 'City',          value: u.city || '—' },
-                  { label: 'State',         value: u.state || '—' },
-                  { label: 'Zip Code',      value: u.zip || '—' },
-                  { label: 'Country',       value: u.country || '—' },
-                  { label: 'Email',         value: u.email },
-                  { label: 'Phone',         value: u.phone || '—' },
-                  { label: 'Website',       value: u.website || '—' },
-                ].map(f => (
-                  <div key={f.label} className="flex items-center justify-between py-3">
-                    <span className="text-sm text-gray-500 w-36 flex-shrink-0">{f.label}</span>
-                    <span className="text-sm font-medium text-gray-900 text-right">{f.value}</span>
-                  </div>
-                ))}
+
+                {/* Display Name */}
+                <div className="flex items-center justify-between py-3">
+                  <span className="text-sm text-gray-500 w-36 flex-shrink-0">Display Name</span>
+                  <span className="text-sm font-medium text-gray-900 text-right">{u.displayName || '—'}</span>
+                </div>
 
                 {/* Club Affiliations */}
                 <div className="py-4">
-                  <span className="text-sm font-semibold text-gray-700 block mb-2">Club Affiliation(s)</span>
+                  <span className="text-sm text-gray-500 w-36 block mb-2">Club Affiliation(s)</span>
                   {(u.clubAffiliations || []).length === 0
                     ? <span className="text-sm text-gray-400">None</span>
                     : <div className="flex flex-wrap gap-2">
                         {(u.clubAffiliations || []).map((c, i) => (
                           <div key={i} className="flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm">
                             <span>{c.name}</span>
-                            {c.website && <a href={c.website} target="_blank" rel="noreferrer" className="text-blue-400 hover:text-blue-600 text-xs underline">{c.website}</a>}
+                            {c.website && <a href={c.website} target="_blank" rel="noreferrer" className="text-blue-400 hover:text-blue-600 text-xs underline ml-1">{c.website}</a>}
                           </div>
                         ))}
                       </div>
@@ -674,14 +665,14 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
 
                 {/* Sponsors */}
                 <div className="py-4">
-                  <span className="text-sm font-semibold text-gray-700 block mb-2">Sponsor(s)</span>
+                  <span className="text-sm text-gray-500 w-36 block mb-2">Sponsor(s)</span>
                   {(u.sponsors || []).length === 0
                     ? <span className="text-sm text-gray-400">None</span>
                     : <div className="flex flex-wrap gap-2">
                         {(u.sponsors || []).map((s, i) => (
                           <div key={i} className="flex items-center gap-1.5 px-3 py-1 bg-orange-50 text-orange-700 rounded-full text-sm">
                             <span>{s.name}</span>
-                            {s.website && <a href={s.website} target="_blank" rel="noreferrer" className="text-orange-400 hover:text-orange-600 text-xs underline">{s.website}</a>}
+                            {s.website && <a href={s.website} target="_blank" rel="noreferrer" className="text-orange-400 hover:text-orange-600 text-xs underline ml-1">{s.website}</a>}
                           </div>
                         ))}
                       </div>
@@ -831,7 +822,7 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
                   <div>
                     <label className={labelCls}>Avatar Image</label>
                     <div className="flex gap-2">
-                      <input type="text" value={jp.displayName} placeholder="Upload image"
+                      <input type="text" placeholder="Upload image"
                         className={`${inputCls} flex-grow`} readOnly />
                       <button className="px-4 py-2.5 border border-gray-300 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition whitespace-nowrap">Browse</button>
                     </div>
@@ -840,72 +831,12 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
 
                   {/* Display Name */}
                   <div>
-                    <label className={labelCls}>Display name *</label>
-                    <input type="text" value={jp.displayName} placeholder={selectedUser.name}
-                      onChange={e => setJp('displayName', e.target.value)} className={inputCls} />
-                  </div>
-
-                  {/* Organization */}
-                  <div>
-                    <label className={labelCls}>Organization</label>
-                    <input type="text" value={jp.organization}
-                      onChange={e => setJp('organization', e.target.value)} className={inputCls} />
-                  </div>
-
-                  {/* Street Address */}
-                  <div>
-                    <label className={labelCls}>Street Address</label>
-                    <input type="text" value={jp.address}
-                      onChange={e => setJp('address', e.target.value)} className={inputCls} />
-                  </div>
-
-                  {/* City */}
-                  <div>
-                    <label className={labelCls}>City</label>
-                    <input type="text" value={jp.city}
-                      onChange={e => setJp('city', e.target.value)} className={inputCls} />
-                  </div>
-
-                  {/* State + Zip */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className={labelCls}>State</label>
-                      <input type="text" value={jp.state}
-                        onChange={e => setJp('state', e.target.value)} className={inputCls} />
-                    </div>
-                    <div>
-                      <label className={labelCls}>Zip Code</label>
-                      <input type="text" value={jp.zip}
-                        onChange={e => setJp('zip', e.target.value)} className={inputCls} />
-                    </div>
-                  </div>
-
-                  {/* Country */}
-                  <div>
-                    <label className={labelCls}>Country</label>
-                    <input type="text" value={jp.country}
-                      onChange={e => setJp('country', e.target.value)} className={inputCls} />
-                  </div>
-
-                  {/* Email */}
-                  <div>
-                    <label className={labelCls}>Email *</label>
-                    <input type="email" value={jp.email} placeholder="your.name@email.com"
-                      onChange={e => setJp('email', e.target.value)} className={inputCls} />
-                  </div>
-
-                  {/* Phone */}
-                  <div>
-                    <label className={labelCls}>Phone Number</label>
-                    <input type="tel" value={jp.phone} placeholder="000-000-0000"
-                      onChange={e => setJp('phone', e.target.value)} className={inputCls} />
-                  </div>
-
-                  {/* Website */}
-                  <div>
-                    <label className={labelCls}>Website</label>
-                    <input type="url" value={jp.website} placeholder="www.yourwebsite.com"
-                      onChange={e => setJp('website', e.target.value)} className={inputCls} />
+                    <label className={labelCls}>Display Name *</label>
+                    <input type="text" value={jp.displayName}
+                      placeholder={selectedUser.name}
+                      onChange={e => setJp('displayName', e.target.value)}
+                      className={inputCls} />
+                    <p className="text-xs text-gray-400 mt-1">This is the name shown publicly on your profile</p>
                   </div>
 
                   {/* Club Affiliations */}
@@ -917,7 +848,7 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
                         <span key={i} className="flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm">
                           {c.name}
                           <button onClick={() => setJp('clubAffiliations', jp.clubAffiliations.filter((_: any, j: number) => j !== i))}
-                            className="text-blue-400 hover:text-blue-700 leading-none">×</button>
+                            className="text-blue-400 hover:text-blue-700 leading-none ml-1">×</button>
                         </span>
                       ))}
                     </div>
@@ -949,7 +880,7 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
                         <span key={i} className="flex items-center gap-1.5 px-3 py-1 bg-orange-50 text-orange-700 rounded-full text-sm">
                           {s.name}
                           <button onClick={() => setJp('sponsors', jp.sponsors.filter((_: any, j: number) => j !== i))}
-                            className="text-orange-400 hover:text-orange-700 leading-none">×</button>
+                            className="text-orange-400 hover:text-orange-700 leading-none ml-1">×</button>
                         </span>
                       ))}
                     </div>
@@ -981,14 +912,6 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
                     <button onClick={async () => {
                       await import('@/lib/supabase').then(m => m.updateUser(selectedUser.id, {
                         display_name: jp.displayName,
-                        organization: jp.organization,
-                        address: jp.address,
-                        city: jp.city,
-                        state: jp.state,
-                        zip: jp.zip,
-                        country: jp.country,
-                        phone: jp.phone,
-                        website: jp.website,
                         club_affiliations: jp.clubAffiliations,
                         sponsors: jp.sponsors,
                       }));
@@ -1001,7 +924,7 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
               );
             })()}
 
-            {selectedUser.role !== 'judge' && (
+                        {selectedUser.role !== 'judge' && (
               <div className="flex items-center gap-4 py-8 text-center justify-center text-gray-400">
                 <div>
                   <div className="text-4xl mb-3">👤</div>
@@ -1064,7 +987,7 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
                   labelClass="block text-sm font-medium text-gray-700 mb-1.5"
                 />
               </div>
-              {selectedUser.role !== 'judge' && field('website', 'Website')}
+              {field('website', 'Website')}
             </div>
             {editSuccess && (
               <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
