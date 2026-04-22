@@ -391,23 +391,23 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
     if (!selectedUser) return;
     // Always pre-fill account info form from user data
     setEditForm({ ...selectedUser });
-    // Pre-fill judge profile form from saved profile data
+    // Pre-fill judge profile form from saved profile data (separate profile_ columns)
     if (selectedUser.role === 'judge') {
       setJudgeProfile(p => ({
         ...p,
-        avatar:           selectedUser.avatar || '',
-        displayName:      selectedUser.displayName || '',
-        organization:     selectedUser.organization || '',
-        address:          selectedUser.address || '',
-        city:             selectedUser.city || '',
-        state:            selectedUser.state || '',
-        zip:              selectedUser.zip || '',
-        country:          selectedUser.country || '',
-        email:            selectedUser.email || '',
-        phone:            selectedUser.phone || '',
-        website:          selectedUser.website || '',
-        clubAffiliations: selectedUser.clubAffiliations || [],
-        sponsors:         selectedUser.sponsors || [],
+        avatar:           selectedUser.profileAvatar || '',
+        displayName:      selectedUser.profileDisplayName || '',
+        organization:     selectedUser.profileOrganization || '',
+        address:          selectedUser.profileAddress || '',
+        city:             selectedUser.profileCity || '',
+        state:            selectedUser.profileState || '',
+        zip:              selectedUser.profileZip || '',
+        country:          selectedUser.profileCountry || '',
+        email:            selectedUser.profileEmail || '',
+        phone:            selectedUser.profilePhone || '',
+        website:          selectedUser.profileWebsite || '',
+        clubAffiliations: selectedUser.profileClubAffiliations || [],
+        sponsors:         selectedUser.profileSponsors || [],
         newClub:          { name: '', website: '' },
         newSponsor:       { name: '', website: '' },
       }));
@@ -473,23 +473,23 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
     setEditForm({ ...user });
     setEditSuccess(false);
     setEditTab('profile');
-    // Pre-populate judge profile form if editing a judge
+    // Pre-populate judge profile form if editing a judge (separate profile_ columns)
     if (user.role === 'judge') {
       setJudgeProfile(p => ({
         ...p,
-        avatar:           user.avatar || '',
-        displayName:      user.displayName || '',
-        organization:     user.organization || '',
-        address:          user.address || '',
-        city:             user.city || '',
-        state:            user.state || '',
-        zip:              user.zip || '',
-        country:          user.country || '',
-        email:            user.email || '',
-        phone:            user.phone || '',
-        website:          user.website || '',
-        clubAffiliations: user.clubAffiliations || [],
-        sponsors:         user.sponsors || [],
+        avatar:           user.profileAvatar || '',
+        displayName:      user.profileDisplayName || '',
+        organization:     user.profileOrganization || '',
+        address:          user.profileAddress || '',
+        city:             user.profileCity || '',
+        state:            user.profileState || '',
+        zip:              user.profileZip || '',
+        country:          user.profileCountry || '',
+        email:            user.profileEmail || '',
+        phone:            user.profilePhone || '',
+        website:          user.profileWebsite || '',
+        clubAffiliations: user.profileClubAffiliations || [],
+        sponsors:         user.profileSponsors || [],
         newClub:          { name: '', website: '' },
         newSponsor:       { name: '', website: '' },
       }));
@@ -665,23 +665,23 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
             {u.role === 'judge' && (
               <div className="divide-y divide-gray-100">
                 {/* Avatar */}
-                {u.avatar && (
+                {u.profileAvatar && (
                   <div className="flex items-center justify-between py-3">
                     <span className="text-sm text-gray-500 w-40 flex-shrink-0">Avatar</span>
-                    <img src={u.avatar} alt="Avatar" className="w-10 h-10 rounded-full object-cover" />
+                    <img src={u.profileAvatar} alt="Avatar" className="w-10 h-10 rounded-full object-cover" />
                   </div>
                 )}
                 {[
-                  { label: 'Display Name',   value: u.displayName || '—' },
-                  { label: 'Organization',   value: u.organization || '—' },
-                  { label: 'Street Address', value: u.address || '—' },
-                  { label: 'City',           value: u.city || '—' },
-                  { label: 'State',          value: u.state || '—' },
-                  { label: 'Zip Code',       value: u.zip || '—' },
-                  { label: 'Country',        value: u.country || '—' },
-                  { label: 'Email',          value: u.email || '—' },
-                  { label: 'Phone',          value: u.phone || '—' },
-                  { label: 'Website',        value: u.website || '—' },
+                  { label: 'Display Name',   value: u.profileDisplayName || '—' },
+                  { label: 'Organization',   value: u.profileOrganization || '—' },
+                  { label: 'Street Address', value: u.profileAddress || '—' },
+                  { label: 'City',           value: u.profileCity || '—' },
+                  { label: 'State',          value: u.profileState || '—' },
+                  { label: 'Zip Code',       value: u.profileZip || '—' },
+                  { label: 'Country',        value: u.profileCountry || '—' },
+                  { label: 'Email',          value: u.profileEmail || '—' },
+                  { label: 'Phone',          value: u.profilePhone || '—' },
+                  { label: 'Website',        value: u.profileWebsite || '—' },
                 ].map(f => (
                   <div key={f.label} className="flex items-center justify-between py-3">
                     <span className="text-sm text-gray-500 w-40 flex-shrink-0">{f.label}</span>
@@ -692,10 +692,10 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
                 {/* Club Affiliations */}
                 <div className="py-4">
                   <span className="text-sm text-gray-500 block mb-2">Club Affiliation(s)</span>
-                  {(u.clubAffiliations || []).length === 0
+                  {(u.profileClubAffiliations || []).length === 0
                     ? <span className="text-sm text-gray-400">None</span>
                     : <div className="flex flex-wrap gap-2">
-                        {(u.clubAffiliations || []).map((c, i) => (
+                        {(u.profileClubAffiliations || []).map((c, i) => (
                           <div key={i} className="flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm">
                             <span>{c.name}</span>
                             {c.website && <a href={c.website} target="_blank" rel="noreferrer" className="text-blue-400 hover:text-blue-600 text-xs underline ml-1">{c.website}</a>}
@@ -708,10 +708,10 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
                 {/* Sponsors */}
                 <div className="py-4">
                   <span className="text-sm text-gray-500 block mb-2">Sponsor(s)</span>
-                  {(u.sponsors || []).length === 0
+                  {(u.profileSponsors || []).length === 0
                     ? <span className="text-sm text-gray-400">None</span>
                     : <div className="flex flex-wrap gap-2">
-                        {(u.sponsors || []).map((s, i) => (
+                        {(u.profileSponsors || []).map((s, i) => (
                           <div key={i} className="flex items-center gap-1.5 px-3 py-1 bg-orange-50 text-orange-700 rounded-full text-sm">
                             <span>{s.name}</span>
                             {s.website && <a href={s.website} target="_blank" rel="noreferrer" className="text-orange-400 hover:text-orange-600 text-xs underline ml-1">{s.website}</a>}
@@ -1014,17 +1014,19 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
                     </button>
                     <button onClick={async () => {
                       await import('@/lib/supabase').then(m => m.updateUser(selectedUser.id, {
-                        display_name: jp.displayName,
-                        organization: jp.organization,
-                        address: jp.address,
-                        city: jp.city,
-                        state: jp.state,
-                        zip: jp.zip,
-                        country: jp.country,
-                        phone: jp.phone,
-                        website: jp.website,
-                        club_affiliations: jp.clubAffiliations,
-                        sponsors: jp.sponsors,
+                        profile_avatar: jp.avatar,
+                        profile_display_name: jp.displayName,
+                        profile_organization: jp.organization,
+                        profile_address: jp.address,
+                        profile_city: jp.city,
+                        profile_state: jp.state,
+                        profile_zip: jp.zip,
+                        profile_country: jp.country,
+                        profile_email: jp.email,
+                        profile_phone: jp.phone,
+                        profile_website: jp.website,
+                        profile_club_affiliations: jp.clubAffiliations,
+                        profile_sponsors: jp.sponsors,
                       }));
                       toastSuccess('Judge profile saved successfully.');
                     }} className="px-5 py-2.5 bg-gray-900 text-white font-semibold rounded-lg hover:bg-gray-700 transition text-sm">

@@ -31,6 +31,20 @@ export interface User {
   displayName?: string;
   clubAffiliations?: ClubAffiliation[];
   sponsors?: Sponsor[];
+  // Separate public profile fields
+  profileAvatar?: string;
+  profileDisplayName?: string;
+  profileOrganization?: string;
+  profileAddress?: string;
+  profileCity?: string;
+  profileState?: string;
+  profileZip?: string;
+  profileCountry?: string;
+  profileEmail?: string;
+  profilePhone?: string;
+  profileWebsite?: string;
+  profileClubAffiliations?: ClubAffiliation[];
+  profileSponsors?: Sponsor[];
   message?: string;
   bannerImage?: string;
   bannerStartDate?: string;

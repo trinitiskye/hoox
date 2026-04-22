@@ -297,6 +297,20 @@ export function dbUserToApp(u: DbUser): User {
     displayName: u.display_name ?? undefined,
     clubAffiliations: u.club_affiliations ?? undefined,
     sponsors: u.sponsors ?? undefined,
+    // Public profile fields (separate from account info)
+    profileAvatar: u.profile_avatar ?? undefined,
+    profileDisplayName: u.profile_display_name ?? undefined,
+    profileOrganization: u.profile_organization ?? undefined,
+    profileAddress: u.profile_address ?? undefined,
+    profileCity: u.profile_city ?? undefined,
+    profileState: u.profile_state ?? undefined,
+    profileZip: u.profile_zip ?? undefined,
+    profileCountry: u.profile_country ?? undefined,
+    profileEmail: u.profile_email ?? undefined,
+    profilePhone: u.profile_phone ?? undefined,
+    profileWebsite: u.profile_website ?? undefined,
+    profileClubAffiliations: u.profile_club_affiliations ?? undefined,
+    profileSponsors: u.profile_sponsors ?? undefined,
     message: u.message ?? undefined,
     bannerImage: u.banner_image ?? undefined,
     bannerStartDate: u.banner_start_date ?? undefined,
@@ -398,6 +412,20 @@ export interface DbUser {
   display_name: string | null;
   club_affiliations: { name: string; website: string }[] | null;
   sponsors: { name: string; website: string }[] | null;
+  // Separate public profile fields (profile_ prefix = distinct from account info)
+  profile_avatar: string | null;
+  profile_display_name: string | null;
+  profile_organization: string | null;
+  profile_address: string | null;
+  profile_city: string | null;
+  profile_state: string | null;
+  profile_zip: string | null;
+  profile_country: string | null;
+  profile_email: string | null;
+  profile_phone: string | null;
+  profile_website: string | null;
+  profile_club_affiliations: { name: string; website: string }[] | null;
+  profile_sponsors: { name: string; website: string }[] | null;
   message: string | null;
   banner_image: string | null;
   banner_start_date: string | null;
@@ -406,13 +434,26 @@ export interface DbUser {
   created_at: string;
 }
 
-export type DbUserInsert = Omit<DbUser, 'id' | 'created_at' | 'country' | 'display_name' | 'club_affiliations' | 'sponsors'> & {
+export type DbUserInsert = Omit<DbUser, 'id' | 'created_at' | 'country' | 'display_name' | 'club_affiliations' | 'sponsors' | 'profile_avatar' | 'profile_display_name' | 'profile_organization' | 'profile_address' | 'profile_city' | 'profile_state' | 'profile_zip' | 'profile_country' | 'profile_email' | 'profile_phone' | 'profile_website' | 'profile_club_affiliations' | 'profile_sponsors'> & {
   id?: string;
   created_at?: string;
   country?: string | null;
   display_name?: string | null;
   club_affiliations?: { name: string; website: string }[] | null;
   sponsors?: { name: string; website: string }[] | null;
+  profile_avatar?: string | null;
+  profile_display_name?: string | null;
+  profile_organization?: string | null;
+  profile_address?: string | null;
+  profile_city?: string | null;
+  profile_state?: string | null;
+  profile_zip?: string | null;
+  profile_country?: string | null;
+  profile_email?: string | null;
+  profile_phone?: string | null;
+  profile_website?: string | null;
+  profile_club_affiliations?: { name: string; website: string }[] | null;
+  profile_sponsors?: { name: string; website: string }[] | null;
 };
 
 export interface DbRegistration {
