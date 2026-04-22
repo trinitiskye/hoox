@@ -31,7 +31,6 @@ interface AdminDashboardProps {
 const TAB_TO_PATH: Record<string, string> = {
   'Dashboard':        '/admin',
   'Users':            '/admin/users',
-  'Partners':         '/admin/partners',
   'Clubs':            '/admin/clubs',
   'Series':           '/admin/series',
   'Tournaments':      '/admin/tournaments',
@@ -48,7 +47,7 @@ const PATH_TO_TAB: Record<string, string> = Object.fromEntries(
 );
 
 const NAV_TABS = [
-  'Dashboard', 'Users', 'Partners', 'Clubs', 'Series',
+  'Dashboard', 'Users', 'Clubs', 'Series',
   'Tournaments', 'Events', 'Catch Submissions',
   'Advertising', 'Monetization', 'CMS', 'Settings'
 ];
