@@ -786,13 +786,16 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
       </div>
     );
 
-    const roleBadgeColor = (role: string) => ({
-      admin:    'bg-red-100 text-red-700',
-      director: 'bg-blue-100 text-blue-700',
-      judge:    'bg-purple-100 text-purple-700',
-      angler:   'bg-green-100 text-green-700',
-      sponsor:  'bg-orange-100 text-orange-700',
-    }[role] || 'bg-gray-100 text-gray-600');
+    const roleBadgeColor = (role: string): string => {
+      const map: Record<string, string> = {
+        admin:    'bg-red-100 text-red-700',
+        director: 'bg-blue-100 text-blue-700',
+        judge:    'bg-purple-100 text-purple-700',
+        angler:   'bg-green-100 text-green-700',
+        sponsor:  'bg-orange-100 text-orange-700',
+      };
+      return map[role] || 'bg-gray-100 text-gray-600';
+    };
 
     return (
       <div>
