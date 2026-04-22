@@ -3,6 +3,16 @@ export type UserStatus = 'active' | 'pending' | 'inactive' | 'paused' | 'banned'
 export type SubmissionStatus = 'pending' | 'approved' | 'denied';
 export type TournamentStatus = 'upcoming' | 'active' | 'completed';
 
+export interface ClubAffiliation {
+  name: string;
+  website: string;
+}
+
+export interface Sponsor {
+  name: string;
+  website: string;
+}
+
 export interface User {
   id: string;
   name: string;
@@ -18,6 +28,9 @@ export interface User {
   phone?: string;
   website?: string;
   avatar?: string;
+  displayName?: string;
+  clubAffiliations?: ClubAffiliation[];
+  sponsors?: Sponsor[];
   message?: string;
   bannerImage?: string;
   bannerStartDate?: string;

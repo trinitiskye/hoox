@@ -294,6 +294,9 @@ export function dbUserToApp(u: DbUser): User {
     phone: u.phone ?? undefined,
     website: u.website ?? undefined,
     avatar: u.avatar ?? undefined,
+    displayName: u.display_name ?? undefined,
+    clubAffiliations: u.club_affiliations ?? undefined,
+    sponsors: u.sponsors ?? undefined,
     message: u.message ?? undefined,
     bannerImage: u.banner_image ?? undefined,
     bannerStartDate: u.banner_start_date ?? undefined,
@@ -392,6 +395,9 @@ export interface DbUser {
   phone: string | null;
   website: string | null;
   avatar: string | null;
+  display_name: string | null;
+  club_affiliations: { name: string; website: string }[] | null;
+  sponsors: { name: string; website: string }[] | null;
   message: string | null;
   banner_image: string | null;
   banner_start_date: string | null;
@@ -455,3 +461,8 @@ export type DbSeriesInsert = Omit<DbSeries, 'id' | 'created_at'> & {
   id?: string;
   created_at?: string;
 };
+
+// SQL migration to run in Supabase dashboard:
+// ALTER TABLE public.users ADD COLUMN IF NOT EXISTS display_name text;
+// ALTER TABLE public.users ADD COLUMN IF NOT EXISTS club_affiliations jsonb DEFAULT '[]';
+// ALTER TABLE public.users ADD COLUMN IF NOT EXISTS sponsors jsonb DEFAULT '[]';
