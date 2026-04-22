@@ -23,6 +23,8 @@ interface AdminDashboardProps {
   onNavigate: (view: string) => void;
   onLogout: () => void;
   initialTab?: string;
+  usersSubView?: string;
+  usersSelectedId?: string;
 }
 
 const TAB_TO_PATH: Record<string, string> = {
@@ -50,7 +52,7 @@ const NAV_TABS = [
   'Advertising', 'Monetization', 'CMS', 'Settings'
 ];
 
-export default function AdminDashboard({ currentUser, onNavigate, onLogout, initialTab }: AdminDashboardProps) {
+export default function AdminDashboard({ currentUser, onNavigate, onLogout, initialTab, usersSubView, usersSelectedId }: AdminDashboardProps) {
   const [activeTab, setActiveTab] = useState(initialTab || 'Dashboard');
   const [usersTabKey, setUsersTabKey] = useState(0);
   const [users, setUsers] = useState<User[]>([]);
@@ -145,7 +147,7 @@ export default function AdminDashboard({ currentUser, onNavigate, onLogout, init
             loading={loading} onTabChange={setActiveTab}
           />
         )}
-        {activeTab === 'Users' && <UsersTab key={usersTabKey} users={users} onRefresh={() => { fetchUsers().then(setUsers); }} currentUser={currentUser} />}
+        {activeTab === 'Users' && <UsersTab key={usersTabKey} users={users} onRefresh={() => { fetchUsers().then(setUsers); }} currentUser={currentUser} onNavigate={onNavigate} subViewProp={usersSubView} selectedUserId={usersSelectedId} />}
         {activeTab === 'Tournaments' && <TournamentsTab tournaments={tournaments} />}
         {activeTab === 'Catch Submissions' && <SubmissionsTab submissions={submissions} />}
         {activeTab === 'Partners' && <PartnersTab partners={partners} />}
@@ -337,11 +339,18 @@ function DashboardTab({ users, tournaments, series, submissions, directors, judg
 // ============================================================
 // USERS TAB
 // ============================================================
-function UsersTab({ users, onRefresh, currentUser }: { users: User[]; onRefresh: () => void; currentUser: User }) {
+function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, selectedUserId }: {
+  users: User[];
+  onRefresh: () => void;
+  currentUser: User;
+  onNavigate: (path: string) => void;
+  subViewProp?: string;
+  selectedUserId?: string;
+}) {
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
-  const [subView, setSubView] = useState<'dashboard' | 'list' | 'view' | 'edit'>('dashboard');
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const subView = subViewProp || 'dashboard';
+  const selectedUser = users.find(u => u.id === selectedUserId) || null;
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<User>>({});
@@ -398,17 +407,15 @@ function UsersTab({ users, onRefresh, currentUser }: { users: User[]; onRefresh:
     const { deleteUser } = await import('@/lib/supabase');
     await deleteUser(userId);
     setDeleteTarget(null);
-    setSubView('list');
-    setSelectedUser(null);
+    onNavigate('/admin/users/list');
     await onRefresh();
   };
 
-  const openView = (user: User) => { setSelectedUser(user); setSubView('view'); };
+  const openView = (user: User) => { onNavigate(`/admin/users/${user.id}`); };
   const openEdit = (user: User) => {
-    setSelectedUser(user);
     setEditForm({ ...user });
     setEditSuccess(false);
-    setSubView('edit');
+    onNavigate(`/admin/users/${user.id}/edit`);
   };
 
   const saveEdit = async () => {
@@ -431,6 +438,7 @@ function UsersTab({ users, onRefresh, currentUser }: { users: User[]; onRefresh:
     setEditSaving(false);
     setEditSuccess(true);
     toastSuccess('User information saved successfully.');
+    onNavigate(`/admin/users/${selectedUser?.id}`);
   };
 
   const changePasswordForUser = async () => {
@@ -501,7 +509,7 @@ function UsersTab({ users, onRefresh, currentUser }: { users: User[]; onRefresh:
         <DeleteModal />
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1 text-sm mb-6">
-          <button onClick={() => setSubView('list')} className="text-blue-600 hover:underline">User Management</button>
+          <button onClick={() => onNavigate('/admin/users/list')} className="text-blue-600 hover:underline">User Management</button>
           <span className="text-gray-300 mx-1">›</span>
           <span className="text-gray-700 font-medium">{u.name}</span>
           <span className="text-gray-300 mx-1">›</span>
@@ -585,11 +593,11 @@ function UsersTab({ users, onRefresh, currentUser }: { users: User[]; onRefresh:
         <DeleteModal />
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1 text-sm mb-6">
-          <button onClick={() => setSubView('dashboard')} className="text-blue-600 hover:underline">Users</button>
+          <button onClick={() => onNavigate('/admin/users')} className="text-blue-600 hover:underline">Users</button>
           <span className="text-gray-300 mx-1">›</span>
-          <button onClick={() => setSubView('list')} className="text-blue-600 hover:underline">User Management</button>
+          <button onClick={() => onNavigate('/admin/users/list')} className="text-blue-600 hover:underline">User Management</button>
           <span className="text-gray-300 mx-1">›</span>
-          <button onClick={() => setSubView('view')} className="text-blue-600 hover:underline">{selectedUser.name}</button>
+          <button onClick={() => onNavigate(`/admin/users/${selectedUser?.id ?? ''}`)} className="text-blue-600 hover:underline">{selectedUser.name}</button>
           <span className="text-gray-300 mx-1">›</span>
           <span className="text-gray-500">Edit</span>
         </nav>
@@ -663,7 +671,7 @@ function UsersTab({ users, onRefresh, currentUser }: { users: User[]; onRefresh:
               </div>
             )}
             <div className="flex gap-3">
-              <button onClick={() => setSubView('view')} className="px-5 py-2.5 border border-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition text-sm">
+              <button onClick={() => onNavigate(`/admin/users/${selectedUser?.id ?? ''}`)} className="px-5 py-2.5 border border-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition text-sm">
                 Cancel
               </button>
               <button onClick={saveEdit} disabled={editSaving} className="px-5 py-2.5 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition disabled:opacity-50 text-sm">
@@ -805,7 +813,7 @@ function UsersTab({ users, onRefresh, currentUser }: { users: User[]; onRefresh:
     ];
 
     const toolCards = [
-      { icon: Users,      color: 'bg-blue-100 text-blue-600',   title: 'User Directory',       desc: 'View and manage all user accounts',                  btn: 'View All Users',      primary: true,  action: () => setSubView('list') },
+      { icon: Users,      color: 'bg-blue-100 text-blue-600',   title: 'User Directory',       desc: 'View and manage all user accounts',                  btn: 'View All Users',      primary: true,  action: () => onNavigate('/admin/users/list') },
       { icon: Shield,     color: 'bg-purple-100 text-purple-600', title: 'Role Management',    desc: 'Assign and modify user roles and permissions',        btn: 'Manage Roles',        primary: false, action: () => {} },
       { icon: Megaphone,  color: 'bg-teal-100 text-teal-600',   title: 'User Communication',   desc: 'Send notifications and announcements to users',       btn: 'Send Notification',   primary: false, action: () => {} },
       { icon: Activity,   color: 'bg-green-100 text-green-600', title: 'User Activity',        desc: 'Monitor user activity and engagement',                btn: 'View Activity',       primary: false, action: () => {} },
@@ -826,7 +834,7 @@ function UsersTab({ users, onRefresh, currentUser }: { users: User[]; onRefresh:
               { label: 'Add a Judge',               filter: 'judge' },
               { label: 'Add an Angler',             filter: 'angler' },
             ].map(b => (
-              <button key={b.label} onClick={() => setSubView('list')}
+              <button key={b.label} onClick={() => onNavigate('/admin/users/list')}
                 className="px-4 py-2.5 bg-gray-900 text-white rounded-lg text-sm font-semibold hover:bg-gray-700 transition whitespace-nowrap">
                 {b.label}
               </button>
@@ -837,9 +845,9 @@ function UsersTab({ users, onRefresh, currentUser }: { users: User[]; onRefresh:
         {/* Top stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
           {[
-            { label: 'Total Users',     value: users.length,         sub: 'All registered users',      icon: Users,     onClick: () => setSubView('list') },
-            { label: 'Active Users',    value: activeUsers.length,   sub: 'Active in last 30 days',    icon: Activity,  onClick: () => { setRoleFilter('all'); setSubView('list'); } },
-            { label: 'New This Month',  value: newThisMonth.length,  sub: 'New registrations',         icon: UserCheck, onClick: () => setSubView('list') },
+            { label: 'Total Users',     value: users.length,         sub: 'All registered users',      icon: Users,     onClick: () => onNavigate('/admin/users/list') },
+            { label: 'Active Users',    value: activeUsers.length,   sub: 'Active in last 30 days',    icon: Activity,  onClick: () => { setRoleFilter('all'); onNavigate('/admin/users/list'); } },
+            { label: 'New This Month',  value: newThisMonth.length,  sub: 'New registrations',         icon: UserCheck, onClick: () => onNavigate('/admin/users/list') },
           ].map(s => (
             <button key={s.label} onClick={s.onClick}
               className="bg-white border border-gray-200 rounded-xl p-5 text-left hover:border-blue-300 hover:shadow-sm transition group">
@@ -856,7 +864,7 @@ function UsersTab({ users, onRefresh, currentUser }: { users: User[]; onRefresh:
         {/* Role breakdown */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
           {roleCards.map(r => (
-            <button key={r.label} onClick={() => { setRoleFilter(r.filter); setSubView('list'); }}
+            <button key={r.label} onClick={() => { setRoleFilter(r.filter); onNavigate('/admin/users/list'); }}
               className="bg-white border border-gray-200 rounded-xl p-4 text-left hover:border-blue-300 hover:shadow-sm transition group">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-xs text-gray-500">{r.label}</span>
@@ -900,7 +908,7 @@ function UsersTab({ users, onRefresh, currentUser }: { users: User[]; onRefresh:
       <DeleteModal />
       {/* Breadcrumb */}
       <nav className="flex items-center gap-1 text-sm mb-5">
-        <button onClick={() => setSubView('dashboard')} className="text-blue-600 hover:underline">Users</button>
+        <button onClick={() => onNavigate('/admin/users')} className="text-blue-600 hover:underline">Users</button>
         <span className="text-gray-300 mx-1">›</span>
         <span className="text-gray-700 font-medium">User Management</span>
       </nav>

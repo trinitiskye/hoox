@@ -12,7 +12,7 @@ export default function Page({ params }: { params: { id?: string } }) {
     <AdminDashboard
       currentUser={currentUser}
       initialTab="Users"
-      usersSubView="view"
+      usersSubView="edit"
       usersSelectedId={params.id}
       onNavigate={(view) => {
         if (view.startsWith('/admin')) router.push(view);

@@ -4,7 +4,7 @@ import { useAuth } from '@/lib/AuthContext';
 import AdminDashboard from '@/components/pages/AdminDashboard';
 import { toPath } from '@/lib/routes';
 
-export default function Page({ params }: { params: { id?: string } }) {
+export default function Page() {
   const router = useRouter();
   const { currentUser, logout } = useAuth();
   if (!currentUser) return null;
@@ -12,8 +12,7 @@ export default function Page({ params }: { params: { id?: string } }) {
     <AdminDashboard
       currentUser={currentUser}
       initialTab="Users"
-      usersSubView="view"
-      usersSelectedId={params.id}
+      usersSubView="list"
       onNavigate={(view) => {
         if (view.startsWith('/admin')) router.push(view);
         else router.push(toPath(view));
