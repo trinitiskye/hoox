@@ -858,7 +858,7 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
             {selectedUser.role === 'judge' && (() => {
               const jp = judgeProfile;
               const setJp = (key: string, val: any) => setJudgeProfile(p => ({ ...p, [key]: val }));
-              const inputCls = "w-full px-4 py-2.5 bg-gray-100 border-0 rounded-xl text-sm focus:ring-2 focus:ring-blue-500";
+              const inputCls = "w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent";
               const labelCls = "block text-sm font-medium text-gray-700 mb-1.5";
               return (
                 <div className="space-y-5">
