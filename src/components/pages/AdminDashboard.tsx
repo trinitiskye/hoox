@@ -26,6 +26,7 @@ interface AdminDashboardProps {
   initialTab?: string;
   usersSubView?: string;
   usersSelectedId?: string;
+  usersFilter?: string;
 }
 
 const TAB_TO_PATH: Record<string, string> = {
@@ -52,7 +53,7 @@ const NAV_TABS = [
   'Advertising', 'Monetization', 'CMS', 'Settings'
 ];
 
-export default function AdminDashboard({ currentUser, onNavigate, onNavigateReplace, onLogout, initialTab, usersSubView, usersSelectedId }: AdminDashboardProps) {
+export default function AdminDashboard({ currentUser, onNavigate, onNavigateReplace, onLogout, initialTab, usersSubView, usersSelectedId, usersFilter }: AdminDashboardProps) {
   const [activeTab, setActiveTab] = useState(initialTab || 'Dashboard');
   const [usersTabKey, setUsersTabKey] = useState(0);
   const [users, setUsers] = useState<User[]>([]);
@@ -147,7 +148,7 @@ export default function AdminDashboard({ currentUser, onNavigate, onNavigateRepl
             loading={loading} onTabChange={setActiveTab}
           />
         )}
-        {activeTab === 'Users' && <UsersTab key={usersTabKey} users={users} onRefresh={() => { fetchUsers().then(setUsers); }} currentUser={currentUser} onNavigate={onNavigate} subViewProp={usersSubView} selectedUserId={usersSelectedId} />}
+        {activeTab === 'Users' && <UsersTab key={usersTabKey} users={users} onRefresh={() => { fetchUsers().then(setUsers); }} currentUser={currentUser} onNavigate={onNavigate} subViewProp={usersSubView} selectedUserId={usersSelectedId} initialFilter={usersFilter} />}
         {activeTab === 'Tournaments' && <TournamentsTab tournaments={tournaments} />}
         {activeTab === 'Catch Submissions' && <SubmissionsTab submissions={submissions} />}
         {activeTab === 'Partners' && <PartnersTab partners={partners} />}
@@ -339,16 +340,17 @@ function DashboardTab({ users, tournaments, series, submissions, directors, judg
 // ============================================================
 // USERS TAB
 // ============================================================
-function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, selectedUserId }: {
+function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, selectedUserId, initialFilter }: {
   users: User[];
   onRefresh: () => void;
   currentUser: User;
   onNavigate: (path: string) => void;
   subViewProp?: string;
   selectedUserId?: string;
+  initialFilter?: string;
 }) {
   const [search, setSearch] = useState('');
-  const [roleFilter, setRoleFilter] = useState('all');
+  const [roleFilter, setRoleFilter] = useState(initialFilter || 'all');
   const subView = subViewProp || 'dashboard';
   const selectedUser = users.find(u => u.id === selectedUserId) || null;
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
@@ -425,11 +427,19 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
 
   const pendingJudges = users.filter(u => u.role === 'judge' && u.status === 'pending');
 
-  const filtered = users.filter(u =>
-    (roleFilter === 'all' || u.role === roleFilter) &&
-    (u.name.toLowerCase().includes(search.toLowerCase()) ||
-     u.email.toLowerCase().includes(search.toLowerCase()))
-  );
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+  const filtered = users.filter(u => {
+    const matchSearch = !search ||
+      u.name.toLowerCase().includes(search.toLowerCase()) ||
+      u.email.toLowerCase().includes(search.toLowerCase());
+    let matchFilter = true;
+    if (roleFilter === 'active') matchFilter = u.status === 'active';
+    else if (roleFilter === 'new') matchFilter = new Date(u.createdAt) >= thirtyDaysAgo;
+    else if (roleFilter !== 'all') matchFilter = u.role === roleFilter;
+    return matchSearch && matchFilter;
+  });
 
   const roleBadge = (role: string) => ({
     admin:    'bg-red-100 text-red-700',
@@ -1279,8 +1289,8 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
           {[
             { label: 'Total Users',     value: users.length,         sub: 'All registered users',      icon: Users,     onClick: () => onNavigate('/admin/users/list') },
-            { label: 'Active Users',    value: activeUsers.length,   sub: 'Active in last 30 days',    icon: Activity,  onClick: () => { setRoleFilter('all'); onNavigate('/admin/users/list'); } },
-            { label: 'New This Month',  value: newThisMonth.length,  sub: 'New registrations',         icon: UserCheck, onClick: () => onNavigate('/admin/users/list') },
+            { label: 'Active Users',    value: activeUsers.length,   sub: 'Active in last 30 days',    icon: Activity,  onClick: () => onNavigate('/admin/users/list?filter=active') },
+            { label: 'New This Month',  value: newThisMonth.length,  sub: 'New registrations',         icon: UserCheck, onClick: () => onNavigate('/admin/users/list?filter=new') },
           ].map(s => (
             <button key={s.label} onClick={s.onClick}
               className="bg-white border border-gray-200 rounded-xl p-5 text-left hover:border-blue-300 hover:shadow-sm transition group">
@@ -1297,7 +1307,7 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
         {/* Role breakdown */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
           {roleCards.map(r => (
-            <button key={r.label} onClick={() => { setRoleFilter(r.filter); onNavigate('/admin/users/list'); }}
+            <button key={r.label} onClick={() => onNavigate(`/admin/users/list?filter=${r.filter}`)}
               className="bg-white border border-gray-200 rounded-xl p-4 text-left hover:border-blue-300 hover:shadow-sm transition group">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-xs text-gray-500">{r.label}</span>
@@ -1380,12 +1390,14 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
         <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name or email..."
           className="flex-1 min-w-48 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500" />
         <select value={roleFilter} onChange={e => setRoleFilter(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm">
-          <option value="all">All Roles</option>
-          <option value="admin">Admin</option>
-          <option value="director">Director</option>
-          <option value="judge">Judge</option>
-          <option value="angler">Angler</option>
-          <option value="sponsor">Partner</option>
+          <option value="all">All Users</option>
+          <option value="active">Active Users</option>
+          <option value="new">New This Month</option>
+          <option value="admin">Admins</option>
+          <option value="director">Directors</option>
+          <option value="judge">Judges</option>
+          <option value="angler">Anglers</option>
+          <option value="sponsor">Partners</option>
         </select>
       </div>
 
