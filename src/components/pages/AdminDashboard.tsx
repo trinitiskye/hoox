@@ -88,8 +88,8 @@ export default function AdminDashboard({ currentUser, onNavigate, onNavigateRepl
           <div className="flex items-center justify-between h-14">
             {/* Logo + View Website */}
             <div className="flex items-center gap-4">
-              <button onClick={() => onNavigate('home')} className="flex items-center gap-2">
-                <span className="text-xl font-black text-blue-700 tracking-tight">HOOX</span>
+              <button onClick={() => onNavigate('home')} className="flex items-center">
+                <img src="/hoox_logo.png" alt="HOOX" className="h-9 w-auto" />
               </button>
               <button onClick={() => onNavigate('home')} className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition">
                 <Globe className="w-3.5 h-3.5" /> View Website

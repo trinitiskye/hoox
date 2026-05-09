@@ -19,13 +19,8 @@ export default function Header({ currentUser, onNavigate, onLogout }: HeaderProp
         <div className="flex items-center justify-between h-16">
 
           {/* Logo */}
-          <button onClick={() => onNavigate('home')} className="flex items-center gap-2 hover:opacity-80 transition flex-shrink-0">
-            <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <text x="2" y="28" fontSize="22" fontWeight="800" fill="#1a56db" fontFamily="Arial, sans-serif">HOOX</text>
-              <path d="M34 8 C34 8 38 12 36 17 C34 22 28 20 28 20" stroke="#1a56db" strokeWidth="2" strokeLinecap="round" fill="none"/>
-              <path d="M28 20 C28 20 26 24 28 27" stroke="#1a56db" strokeWidth="2" strokeLinecap="round" fill="none"/>
-              <path d="M16 32 Q20 36 36 34 Q38 34 38 32 Q38 30 36 30 Q24 32 18 28" stroke="#3b82f6" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
-            </svg>
+          <button onClick={() => onNavigate('home')} className="flex items-center hover:opacity-80 transition flex-shrink-0">
+            <img src="/hoox_logo.png" alt="HOOX" className="h-10 w-auto" />
           </button>
 
           {/* Desktop Navigation */}
