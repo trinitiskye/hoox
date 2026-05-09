@@ -20,7 +20,7 @@ export default function Header({ currentUser, onNavigate, onLogout }: HeaderProp
 
           {/* Logo */}
           <button onClick={() => onNavigate('home')} className="flex items-center hover:opacity-80 transition flex-shrink-0">
-            <img src="/hoox_logo.png" alt="HOOX" className="h-10 w-auto" />
+            <img src="/hoox_logo.png" alt="HOOX" className="h-16 w-auto" />
           </button>
 
           {/* Desktop Navigation */}
