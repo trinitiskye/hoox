@@ -23,7 +23,7 @@ export default function AdminLoginPage({ onNavigate, onLogin }: AdminLoginPagePr
     const { user, error: err } = await loginAdmin(email, password);
     setLoading(false);
     if (err) { setError(err); return; }
-    if (user) { onLogin(user); onNavigate('admin-dashboard'); }
+    if (user) { onLogin(user); }
   };
 
   return (
