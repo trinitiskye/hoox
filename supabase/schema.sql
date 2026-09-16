@@ -15,8 +15,8 @@ create table if not exists public.users (
   name text not null,
   email text unique not null,
   password_hash text,
-  role text not null default 'angler' check (role in ('angler', 'director', 'admin', 'sponsor')),
-  status text not null default 'active' check (status in ('active', 'pending', 'inactive', 'paused')),
+  role text not null default 'angler' check (role in ('angler', 'director', 'admin', 'sponsor', 'judge')),
+  status text not null default 'active' check (status in ('active', 'pending', 'inactive', 'paused', 'banned')),
   organization text,
   address text,
   city text,
@@ -125,14 +125,14 @@ create policy "Public can read submissions" on public.submissions for select usi
 -- These are implicit when using the service_role key, no policy needed.
 
 -- ANON INSERT policies (for registration, submission, user creation)
-create policy "Anyone can create user" on public.users for insert with check (true);
+create policy "Anyone can create user" on public.users for insert with check (role <> 'admin');
 create policy "Anyone can register" on public.registrations for insert with check (true);
 create policy "Anyone can submit" on public.submissions for insert with check (true);
 create policy "Anyone can create tournament" on public.tournaments for insert with check (true);
 create policy "Anyone can create series" on public.series for insert with check (true);
 
 -- UPDATE policies (use service role key from API routes for admin ops)
-create policy "Anyone can update users" on public.users for update using (true);
+create policy "Anyone can update users" on public.users for update using (true) with check (role <> 'admin');
 create policy "Anyone can update tournaments" on public.tournaments for update using (true);
 create policy "Anyone can update submissions" on public.submissions for update using (true);
 

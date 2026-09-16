@@ -340,41 +340,6 @@ export async function registerPartner(data: {
 }
 
 // ============================================================
-// CREATE DEMO ADMIN ACCOUNT
-// ============================================================
-
-export async function createDemoAdmin(): Promise<{ success: boolean; error: string | null }> {
-  const email = 'cher.chronis@gmail.com';
-  const { data: existing } = await getUserByEmail(email);
-
-  if (existing && existing.length > 0) {
-    // Update to admin if exists
-    await updateUser(existing[0].id, {
-      role: 'admin',
-      status: 'active',
-      password_hash: hashPassword('DemoAdmin123!'),
-    });
-    return { success: true, error: null };
-  }
-
-  const { error } = await createUser({
-    name: 'Cher Chronis',
-    email,
-    password_hash: hashPassword('DemoAdmin123!'),
-    role: 'admin',
-    status: 'active',
-    organization: 'HOOX Software LLC',
-    address: null, city: null, state: null, zip: null,
-    phone: null, website: null, avatar: null, message: null,
-    banner_image: null, banner_start_date: null, banner_end_date: null,
-    country: null,
-  });
-
-  if (error) return { success: false, error };
-  return { success: true, error: null };
-}
-
-// ============================================================
 // CREATE ALL DEMO ACCOUNTS
 // ============================================================
 
