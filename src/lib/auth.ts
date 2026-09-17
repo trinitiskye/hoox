@@ -3,8 +3,9 @@
 // Simple password-based auth stored in Supabase
 // NOTE: For production, migrate to Supabase Auth for proper security
 
-import { getUserByEmail, getUserById, createUser, updateUser } from './supabase';
+import { getUserByEmail, createUser } from './supabase';
 import { dbUserToApp } from './supabase';
+import { hashPassword } from './passwordHash';
 import type { User, UserRole } from '@/types';
 
 const SESSION_KEY = 'hoox_session';
@@ -39,31 +40,12 @@ export function clearSession(): void {
 
 // ============================================================
 // PASSWORD UTILITIES
-// Simple hash for demo - in production use Supabase Auth
+// Moved to ./passwordHash so server-only route handlers (src/app/api/**)
+// can reuse the exact same logic without importing this client module.
+// Re-exported here too, in case any existing code imports them from '@/lib/auth'.
 // ============================================================
 
-export function hashPassword(password: string): string {
-  // Simple deterministic hash for demo purposes
-  // In production: use Supabase Auth which handles bcrypt server-side
-  let hash = 0;
-  const str = password + 'hoox_salt_2026';
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash;
-  }
-  return 'h_' + Math.abs(hash).toString(36) + '_' + btoa(password).replace(/=/g, '');
-}
-
-export function verifyPassword(password: string, hash: string): boolean {
-  if (!hash) return false;
-  // Check new hash format
-  if (hash.startsWith('h_')) {
-    return hashPassword(password) === hash;
-  }
-  // Legacy: plain text comparison (for demo accounts created early)
-  return password === hash;
-}
+export { hashPassword } from './passwordHash';
 
 // ============================================================
 // LOGIN
@@ -81,36 +63,31 @@ export type LoginErrorCode =
   | 'unknown';
 
 export async function loginUser(email: string, password: string): Promise<{ user: User | null; error: string | null; code?: LoginErrorCode }> {
-  const { data, error } = await getUserByEmail(email.toLowerCase().trim());
-
-  if (error) return { user: null, error: 'Connection error. Please try again.', code: 'connection_error' };
-  if (!data || data.length === 0) return { user: null, error: 'No account found with that email.', code: 'not_found' };
-
-  const dbUser = data[0];
-
-  if (!dbUser.password_hash) {
-    return { user: null, error: 'Account not set up correctly. Please contact support.', code: 'unknown' };
+  // Verified server-side now (src/app/api/auth/login) so the password hash
+  // never has to be sent to the browser to be compared here. This function
+  // keeps its original signature/return shape so LoginPage/AdminLoginPage
+  // don't need to change.
+  let res: Response;
+  try {
+    res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+  } catch {
+    return { user: null, error: 'Connection error. Please try again.', code: 'connection_error' };
   }
 
-  if (!verifyPassword(password, dbUser.password_hash)) {
-    return { user: null, error: 'Incorrect password.', code: 'wrong_password' };
+  const result = (await res.json().catch(() => null)) as
+    | { user: User | null; error: string | null; code?: LoginErrorCode }
+    | null;
+
+  if (!result) {
+    return { user: null, error: 'Connection error. Please try again.', code: 'connection_error' };
   }
 
-  if (dbUser.status === 'paused') {
-    return { user: null, error: 'paused', code: 'account_paused' };
-  }
-
-  if (dbUser.status === 'banned' || dbUser.status === 'inactive') {
-    return { user: null, error: 'banned', code: 'account_banned' };
-  }
-
-  if (dbUser.status === 'pending') {
-    return { user: null, error: 'Your account is pending approval. You will receive an email when approved.', code: 'account_pending' };
-  }
-
-  const user = dbUserToApp(dbUser);
-  setSession(user);
-  return { user, error: null };
+  if (result.user) setSession(result.user);
+  return result;
 }
 
 // ============================================================
@@ -351,84 +328,20 @@ export interface DemoAccountResult {
 }
 
 export async function createAllDemoAccounts(): Promise<DemoAccountResult[]> {
-  const password = hashPassword('demo123');
-  const results: DemoAccountResult[] = [];
-
-  const accounts = [
-    {
-      email: 'tournamentdirector@hoox.app',
-      name: 'Demo Director',
-      role: 'director' as const,
-      organization: 'HOOX Demo Club',
-      message: null,
-    },
-    {
-      email: 'angler@hoox.app',
-      name: 'Demo Angler',
-      role: 'angler' as const,
-      organization: null,
-      message: null,
-    },
-    {
-      email: 'judge@hoox.app',
-      name: 'Demo Judge',
-      role: 'judge' as const,
-      organization: null,
-      // connected to the demo director
-      message: 'tournamentdirector@hoox.app',
-    },
-    {
-      email: 'partner@hoox.app',
-      name: 'Demo Partner',
-      role: 'sponsor' as const,
-      organization: 'Demo Sponsor Co.',
-      message: null,
-    },
-  ];
-
-  for (const account of accounts) {
-    const { data: existing } = await getUserByEmail(account.email);
-
-    if (existing && existing.length > 0) {
-      // Update existing account - ensure correct role, status, and password
-      const { error } = await updateUser(existing[0].id, {
-        role: account.role,
-        status: 'active',
-        password_hash: password,
-        organization: account.organization,
-        message: account.message,
-      });
-      results.push({
-        email: account.email,
-        role: account.role,
-        status: error ? 'error' : 'updated',
-        error: error ?? undefined,
-      });
-    } else {
-      // Create new account
-      const { error } = await createUser({
-        name: account.name,
-        email: account.email,
-        password_hash: password,
-        role: account.role,
-        status: 'active',
-        organization: account.organization,
-        message: account.message,
-        address: null, city: null, state: null, zip: null,
-        phone: null, website: null, avatar: null,
-        banner_image: null, banner_start_date: null, banner_end_date: null,
-    country: null,
-      });
-      results.push({
-        email: account.email,
-        role: account.role,
-        status: error ? 'error' : 'created',
-        error: error ?? undefined,
-      });
-    }
+  // Moved server-side (src/app/api/admin/demo-accounts) — this used to be
+  // an exported client function with no permission check of its own, so
+  // any visitor could call it from the browser console on any page to
+  // (re)create the 4 demo accounts and reset their shared password back to
+  // a known value. The route requires a verified admin session.
+  let res: Response;
+  try {
+    res = await fetch('/api/admin/demo-accounts', { method: 'POST' });
+  } catch {
+    return [];
   }
 
-  return results;
+  const result = (await res.json().catch(() => null)) as { results?: DemoAccountResult[] } | null;
+  return result?.results || [];
 }
 
 // ============================================================
@@ -441,28 +354,28 @@ export async function changePassword(opts: {
   newPassword: string;
   isAdminOverride?: boolean;       // true when admin changes someone else's password
 }): Promise<{ success: boolean; error: string | null }> {
-  const { userId, currentPassword, newPassword, isAdminOverride } = opts;
+  // Verified server-side now (src/app/api/auth/change-password). The old
+  // client-side version trusted `isAdminOverride` from the caller directly,
+  // which meant anyone could call this from the browser console with
+  // isAdminOverride: true and reset any account's password without knowing
+  // the original one. The server route re-derives admin status itself from
+  // the signed session cookie, so `isAdminOverride` below is only used to
+  // decide whether to send `currentPassword` — the server makes the real
+  // decision independently.
+  const { userId, currentPassword, newPassword } = opts;
 
-  if (newPassword.length < 6) {
-    return { success: false, error: 'New password must be at least 6 characters.' };
+  let res: Response;
+  try {
+    res = await fetch('/api/auth/change-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, currentPassword, newPassword }),
+    });
+  } catch {
+    return { success: false, error: 'Connection error. Please try again.' };
   }
 
-  // If not an admin override, verify the current password first
-  if (!isAdminOverride) {
-    if (!currentPassword) {
-      return { success: false, error: 'Current password is required.' };
-    }
-    const { data } = await getUserById(userId);
-    if (!data?.[0]) return { success: false, error: 'User not found.' };
-    if (!verifyPassword(currentPassword, data[0].password_hash || '')) {
-      return { success: false, error: 'Current password is incorrect.' };
-    }
-  }
-
-  const { error } = await updateUser(userId, {
-    password_hash: hashPassword(newPassword),
-  });
-
-  if (error) return { success: false, error };
-  return { success: true, error: null };
+  const result = (await res.json().catch(() => null)) as { success: boolean; error: string | null } | null;
+  if (!result) return { success: false, error: 'Connection error. Please try again.' };
+  return result;
 }

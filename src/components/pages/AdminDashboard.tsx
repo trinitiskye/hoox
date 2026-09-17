@@ -459,19 +459,21 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
 
   const doAction = async (userId: string, action: 'approve' | 'pause' | 'unpause' | 'ban' | 'unban') => {
     setActionLoading(userId + action);
-    const { updateUser } = await import('@/lib/supabase');
-    const statusMap: Record<string, string> = {
-      approve: 'active', pause: 'paused', unpause: 'active', ban: 'banned', unban: 'active',
-    };
-    await updateUser(userId, { status: statusMap[action] });
+    // Goes through a server route that re-verifies we're actually logged in
+    // as an admin before touching anything (see src/app/api/admin/users/[id]/route.ts) —
+    // this used to call the Supabase anon key directly from the browser.
+    await fetch(`/api/admin/users/${userId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action }),
+    });
     await onRefresh();
     // Refresh selectedUser if we're in view/edit
     setActionLoading(null);
   };
 
   const doDelete = async (userId: string) => {
-    const { deleteUser } = await import('@/lib/supabase');
-    await deleteUser(userId);
+    await fetch(`/api/admin/users/${userId}`, { method: 'DELETE' });
     setDeleteTarget(null);
     onNavigate('/admin/users/list');
     await onRefresh();
@@ -509,18 +511,24 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
   const saveEdit = async () => {
     if (!selectedUser) return;
     setEditSaving(true);
-    const { updateUser } = await import('@/lib/supabase');
-    await updateUser(selectedUser.id, {
-      name: editForm.name,
-      email: editForm.email,
-      role: editForm.role,
-      organization: editForm.organization || null,
-      phone: editForm.phone || null,
-      address: editForm.address || null,
-      city: editForm.city || null,
-      state: editForm.state || null,
-      zip: editForm.zip || null,
-      website: editForm.website || null,
+    // Goes through a server route that re-verifies we're actually logged in
+    // as an admin before touching anything (see src/app/api/admin/users/[id]/route.ts) —
+    // this used to call the Supabase anon key directly from the browser.
+    await fetch(`/api/admin/users/${selectedUser.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: editForm.name,
+        email: editForm.email,
+        role: editForm.role,
+        organization: editForm.organization || null,
+        phone: editForm.phone || null,
+        address: editForm.address || null,
+        city: editForm.city || null,
+        state: editForm.state || null,
+        zip: editForm.zip || null,
+        website: editForm.website || null,
+      }),
     });
     await onRefresh();
     setEditSaving(false);
@@ -1025,21 +1033,29 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
                       Cancel
                     </button>
                     <button onClick={async () => {
-                      await import('@/lib/supabase').then(m => m.updateUser(selectedUser.id, {
-                        profile_avatar: jp.avatar,
-                        profile_display_name: jp.displayName,
-                        profile_organization: jp.organization,
-                        profile_address: jp.address,
-                        profile_city: jp.city,
-                        profile_state: jp.state,
-                        profile_zip: jp.zip,
-                        profile_country: jp.country,
-                        profile_email: jp.email,
-                        profile_phone: jp.phone,
-                        profile_website: jp.website,
-                        profile_club_affiliations: jp.clubAffiliations,
-                        profile_sponsors: jp.sponsors,
-                      }));
+                      // Goes through a server route that re-verifies we're actually
+                      // logged in as an admin before touching anything (see
+                      // src/app/api/admin/users/[id]/route.ts) — this used to call
+                      // the Supabase anon key directly from the browser.
+                      await fetch(`/api/admin/users/${selectedUser.id}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          profile_avatar: jp.avatar,
+                          profile_display_name: jp.displayName,
+                          profile_organization: jp.organization,
+                          profile_address: jp.address,
+                          profile_city: jp.city,
+                          profile_state: jp.state,
+                          profile_zip: jp.zip,
+                          profile_country: jp.country,
+                          profile_email: jp.email,
+                          profile_phone: jp.phone,
+                          profile_website: jp.website,
+                          profile_club_affiliations: jp.clubAffiliations,
+                          profile_sponsors: jp.sponsors,
+                        }),
+                      });
                       toastSuccess('Judge profile saved successfully.');
                     }} className="px-5 py-2.5 bg-gray-900 text-white font-semibold rounded-lg hover:bg-gray-700 transition text-sm">
                       Update

@@ -36,6 +36,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(() => {
     setCurrentUser(null);
     clearSession();
+    // Clear the server-side signed session cookie too. Fire-and-forget:
+    // existing callers don't await logout(), so this just needs to not throw.
+    fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
   }, []);
 
   return (

@@ -1,0 +1,51 @@
+-- ============================================================
+-- HOOX: lock down anon write access to users now that admin actions
+-- (ban/pause/approve/unban, edit user, delete user, judge profile edit,
+-- password changes, and the demo-account seeder) all go through
+-- server-side API routes using the service-role key.
+-- Project: Hoox (iefjracmxpkpwndrksps)
+-- Safe to run once against the live database.
+-- ============================================================
+
+-- Before this, the anon (public) API key — which is shipped in the
+-- browser bundle — had UPDATE and DELETE access to every row in
+-- public.users (gated only by the "role <> 'admin'" check added in the
+-- previous migration). Every place in the app that used to rely on that
+-- has been moved server-side:
+--   - login & password changes  -> src/app/api/auth/*
+--   - ban/pause/unban/approve, edit user, delete user, judge profile edit
+--     -> src/app/api/admin/users/[id]
+--   - demo account (re)seeding  -> src/app/api/admin/demo-accounts
+-- Those routes use the service-role key, which bypasses RLS/grants
+-- entirely, so this REVOKE does not affect them. Registration (creating a
+-- brand-new account when someone signs up) still works — it's an INSERT,
+-- not an UPDATE or DELETE — and reading tournaments/users for public pages
+-- still works, since SELECT is untouched.
+revoke update, delete on public.users from anon;
+
+-- ============================================================
+-- NOT fixed by this script — read before assuming you're covered:
+--
+-- Every user's password hash is still technically readable by anyone who
+-- calls the Supabase REST API directly (e.g. GET .../users?select=password_hash),
+-- because the SELECT policy on public.users is still "anyone can read".
+-- No part of the app reads that column via the anon key anymore (login and
+-- password changes were moved server-side in the same update as this
+-- migration), so this is a smaller residual risk than before, but it isn't
+-- zero. Properly closing it means restricting SELECT to a specific column
+-- list for the anon role and excluding password_hash — I held off on
+-- making that change here because it changes how the Supabase REST API
+-- responds to "select all columns" requests, and I can't verify its exact
+-- behavior against your specific project without testing directly against
+-- it (a mistake there could break every page that reads user data, which
+-- is worse than the current gap). If you want this fully closed, the next
+-- step would be testing that specific change in a Supabase branch/staging
+-- project first, not applying it straight to production.
+--
+-- tournaments, series, registrations, and submissions still have fully
+-- open anon update/delete policies. Nothing in the app currently writes to
+-- those tables outside of the original sample-data insert, so this isn't
+-- an active exploit path today, but the same lockdown here should be
+-- applied to them once real create/edit/delete features are built for
+-- tournaments or submissions.
+-- ============================================================
