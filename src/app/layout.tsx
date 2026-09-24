@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
-import { Nunito } from 'next/font/google';
+import { Nunito_Sans } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/lib/AuthContext';
 
-const nunito = Nunito({ subsets: ['latin'], adjustFontFallback: false });
+const nunito = Nunito_Sans({ subsets: ['latin'], adjustFontFallback: false });
 
 export const metadata: Metadata = {
   title: 'HOOX - Professional Tournament Management Platform',
