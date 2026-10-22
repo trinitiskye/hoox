@@ -84,7 +84,7 @@ export default function TournamentsPage({ tournaments, onNavigate }: Tournaments
                       {t.status.charAt(0).toUpperCase() + t.status.slice(1)}
                     </span>
                   )}
-                  <h3 className="font-bold text-gray-900 text-lg mb-2">{t.name}</h3>
+                  <h3 className="font-bold text-gray-900 text-lg mb-2"><button onClick={() => onNavigate(`tournaments/${t.id}`)} className="text-left hover:text-blue-600 hover:underline">{t.name}</button></h3>
                   {t.description && <p className="text-gray-500 text-sm mb-3 line-clamp-2">{t.description}</p>}
                   {t.fishTypes?.map(f => (
                     <span key={f} className="inline-block mr-1 mb-2 px-2 py-0.5 bg-green-50 text-green-700 text-xs rounded-full border border-green-200">{f}</span>
@@ -98,7 +98,7 @@ export default function TournamentsPage({ tournaments, onNavigate }: Tournaments
                     <div>
                       <div>{t.location}</div>
                       <div>{t.city}, {t.state}</div>
-                      <a href="#" className="text-blue-600 hover:underline text-xs flex items-center gap-1 mt-0.5">
+                      <a href={`/tournaments/${t.id}#location`} className="text-blue-600 hover:underline text-xs flex items-center gap-1 mt-0.5">
                         View on Map <ExternalLink className="w-3 h-3" />
                       </a>
                     </div>

@@ -38,6 +38,7 @@ const SPONSOR = {
 };
 
 interface LiveTournament {
+  id?: string;
   name: string;
   location: string;
   dates: string;
@@ -149,6 +150,7 @@ function toLive(tournaments: Tournament[]): LiveTournament | null {
   const dayNum = Math.min(totalDays, Math.floor((now.getTime() - s.getTime()) / 86400000) + 1);
   const mins = Math.max(0, Math.floor((now.getTime() - s.getTime()) / 60000) % (24 * 60));
   return {
+    id: t.id,
     name: t.name,
     location: place(t),
     dates: formatRange(t.startDate, t.endDate, false),
@@ -359,7 +361,7 @@ export default function HomePage({ tournaments, onNavigate }: HomePageProps) {
             slides={heroSlides}
             fallback={<SponsorHero onVisit={() => onNavigate('sponsors')} />}
           />
-          <LiveNow live={live} onLeaderboard={() => onNavigate('tournaments')} />
+          <LiveNow live={live} onLeaderboard={() => onNavigate(`tournaments/${live.id ?? 'lakefront-classic'}#leaderboard`)} />
         </div>
 
         {/* We recommend (sponsor banners) */}
@@ -381,7 +383,7 @@ export default function HomePage({ tournaments, onNavigate }: HomePageProps) {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-[13px]">
             {upcoming.map((t) => (
-              <TournamentCard key={t.id} t={t} onOpen={() => onNavigate('tournaments')} />
+              <TournamentCard key={t.id} t={t} onOpen={() => onNavigate(`tournaments/${/^d\d+$/.test(t.id) ? 'lakefront-classic' /* demo cards open the demo event */ : t.id}`)} />
             ))}
           </div>
         </section>

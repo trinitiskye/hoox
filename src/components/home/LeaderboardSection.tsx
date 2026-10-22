@@ -19,7 +19,7 @@ interface Row {
   weight?: number; // lbs; undefined = not weighed yet
 }
 
-interface Board {
+export interface Board {
   id: string;
   name: string;
   location: string;
@@ -32,7 +32,7 @@ interface Board {
 
 const r = (angler: string, boat: string, weight?: number): Row => ({ angler, boat, fish: 5, weight });
 
-const BOARDS: Board[] = [
+export const BOARDS: Board[] = [
   {
     id: 'lakefront-classic', name: 'Lakefront Classic', location: 'Lake Hartwell, GA', dates: 'May 17 – 19, 2025',
     start: '2025-05-17', status: 'live', banner: '/home/leaderboard/lakefront-classic.jpg',
@@ -130,7 +130,7 @@ function StatusBadge({ status }: { status: Status }) {
   );
 }
 
-function RankBadge({ rank, compact = false }: { rank: number; compact?: boolean }) {
+export function RankBadge({ rank, compact = false }: { rank: number; compact?: boolean }) {
   const medal =
     rank === 1 ? 'bg-[#EDBB66] text-[#3B2A08]' :
     rank === 2 ? 'bg-[#A9BCD0] text-[#1F334E]' :
@@ -142,7 +142,7 @@ function RankBadge({ rank, compact = false }: { rank: number; compact?: boolean 
   );
 }
 
-function Avatar({ boardId, index, size = 20 }: { boardId: string; index: number; size?: number }) {
+export function Avatar({ boardId, index, size = 20 }: { boardId: string; index: number; size?: number }) {
   const row = SPRITE_INDEX[boardId] ?? 0;
   // Sprite is 360x216 (10x6 cells of 36px); scale cells to `size`.
   return (
@@ -419,9 +419,9 @@ export default function LeaderboardSection({ onNavigate }: { onNavigate: (view: 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-[13px]">
           {boards.map((b) =>
             view === 'grid' ? (
-              <BoardCard key={b.id} b={b} highlight={query} onStats={() => onNavigate('tournaments')} />
+              <BoardCard key={b.id} b={b} highlight={query} onStats={() => onNavigate(b.id === 'lakefront-classic' ? 'tournaments/lakefront-classic#leaderboard' : 'tournaments')} />
             ) : (
-              <CompactBoardCard key={b.id} b={b} highlight={query} onStats={() => onNavigate('tournaments')} />
+              <CompactBoardCard key={b.id} b={b} highlight={query} onStats={() => onNavigate(b.id === 'lakefront-classic' ? 'tournaments/lakefront-classic#leaderboard' : 'tournaments')} />
             ),
           )}
         </div>
