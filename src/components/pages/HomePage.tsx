@@ -1,7 +1,7 @@
 'use client';
 
 import {
-  Trophy, MapPin, CalendarDays, Users, ChevronRight, ArrowRight, ShieldCheck, Mountain, Waves,
+  Trophy, MapPin, CalendarDays, Users, ChevronRight, ArrowRight, ShieldCheck, Mountain, Waves, Navigation,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Tournament, Submission, User, SearchParams, HeroSlide, HomeBanner } from '@/types';
@@ -9,6 +9,7 @@ import { getActiveHeroSlides, dbHeroSlideToApp, getActiveHomeBanners, dbHomeBann
 import RecommendedSection from '@/components/home/RecommendedSection';
 import HeroCarousel from '@/components/home/HeroCarousel';
 import LeaderboardSection from '@/components/home/LeaderboardSection';
+import { mapsSearchUrl, mapsDirectionsUrl, mapsEmbedUrl } from '@/lib/eventDetail';
 
 interface HomePageProps {
   tournaments: Tournament[];
@@ -46,7 +47,9 @@ interface LiveTournament {
   day: string;
   elapsed: string;
   lastUpdate: string;
-  map: string;
+  /** Google Maps query (same map/links as the event page's Event Location card) */
+  mapQuery: string;
+  address?: string;
 }
 
 const DEMO_LIVE: LiveTournament = {
@@ -57,7 +60,8 @@ const DEMO_LIVE: LiveTournament = {
   day: 'Day 1 of 3',
   elapsed: '5h 42m',
   lastUpdate: '10:42 AM',
-  map: '/home/live-map.jpg',
+  mapQuery: 'Lake Hartwell, Hartwell, GA 30643',
+  address: 'Hartwell, GA 30643',
 };
 
 interface UpcomingCard {
@@ -163,7 +167,8 @@ function toLive(tournaments: Tournament[]): LiveTournament | null {
     day: `Day ${dayNum} of ${totalDays}`,
     elapsed: `${Math.floor(mins / 60)}h ${mins % 60}m`,
     lastUpdate: now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }),
-    map: DEMO_LIVE.map,
+    mapQuery: [t.location, t.city, t.state].filter(Boolean).join(', '),
+    address: [t.city, t.state].filter(Boolean).join(', ') || undefined,
   };
 }
 
@@ -267,7 +272,46 @@ function LiveNow({ live, onLeaderboard }: { live: LiveTournament; onLeaderboard:
         ))}
       </dl>
 
-      <img src={live.map} alt={`Map of ${live.location}`} className="mt-[9px] h-[145px] w-full rounded-md object-cover" />
+      {/* Event location — same Google Maps embed, View Larger Map and Get Directions as the event page */}
+      {live.mapQuery && (
+        <div className="mt-[10px]">
+          <div className="flex items-center justify-between px-[2px]">
+            <h4 className="text-[15px] font-bold text-hoox-ink">Event Location</h4>
+            <a
+              href={mapsSearchUrl(live.mapQuery)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-[12.5px] font-semibold text-[#0B6068] hover:text-hoox-brand"
+            >
+              View Larger Map <ArrowRight className="h-4 w-4" strokeWidth={2} />
+            </a>
+          </div>
+          <iframe
+            title={`Map of ${live.location}`}
+            src={mapsEmbedUrl(live.mapQuery)}
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            className="mt-2 h-[145px] w-full rounded-md border-0 bg-hoox-chip"
+          />
+          <div className="mt-2 flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-start gap-2.5">
+              <MapPin className="mt-[2px] h-[20px] w-[20px] flex-shrink-0 text-hoox-ink" strokeWidth={2} />
+              <div className="min-w-0">
+                <div className="truncate text-[14px] font-semibold text-hoox-ink">{live.location}</div>
+                {live.address && <div className="truncate text-[12.5px] text-[#6586A8]">{live.address}</div>}
+              </div>
+            </div>
+            <a
+              href={mapsDirectionsUrl(live.mapQuery)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-[36px] flex-shrink-0 items-center gap-2.5 rounded-md border border-[#177E84] px-4 text-[13px] font-medium text-[#076869] transition hover:bg-[#EEF9F8]"
+            >
+              <Navigation className="h-[16px] w-[16px]" strokeWidth={2} /> Get Directions
+            </a>
+          </div>
+        </div>
+      )}
 
       <button
         onClick={onLeaderboard}
