@@ -386,6 +386,9 @@ export default function HomePage({ tournaments, onNavigate }: HomePageProps) {
         {/* We recommend (sponsor banners) */}
         <RecommendedSection banners={banners} onNavigate={onNavigate} />
 
+        {/* Leaderboards */}
+        <LeaderboardSection onNavigate={onNavigate} />
+
         {/* Upcoming tournaments */}
         <section aria-labelledby="upcoming-heading" className="rounded-lg bg-white px-3 sm:px-[12px] pt-[12px] pb-[12px] shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
           <div className="flex flex-wrap items-end justify-between gap-2 px-2 pb-[13px]">
@@ -411,9 +414,6 @@ export default function HomePage({ tournaments, onNavigate }: HomePageProps) {
             ))}
           </div>
         </section>
-
-        {/* Leaderboard */}
-        <LeaderboardSection onNavigate={onNavigate} />
       </div>
     </div>
   );
