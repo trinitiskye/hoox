@@ -8,7 +8,7 @@ export default function Page() {
   const router = useRouter();
   const navigate = (view: string) => router.push(toPath(view));
   return (
-    <PublicLayout>
+    <PublicLayout bgClassName="bg-[#D4E1EE]">
       <SignUpPage onNavigate={navigate} />
     </PublicLayout>
   );

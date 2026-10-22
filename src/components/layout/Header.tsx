@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
+import { toPath } from '@/lib/routes';
 import { Menu, X, Search, ChevronDown } from 'lucide-react';
 import { User } from '@/types';
 
@@ -48,6 +49,12 @@ export function HooxLogo({ onClick }: { onClick: () => void }) {
 
 export default function Header({ currentUser, onNavigate, onLogout }: HeaderProps) {
   const router = useRouter();
+  const pathname = usePathname();
+  // Highlight the current section (e.g. Register on /register, Tournaments on /tournaments/...)
+  const isActive = (view: string) => {
+    const path = toPath(view);
+    return path !== '/' && (pathname === path || pathname.startsWith(`${path}/`));
+  };
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -98,15 +105,20 @@ export default function Header({ currentUser, onNavigate, onLogout }: HeaderProp
             <>
               {/* Desktop navigation */}
               <nav className="hidden xl:flex flex-shrink-0 items-center gap-5 2xl:gap-9 ml-2 2xl:ml-6" aria-label="Main">
-                {PRIMARY_NAV.map((item) => (
-                  <button
-                    key={item.view}
-                    onClick={() => go(item.view)}
-                    className="text-[16px] text-hoox-link hover:text-hoox-brand transition whitespace-nowrap"
-                  >
-                    {item.label}
-                  </button>
-                ))}
+                {PRIMARY_NAV.map((item) => {
+                  const active = isActive(item.view);
+                  return (
+                    <button
+                      key={item.view}
+                      onClick={() => go(item.view)}
+                      aria-current={active ? 'page' : undefined}
+                      className={`relative py-1 text-[16px] transition whitespace-nowrap ${active ? 'text-hoox-brand' : 'text-hoox-link hover:text-hoox-brand'}`}
+                    >
+                      {item.label}
+                      {active && <span className="absolute inset-x-0 -bottom-[6px] h-[3px] rounded-full bg-hoox-ui" />}
+                    </button>
+                  );
+                })}
                 <div className="relative" ref={moreRef}>
                   <button
                     onClick={() => setMoreOpen((o) => !o)}
