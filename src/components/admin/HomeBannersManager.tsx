@@ -314,7 +314,7 @@ export default function HomeBannersManager() {
         <div>
           <h3 className="font-semibold text-gray-900">Home Page Banners — “We recommend”</h3>
           <p className="text-gray-500 text-sm">
-            Sponsor banners shown above Upcoming Tournaments, six per row on desktop. Recommended size {RECOMMENDED}. The section is hidden when no banners are showing.
+            Sponsor banners shown in a single row above Upcoming Tournaments (up to 6; the first 6 live banners in this order are used). Recommended size {RECOMMENDED}. The section is hidden when no banners are showing.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -346,7 +346,8 @@ export default function HomeBannersManager() {
         <>
           <p className="mb-3 text-xs text-gray-500">
             {activeCount} of {banners.length} banner{banners.length === 1 ? '' : 's'} showing on the home page
-            {activeCount > 0 && activeCount % 6 !== 0 && ` · add ${6 - (activeCount % 6)} more to fill the desktop row`}
+            {activeCount > 6 && ` · only the first 6 live banners are shown — hide or reorder to choose which`}
+            {activeCount > 0 && activeCount < 6 && ` · add ${6 - activeCount} more to fill the row`}
           </p>
           <ol className="divide-y divide-gray-100 rounded-lg border border-gray-200">
             {banners.map((b, i) => (
