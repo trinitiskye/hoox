@@ -286,7 +286,7 @@ function TournamentCard({ t, onOpen, onRegister }: { t: UpcomingCard; onOpen: ()
       <div className="flex min-w-0 flex-1 flex-col pt-[4px]">
         <div className="flex items-start justify-between gap-2 pr-6">
           <div className="flex flex-nowrap items-center gap-2">
-            <span className="whitespace-nowrap rounded bg-hoox-chip px-[10px] py-[4px] text-[14px] font-medium text-[#1A2C9F]">{t.dates}</span>
+            <span className="inline-flex h-[27px] items-center whitespace-nowrap rounded bg-hoox-chip px-[10px] text-[13px] font-medium text-[#1A2C9F]">{t.dates}</span>
             {t.registrationOpen && (
               <button
                 type="button"
