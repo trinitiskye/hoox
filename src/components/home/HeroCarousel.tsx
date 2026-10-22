@@ -121,12 +121,12 @@ export default function HeroCarousel({ slides, fallback }: HeroCarouselProps) {
               className="absolute inset-0 h-full w-full object-cover"
             />
             {s.buttonLabel && s.buttonUrl && (
-              <div className={`absolute bottom-9 sm:bottom-11 flex flex-col ${BUTTON_POSITION[s.buttonPosition]}`}>
+              <div className={`absolute bottom-7 sm:bottom-11 flex flex-col ${BUTTON_POSITION[s.buttonPosition]}`}>
                 <a
                   href={s.buttonUrl}
                   tabIndex={active ? 0 : -1}
                   {...(s.openInNewTab ? { target: '_blank', rel: external ? 'noopener noreferrer sponsored' : 'noopener' } : {})}
-                  className="inline-flex items-center gap-3 sm:gap-6 rounded-md bg-gradient-to-b from-[#F7AE2C] to-[#EE9A1A] px-4 sm:px-[30px] h-9 sm:h-[44px] text-[15px] sm:text-[19px] font-semibold text-[#11173A] shadow-[0_3px_10px_rgba(0,0,0,0.25)] hover:brightness-105 transition whitespace-nowrap"
+                  className="inline-flex items-center gap-3 sm:gap-6 rounded-md bg-gradient-to-b from-[#F7AE2C] to-[#EE9A1A] px-3 sm:px-[30px] h-8 sm:h-[44px] text-[13px] sm:text-[19px] font-semibold text-[#11173A] shadow-[0_3px_10px_rgba(0,0,0,0.25)] hover:brightness-105 transition whitespace-nowrap"
                 >
                   {s.buttonLabel}
                   <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={2.25} />
@@ -144,7 +144,7 @@ export default function HeroCarousel({ slides, fallback }: HeroCarouselProps) {
             type="button"
             onClick={() => go(index - 1)}
             aria-label="Previous slide"
-            className="absolute left-3 top-1/2 z-[2] -translate-y-1/2 flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-black/35 text-white backdrop-blur-sm transition hover:bg-black/55 sm:opacity-0 sm:group-hover/hero:opacity-100 sm:group-focus-within/hero:opacity-100"
+            className="absolute left-3 top-1/2 z-[2] -translate-y-1/2 hidden sm:flex h-10 w-10 items-center justify-center rounded-full bg-black/35 text-white backdrop-blur-sm transition hover:bg-black/55 sm:opacity-0 sm:group-hover/hero:opacity-100 sm:group-focus-within/hero:opacity-100"
           >
             <ChevronLeft className="h-5 w-5" strokeWidth={2.25} />
           </button>
@@ -152,7 +152,7 @@ export default function HeroCarousel({ slides, fallback }: HeroCarouselProps) {
             type="button"
             onClick={() => go(index + 1)}
             aria-label="Next slide"
-            className="absolute right-3 top-1/2 z-[2] -translate-y-1/2 flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-black/35 text-white backdrop-blur-sm transition hover:bg-black/55 sm:opacity-0 sm:group-hover/hero:opacity-100 sm:group-focus-within/hero:opacity-100"
+            className="absolute right-3 top-1/2 z-[2] -translate-y-1/2 hidden sm:flex h-10 w-10 items-center justify-center rounded-full bg-black/35 text-white backdrop-blur-sm transition hover:bg-black/55 sm:opacity-0 sm:group-hover/hero:opacity-100 sm:group-focus-within/hero:opacity-100"
           >
             <ChevronRight className="h-5 w-5" strokeWidth={2.25} />
           </button>

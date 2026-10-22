@@ -18,6 +18,7 @@ import { clearSession, createAllDemoAccounts, changePassword, type DemoAccountRe
 import AddressSelector from '@/components/ui/AddressSelector';
 import { Toast, useToast } from '@/components/ui/Toast';
 import HeroSlidesManager from '@/components/admin/HeroSlidesManager';
+import HomeBannersManager from '@/components/admin/HomeBannersManager';
 
 interface AdminDashboardProps {
   currentUser: User;
@@ -2179,6 +2180,9 @@ function AdvertisingTab() {
 
       {/* Hero Carousel (home page) */}
       <HeroSlidesManager />
+
+      {/* "We recommend" banners (home page) */}
+      <HomeBannersManager />
 
       {/* Banner Info */}
       <div className="bg-white border border-gray-200 rounded-xl p-5">

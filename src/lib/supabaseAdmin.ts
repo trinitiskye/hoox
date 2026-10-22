@@ -4,7 +4,7 @@
 // from a 'use client' component or anything that ships to the browser.
 // Only import this from src/app/api/** route handlers.
 
-import type { DbUser, DbUserInsert, DbHeroSlide, DbHeroSlideInsert } from './supabase';
+import type { DbUser, DbUserInsert, DbHeroSlide, DbHeroSlideInsert, DbHomeBanner, DbHomeBannerInsert } from './supabase';
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -120,19 +120,24 @@ export async function deleteHeroSlideAdmin(id: string) {
   });
 }
 
-/** Public URL prefix for objects in the hero bucket. */
-export function heroPublicUrlPrefix() {
-  return `${SUPABASE_URL}/storage/v1/object/public/${HERO_BUCKET}/`;
+// ------------------------------------------------------------
+// Public image storage (shared by hero slides and home banners)
+// ------------------------------------------------------------
+
+/** Public URL prefix for objects in a public storage bucket. */
+export function publicUrlPrefix(bucket: string) {
+  return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/`;
 }
 
-/** Upload one image to Supabase Storage; returns its public URL. */
-export async function uploadHeroImageAdmin(
+/** Upload one image to a public Supabase Storage bucket; returns its public URL. */
+export async function uploadPublicImageAdmin(
+  bucket: string,
   path: string,
   body: ArrayBuffer,
   contentType: string
 ): Promise<{ url: string | null; error: string | null }> {
   assertConfigured();
-  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/${HERO_BUCKET}/${path}`, {
+  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/${bucket}/${path}`, {
     method: 'POST',
     headers: {
       apikey: SERVICE_ROLE_KEY,
@@ -154,17 +159,55 @@ export async function uploadHeroImageAdmin(
     }
     return { url: null, error: message || `Upload failed (${res.status})` };
   }
-  return { url: heroPublicUrlPrefix() + path, error: null };
+  return { url: publicUrlPrefix(bucket) + path, error: null };
 }
 
-/** Best-effort delete of an uploaded hero image (ignores URLs outside our bucket). */
-export async function deleteHeroImageAdmin(publicUrl: string) {
-  const prefix = heroPublicUrlPrefix();
+/** Best-effort delete of an uploaded image (ignores URLs outside the bucket). */
+export async function deletePublicImageAdmin(bucket: string, publicUrl: string) {
+  const prefix = publicUrlPrefix(bucket);
   if (!publicUrl.startsWith(prefix)) return;
   assertConfigured();
   const path = publicUrl.slice(prefix.length);
-  await fetch(`${SUPABASE_URL}/storage/v1/object/${HERO_BUCKET}/${path}`, {
+  await fetch(`${SUPABASE_URL}/storage/v1/object/${bucket}/${path}`, {
     method: 'DELETE',
     headers: { apikey: SERVICE_ROLE_KEY, Authorization: `Bearer ${SERVICE_ROLE_KEY}` },
   }).catch(() => undefined);
+}
+
+export function uploadHeroImageAdmin(path: string, body: ArrayBuffer, contentType: string) {
+  return uploadPublicImageAdmin(HERO_BUCKET, path, body, contentType);
+}
+
+export function deleteHeroImageAdmin(publicUrl: string) {
+  return deletePublicImageAdmin(HERO_BUCKET, publicUrl);
+}
+
+// ============================================================
+// HOME BANNERS — "We recommend" (service-role — bypasses RLS)
+// ============================================================
+
+export const BANNER_BUCKET = 'ad-banners';
+
+export async function listHomeBannersAdmin() {
+  return supabaseAdminFetch<DbHomeBanner[]>('home_banners?select=*&order=sort_order.asc,created_at.asc');
+}
+
+export async function createHomeBannerAdmin(b: DbHomeBannerInsert) {
+  return supabaseAdminFetch<DbHomeBanner[]>('home_banners', {
+    method: 'POST',
+    body: JSON.stringify(b),
+  });
+}
+
+export async function updateHomeBannerAdmin(id: string, updates: Partial<DbHomeBannerInsert>) {
+  return supabaseAdminFetch<DbHomeBanner[]>(`home_banners?id=eq.${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(updates),
+  });
+}
+
+export async function deleteHomeBannerAdmin(id: string) {
+  return supabaseAdminFetch<DbHomeBanner[]>(`home_banners?id=eq.${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
 }

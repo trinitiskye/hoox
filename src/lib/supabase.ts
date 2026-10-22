@@ -555,3 +555,44 @@ export async function getActiveHeroSlides() {
     'hero_slides?is_active=eq.true&select=*&order=sort_order.asc,created_at.asc'
   );
 }
+
+// ============================================================
+// HOME BANNERS ("We recommend" section)
+// Public reads only — RLS limits the anon key to active banners.
+// Writes go through src/app/api/admin/home-banners/** (service role).
+// Table: supabase/migration_2026_10_home_banners.sql
+// ============================================================
+
+export interface DbHomeBanner {
+  id: string;
+  title: string;
+  image_url: string;
+  link_url: string | null;
+  open_in_new_tab: boolean;
+  is_active: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export type DbHomeBannerInsert = Omit<DbHomeBanner, 'id' | 'created_at' | 'updated_at'>;
+
+export function dbHomeBannerToApp(b: DbHomeBanner): import('@/types').HomeBanner {
+  return {
+    id: b.id,
+    title: b.title,
+    imageUrl: b.image_url,
+    linkUrl: b.link_url,
+    openInNewTab: b.open_in_new_tab,
+    isActive: b.is_active,
+    sortOrder: b.sort_order,
+    createdAt: b.created_at,
+    updatedAt: b.updated_at,
+  };
+}
+
+export async function getActiveHomeBanners() {
+  return supabaseFetch<DbHomeBanner[]>(
+    'home_banners?is_active=eq.true&select=*&order=sort_order.asc,created_at.asc'
+  );
+}

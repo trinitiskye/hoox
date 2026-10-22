@@ -4,8 +4,9 @@ import {
   Trophy, MapPin, CalendarDays, Users, ChevronRight, ArrowRight, ShieldCheck, Mountain, Waves,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Tournament, Submission, User, SearchParams, HeroSlide } from '@/types';
-import { getActiveHeroSlides, dbHeroSlideToApp } from '@/lib/supabase';
+import { Tournament, Submission, User, SearchParams, HeroSlide, HomeBanner } from '@/types';
+import { getActiveHeroSlides, dbHeroSlideToApp, getActiveHomeBanners, dbHomeBannerToApp } from '@/lib/supabase';
+import RecommendedSection from '@/components/home/RecommendedSection';
 import HeroCarousel from '@/components/home/HeroCarousel';
 import LeaderboardSection from '@/components/home/LeaderboardSection';
 
@@ -328,6 +329,23 @@ export default function HomePage({ tournaments, onNavigate }: HomePageProps) {
     };
   }, []);
 
+  // "We recommend" banners (Admin → Advertising → Home Page Banners).
+  // The section hides itself when none are active or the table isn't set up.
+  const [banners, setBanners] = useState<HomeBanner[] | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    getActiveHomeBanners()
+      .then(({ data, error }) => {
+        if (!cancelled) setBanners(error || !data ? [] : data.map(dbHomeBannerToApp));
+      })
+      .catch(() => {
+        if (!cancelled) setBanners([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const realUpcoming = toUpcomingCards(tournaments);
   const upcoming = realUpcoming.length ? realUpcoming : DEMO_UPCOMING;
   const live = toLive(tournaments) ?? DEMO_LIVE;
@@ -343,6 +361,9 @@ export default function HomePage({ tournaments, onNavigate }: HomePageProps) {
           />
           <LiveNow live={live} onLeaderboard={() => onNavigate('tournaments')} />
         </div>
+
+        {/* We recommend (sponsor banners) */}
+        <RecommendedSection banners={banners} onNavigate={onNavigate} />
 
         {/* Upcoming tournaments */}
         <section aria-labelledby="upcoming-heading" className="rounded-lg bg-white px-3 sm:px-[12px] pt-[12px] pb-[12px] shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
