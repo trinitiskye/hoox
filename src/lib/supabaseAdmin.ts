@@ -4,7 +4,7 @@
 // from a 'use client' component or anything that ships to the browser.
 // Only import this from src/app/api/** route handlers.
 
-import type { DbUser, DbUserInsert } from './supabase';
+import type { DbUser, DbUserInsert, DbHeroSlide, DbHeroSlideInsert } from './supabase';
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -87,4 +87,84 @@ export async function deleteUserAdmin(id: string) {
   return supabaseAdminFetch<null>(`users?id=eq.${encodeURIComponent(id)}`, {
     method: 'DELETE',
   });
+}
+
+// ============================================================
+// HERO SLIDES (service-role — bypasses RLS)
+// ============================================================
+
+
+export const HERO_BUCKET = 'hero-images';
+
+export async function listHeroSlidesAdmin() {
+  return supabaseAdminFetch<DbHeroSlide[]>('hero_slides?select=*&order=sort_order.asc,created_at.asc');
+}
+
+export async function createHeroSlideAdmin(s: DbHeroSlideInsert) {
+  return supabaseAdminFetch<DbHeroSlide[]>('hero_slides', {
+    method: 'POST',
+    body: JSON.stringify(s),
+  });
+}
+
+export async function updateHeroSlideAdmin(id: string, updates: Partial<DbHeroSlideInsert>) {
+  return supabaseAdminFetch<DbHeroSlide[]>(`hero_slides?id=eq.${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(updates),
+  });
+}
+
+export async function deleteHeroSlideAdmin(id: string) {
+  return supabaseAdminFetch<DbHeroSlide[]>(`hero_slides?id=eq.${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
+}
+
+/** Public URL prefix for objects in the hero bucket. */
+export function heroPublicUrlPrefix() {
+  return `${SUPABASE_URL}/storage/v1/object/public/${HERO_BUCKET}/`;
+}
+
+/** Upload one image to Supabase Storage; returns its public URL. */
+export async function uploadHeroImageAdmin(
+  path: string,
+  body: ArrayBuffer,
+  contentType: string
+): Promise<{ url: string | null; error: string | null }> {
+  assertConfigured();
+  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/${HERO_BUCKET}/${path}`, {
+    method: 'POST',
+    headers: {
+      apikey: SERVICE_ROLE_KEY,
+      Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
+      'Content-Type': contentType,
+      'Cache-Control': '31536000',
+      'x-upsert': 'false',
+    },
+    body,
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    let message = text;
+    try {
+      const j = JSON.parse(text);
+      message = j.message || j.error || text;
+    } catch {
+      /* keep text */
+    }
+    return { url: null, error: message || `Upload failed (${res.status})` };
+  }
+  return { url: heroPublicUrlPrefix() + path, error: null };
+}
+
+/** Best-effort delete of an uploaded hero image (ignores URLs outside our bucket). */
+export async function deleteHeroImageAdmin(publicUrl: string) {
+  const prefix = heroPublicUrlPrefix();
+  if (!publicUrl.startsWith(prefix)) return;
+  assertConfigured();
+  const path = publicUrl.slice(prefix.length);
+  await fetch(`${SUPABASE_URL}/storage/v1/object/${HERO_BUCKET}/${path}`, {
+    method: 'DELETE',
+    headers: { apikey: SERVICE_ROLE_KEY, Authorization: `Bearer ${SERVICE_ROLE_KEY}` },
+  }).catch(() => undefined);
 }

@@ -3,7 +3,10 @@
 import {
   Trophy, MapPin, CalendarDays, Users, ChevronRight, ArrowRight, ShieldCheck, Mountain, Waves,
 } from 'lucide-react';
-import { Tournament, Submission, User, SearchParams } from '@/types';
+import { useEffect, useState } from 'react';
+import { Tournament, Submission, User, SearchParams, HeroSlide } from '@/types';
+import { getActiveHeroSlides, dbHeroSlideToApp } from '@/lib/supabase';
+import HeroCarousel from '@/components/home/HeroCarousel';
 import LeaderboardSection from '@/components/home/LeaderboardSection';
 
 interface HomePageProps {
@@ -308,6 +311,23 @@ function TournamentCard({ t, onOpen }: { t: UpcomingCard; onOpen: () => void }) 
 /* -------------------------------- page ------------------------------- */
 
 export default function HomePage({ tournaments, onNavigate }: HomePageProps) {
+  // Hero carousel slides (Admin → Advertising → Hero Carousel). Falls back to
+  // the built-in sponsor hero when none are active or the table isn't set up.
+  const [heroSlides, setHeroSlides] = useState<HeroSlide[] | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    getActiveHeroSlides()
+      .then(({ data, error }) => {
+        if (!cancelled) setHeroSlides(error || !data ? [] : data.map(dbHeroSlideToApp));
+      })
+      .catch(() => {
+        if (!cancelled) setHeroSlides([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const realUpcoming = toUpcomingCards(tournaments);
   const upcoming = realUpcoming.length ? realUpcoming : DEMO_UPCOMING;
   const live = toLive(tournaments) ?? DEMO_LIVE;
@@ -317,7 +337,10 @@ export default function HomePage({ tournaments, onNavigate }: HomePageProps) {
       <div className="mx-auto max-w-[1440px] px-4 md:px-[23px] pt-[18px] pb-6 space-y-[14px]">
         {/* Sponsor hero + Live now */}
         <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_380px] xl:grid-cols-[minmax(0,1fr)_428px] gap-4">
-          <SponsorHero onVisit={() => onNavigate('sponsors')} />
+          <HeroCarousel
+            slides={heroSlides}
+            fallback={<SponsorHero onVisit={() => onNavigate('sponsors')} />}
+          />
           <LiveNow live={live} onLeaderboard={() => onNavigate('tournaments')} />
         </div>
 

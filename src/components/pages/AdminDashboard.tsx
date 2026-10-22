@@ -17,6 +17,7 @@ import { fetchUsers, fetchTournaments, fetchSeries, fetchSubmissions } from '@/l
 import { clearSession, createAllDemoAccounts, changePassword, type DemoAccountResult } from '@/lib/auth';
 import AddressSelector from '@/components/ui/AddressSelector';
 import { Toast, useToast } from '@/components/ui/Toast';
+import HeroSlidesManager from '@/components/admin/HeroSlidesManager';
 
 interface AdminDashboardProps {
   currentUser: User;
@@ -2176,22 +2177,8 @@ function AdvertisingTab() {
         </div>
       </div>
 
-      {/* Hero Images */}
-      <div className="bg-white border border-gray-200 rounded-xl p-5 mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="font-semibold text-gray-900">Hero Images</h3>
-            <p className="text-gray-500 text-sm">Manage hero carousel images displayed on the home page</p>
-          </div>
-          <button className="flex items-center gap-2 px-3 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-700 transition">
-            <Plus className="w-3.5 h-3.5" /> Add Hero Image
-          </button>
-        </div>
-        <div className="border-2 border-dashed border-gray-200 rounded-xl py-12 text-center text-gray-400">
-          <Image className="w-8 h-8 mx-auto mb-2 opacity-30" />
-          <p className="text-sm">No hero images created yet</p>
-        </div>
-      </div>
+      {/* Hero Carousel (home page) */}
+      <HeroSlidesManager />
 
       {/* Banner Info */}
       <div className="bg-white border border-gray-200 rounded-xl p-5">

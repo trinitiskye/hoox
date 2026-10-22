@@ -179,3 +179,20 @@ export function getRBACPermissions(role: UserRole): RBACPermissions {
       };
   }
 }
+
+// Home page hero carousel slide (managed in Admin → Advertising → Hero Carousel)
+export type HeroButtonPosition = 'bottom-left' | 'bottom-center' | 'bottom-right';
+
+export interface HeroSlide {
+  id: string;
+  title: string;            // internal name, also used as image alt text
+  imageUrl: string;
+  buttonLabel: string | null;
+  buttonUrl: string | null;
+  openInNewTab: boolean;
+  buttonPosition: HeroButtonPosition;
+  isActive: boolean;
+  sortOrder: number;
+  createdAt?: string;
+  updatedAt?: string;
+}

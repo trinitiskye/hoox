@@ -510,3 +510,48 @@ export type DbSeriesInsert = Omit<DbSeries, 'id' | 'created_at'> & {
 // ALTER TABLE public.users ADD COLUMN IF NOT EXISTS display_name text;
 // ALTER TABLE public.users ADD COLUMN IF NOT EXISTS club_affiliations jsonb DEFAULT '[]';
 // ALTER TABLE public.users ADD COLUMN IF NOT EXISTS sponsors jsonb DEFAULT '[]';
+
+// ============================================================
+// HERO SLIDES (home page carousel)
+// Public reads only — RLS limits the anon key to active slides.
+// All writes go through src/app/api/admin/hero-slides/** (service role).
+// Table: supabase/migration_2026_10_hero_slides.sql
+// ============================================================
+
+export interface DbHeroSlide {
+  id: string;
+  title: string;
+  image_url: string;
+  button_label: string | null;
+  button_url: string | null;
+  open_in_new_tab: boolean;
+  button_position: 'bottom-left' | 'bottom-center' | 'bottom-right';
+  is_active: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export type DbHeroSlideInsert = Omit<DbHeroSlide, 'id' | 'created_at' | 'updated_at'>;
+
+export function dbHeroSlideToApp(s: DbHeroSlide): import('@/types').HeroSlide {
+  return {
+    id: s.id,
+    title: s.title,
+    imageUrl: s.image_url,
+    buttonLabel: s.button_label,
+    buttonUrl: s.button_url,
+    openInNewTab: s.open_in_new_tab,
+    buttonPosition: s.button_position,
+    isActive: s.is_active,
+    sortOrder: s.sort_order,
+    createdAt: s.created_at,
+    updatedAt: s.updated_at,
+  };
+}
+
+export async function getActiveHeroSlides() {
+  return supabaseFetch<DbHeroSlide[]>(
+    'hero_slides?is_active=eq.true&select=*&order=sort_order.asc,created_at.asc'
+  );
+}
