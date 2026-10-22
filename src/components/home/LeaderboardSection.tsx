@@ -130,30 +130,53 @@ function StatusBadge({ status }: { status: Status }) {
   );
 }
 
-function RankBadge({ rank }: { rank: number }) {
+function RankBadge({ rank, compact = false }: { rank: number; compact?: boolean }) {
   const medal =
     rank === 1 ? 'bg-[#EDBB66] text-[#3B2A08]' :
     rank === 2 ? 'bg-[#A9BCD0] text-[#1F334E]' :
     rank === 3 ? 'bg-[#D9733A] text-[#2A160A]' : '';
-  if (!medal) return <span className="block w-[18px] text-center text-[12px] font-bold text-[#1F334E]">{rank}</span>;
+  const box = compact ? 'h-[22px] w-[22px] text-[12px]' : 'h-[18px] w-[18px] text-[10.5px]';
+  if (!medal) return <span className={`block text-center font-bold text-[#1F334E] ${compact ? 'w-[22px] text-[13px]' : 'w-[18px] text-[12px]'}`}>{rank}</span>;
   return (
-    <span className={`flex h-[18px] w-[18px] items-center justify-center rounded-full text-[10.5px] font-bold ${medal}`}>{rank}</span>
+    <span className={`flex items-center justify-center rounded-full font-bold ${box} ${medal}`}>{rank}</span>
   );
 }
 
-function Avatar({ boardId, index }: { boardId: string; index: number }) {
+function Avatar({ boardId, index, size = 20 }: { boardId: string; index: number; size?: number }) {
   const row = SPRITE_INDEX[boardId] ?? 0;
-  // Sprite is 360x216 (10x6 cells of 36px); render cells at 20px.
+  // Sprite is 360x216 (10x6 cells of 36px); scale cells to `size`.
   return (
     <span
       aria-hidden
-      className="block h-5 w-5 flex-shrink-0 rounded-full bg-[#DDE6EE] ring-1 ring-[#E3EAF1]"
+      className="block flex-shrink-0 rounded-full bg-[#DDE6EE] ring-1 ring-[#E3EAF1]"
       style={{
+        width: size,
+        height: size,
         backgroundImage: `url(${AVATAR_SPRITE})`,
-        backgroundSize: '200px 120px',
-        backgroundPosition: `-${index * 20}px -${row * 20}px`,
+        backgroundSize: `${size * 10}px ${size * 6}px`,
+        backgroundPosition: `-${index * size}px -${row * size}px`,
       }}
     />
+  );
+}
+
+function BoardBanner({ b, compact = false }: { b: Board; compact?: boolean }) {
+  return (
+    <header className={`relative overflow-hidden ${compact ? 'min-h-[88px]' : 'min-h-[72px]'}`}>
+      <img src={b.banner} alt="" className="absolute inset-0 h-full w-full object-cover" />
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(4,18,36,0.72)_0%,rgba(4,18,36,0.45)_55%,rgba(4,18,36,0.15)_100%)]" />
+      <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/35 to-transparent" />
+      <div className={`relative px-4 pb-[10px] ${compact ? 'pt-[18px]' : 'pt-[10px]'}`}>
+        <div className={`absolute right-4 ${compact ? 'top-[19px]' : 'top-[12px]'}`}><StatusBadge status={b.status} /></div>
+        <div className="min-w-0">
+          <h3 className={`pr-[112px] font-bold sm:truncate leading-tight text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.45)] ${compact ? 'text-[25px]' : 'text-[23px]'}`}>{b.name}</h3>
+          <p className={`flex flex-wrap items-center gap-x-5 gap-y-0.5 font-medium text-white/95 ${compact ? 'mt-[6px] text-[14px]' : 'mt-[3px] text-[12.5px]'}`}>
+            <span className="flex items-center gap-1.5"><MapPin className={compact ? 'h-[15px] w-[15px]' : 'h-[13px] w-[13px]'} strokeWidth={2} />{b.location}</span>
+            <span className="flex items-center gap-1.5"><CalendarDays className={compact ? 'h-[15px] w-[15px]' : 'h-[13px] w-[13px]'} strokeWidth={2} />{b.dates}</span>
+          </p>
+        </div>
+      </div>
+    </header>
   );
 }
 
@@ -163,22 +186,7 @@ function BoardCard({ b, highlight, onStats }: { b: Board; highlight: string; onS
   const q = highlight.trim().toLowerCase();
   return (
     <article className="flex flex-col overflow-hidden rounded-lg border border-[#E3ECF4] bg-white shadow-[0_1px_6px_rgba(10,30,60,0.05)]">
-      {/* Banner */}
-      <header className="relative min-h-[72px] overflow-hidden">
-        <img src={b.banner} alt="" className="absolute inset-0 h-full w-full object-cover" />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(4,18,36,0.72)_0%,rgba(4,18,36,0.45)_55%,rgba(4,18,36,0.15)_100%)]" />
-        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/35 to-transparent" />
-        <div className="relative flex h-full items-start justify-between gap-3 px-4 pt-[10px] pb-[10px]">
-          <div className="min-w-0">
-            <h3 className="truncate text-[23px] font-bold leading-tight text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.45)]">{b.name}</h3>
-            <p className="mt-[3px] flex flex-wrap items-center gap-x-5 gap-y-0.5 text-[12.5px] font-medium text-white/95">
-              <span className="flex items-center gap-1.5"><MapPin className="h-[13px] w-[13px]" strokeWidth={2} />{b.location}</span>
-              <span className="flex items-center gap-1.5"><CalendarDays className="h-[13px] w-[13px]" strokeWidth={2} />{b.dates}</span>
-            </p>
-          </div>
-          <div className="pt-[2px]"><StatusBadge status={b.status} /></div>
-        </div>
-      </header>
+      <BoardBanner b={b} />
 
       {/* Standings */}
       <div className="px-3 pt-2" role="table" aria-label={`${b.name} top 10`}>
@@ -218,6 +226,61 @@ function BoardCard({ b, highlight, onStats }: { b: Board; highlight: string; onS
           className="flex h-[33px] w-full items-center justify-center gap-3 rounded-md border border-[#8FCFD2] bg-[#EEF9FB] text-[13.5px] font-medium text-[#2C6374] transition hover:bg-[#E0F4F6]"
         >
           <List className="h-[17px] w-[17px]" strokeWidth={2} /> View All Stats <ArrowRight className="h-4 w-4" strokeWidth={2} />
+        </button>
+      </div>
+    </article>
+  );
+}
+
+const CGRID = 'grid grid-cols-[30px_36px_minmax(0,1fr)_38px_80px] sm:grid-cols-[40px_44px_minmax(0,1fr)_64px_100px] items-center';
+
+function CompactBoardCard({ b, highlight, onStats }: { b: Board; highlight: string; onStats: () => void }) {
+  const q = highlight.trim().toLowerCase();
+  const top = b.rows.slice(0, 5).map((row, i) => ({ row, rank: i + 1 }));
+  // Surface searched anglers ranked below the top 5
+  const extra = q
+    ? b.rows.slice(5).map((row, i) => ({ row, rank: i + 6 })).filter(({ row }) => row.angler.toLowerCase().includes(q))
+    : [];
+  const shown = [...top, ...extra];
+  const more = b.rows.length - shown.length;
+  return (
+    <article className="flex flex-col overflow-hidden rounded-lg border border-[#E3ECF4] bg-white shadow-[0_1px_6px_rgba(10,30,60,0.05)]">
+      <BoardBanner b={b} compact />
+
+      <div className="px-4 pt-[9px]" role="table" aria-label={`${b.name} top 5`}>
+        <div role="row" className={`${CGRID} border-b border-[#EDF1F5] pb-[7px] text-[11px] font-semibold uppercase tracking-[0.02em] text-[#7A8BA3]`}>
+          <span role="columnheader" className="text-[#2F4A6E]">Rank</span>
+          <span role="columnheader" className="col-span-2 pl-[14px] sm:pl-[22px]">Angler</span>
+          <span role="columnheader" className="text-center">Fish</span>
+          <span role="columnheader" className="whitespace-nowrap text-center">Total Weight</span>
+        </div>
+        {shown.map(({ row, rank }) => {
+          const match = q && row.angler.toLowerCase().includes(q);
+          return (
+            <div
+              role="row"
+              key={row.angler}
+              className={`${CGRID} h-[31px] border-b border-[#EEF2F6] text-[14px] ${match ? 'bg-[#FFF6DD]' : ''}`}
+            >
+              <span role="cell" className="pl-[1px]"><RankBadge rank={rank} compact /></span>
+              <span role="cell"><Avatar boardId={b.id} index={rank - 1} size={26} /></span>
+              <span role="cell" className="truncate text-[#1F334E]">{row.angler}</span>
+              <span role="cell" className="text-center text-[#2A3B55]">{row.fish}</span>
+              <span role="cell" className="text-center text-[#2A3B55]">
+                {row.weight !== undefined ? `${row.weight.toFixed(2)} lb` : '-'}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="mt-auto flex items-center justify-between gap-3 px-4 pb-[14px] pt-[13px]">
+        <span className="text-[14px] text-[#4A78D6]">{more > 0 ? `+${more} more anglers` : ''}</span>
+        <button
+          onClick={onStats}
+          className="flex items-center gap-2.5 text-[14.5px] font-semibold text-[#0F6E86] transition hover:text-hoox-brand"
+        >
+          View Full Leaderboard <ArrowRight className="h-[18px] w-[18px]" strokeWidth={2.25} />
         </button>
       </div>
     </article>
@@ -353,10 +416,14 @@ export default function LeaderboardSection({ onNavigate }: { onNavigate: (view: 
           No tournaments match your filters.
         </div>
       ) : (
-        <div className={view === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-[13px]' : 'grid grid-cols-1 lg:grid-cols-2 gap-[13px]'}>
-          {boards.map((b) => (
-            <BoardCard key={b.id} b={b} highlight={query} onStats={() => onNavigate('tournaments')} />
-          ))}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-[13px]">
+          {boards.map((b) =>
+            view === 'grid' ? (
+              <BoardCard key={b.id} b={b} highlight={query} onStats={() => onNavigate('tournaments')} />
+            ) : (
+              <CompactBoardCard key={b.id} b={b} highlight={query} onStats={() => onNavigate('tournaments')} />
+            ),
+          )}
         </div>
       )}
     </section>
