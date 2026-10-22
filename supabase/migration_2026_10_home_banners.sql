@@ -16,7 +16,7 @@
 create table if not exists public.home_banners (
   id              uuid primary key default gen_random_uuid(),
   title           text not null,                       -- advertiser name + image alt text
-  image_url       text not null,
+  image_url       text,                                -- null → "Advertise with us!" placeholder
   link_url        text,
   open_in_new_tab boolean not null default true,
   is_active       boolean not null default true,

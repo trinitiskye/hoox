@@ -566,7 +566,7 @@ export async function getActiveHeroSlides() {
 export interface DbHomeBanner {
   id: string;
   title: string;
-  image_url: string;
+  image_url: string | null;
   link_url: string | null;
   open_in_new_tab: boolean;
   is_active: boolean;
@@ -596,3 +596,6 @@ export async function getActiveHomeBanners() {
     'home_banners?is_active=eq.true&select=*&order=sort_order.asc,created_at.asc'
   );
 }
+
+/** Shown for any "We recommend" banner without an uploaded image. */
+export const BANNER_PLACEHOLDER_IMAGE = '/home/banners/advertise-placeholder.png';

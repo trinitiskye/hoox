@@ -201,7 +201,7 @@ export interface HeroSlide {
 export interface HomeBanner {
   id: string;
   title: string;            // advertiser name, also used as image alt text
-  imageUrl: string;
+  imageUrl: string | null;  // null → shows the "Advertise with us!" placeholder
   linkUrl: string | null;
   openInNewTab: boolean;
   isActive: boolean;

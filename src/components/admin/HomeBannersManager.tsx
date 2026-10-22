@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import type { HomeBanner } from '@/types';
 import { Toast, useToast } from '@/components/ui/Toast';
+import { BANNER_PLACEHOLDER_IMAGE } from '@/lib/supabase';
 
 /* ------------------------------------------------------------------ */
 /* Admin → Advertising → Home Page Banners ("We recommend")            */
@@ -85,7 +86,7 @@ function BannerEditor({
   const save = async () => {
     setError(null);
     if (!form.title.trim()) return setError('Add the advertiser name.');
-    if (!form.imageUrl.trim()) return setError('Upload a banner image or paste an image URL.');
+    if (!form.linkUrl.trim()) return setError('Add the click-through link for this banner.');
     setSaving(true);
     try {
       await api(editingId ? `/api/admin/home-banners/${editingId}` : '/api/admin/home-banners', {
@@ -114,14 +115,8 @@ function BannerEditor({
           {/* Preview at the size it appears on the home page */}
           <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-start">
             <div className="aspect-[5/2] w-full max-w-[260px] overflow-hidden rounded-md border border-gray-200 bg-[#F7F9FB]">
-              {form.imageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={form.imageUrl} alt="" className="h-full w-full object-contain" />
-              ) : (
-                <div className="flex h-full w-full flex-col items-center justify-center text-gray-400 text-xs">
-                  <ImageIcon className="mb-1 h-6 w-6" /> Banner preview
-                </div>
-              )}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={form.imageUrl || BANNER_PLACEHOLDER_IMAGE} alt="" onError={(ev) => { if (!ev.currentTarget.src.endsWith(BANNER_PLACEHOLDER_IMAGE)) ev.currentTarget.src = BANNER_PLACEHOLDER_IMAGE; }} className="h-full w-full object-contain" />
             </div>
             <div
               onDragOver={(e) => e.preventDefault()}
@@ -153,6 +148,12 @@ function BannerEditor({
                 {uploading ? 'Uploading…' : form.imageUrl ? 'Replace image' : 'Upload banner'}
               </button>
               <p className="mt-2 text-xs text-gray-500">or drag an image here · {RECOMMENDED} · JPG, PNG, WebP, GIF · max 2 MB</p>
+              <p className="mt-1 text-xs text-gray-500">Optional — without an image, the “Advertise with us!” placeholder is shown.</p>
+              {form.imageUrl && (
+                <button type="button" onClick={() => set('imageUrl', '')} className="mt-2 text-xs font-medium text-red-600 hover:underline">
+                  Remove image (use placeholder)
+                </button>
+              )}
             </div>
           </div>
 
@@ -180,22 +181,18 @@ function BannerEditor({
               <span className="mt-1 block text-xs text-gray-500">Also used as the image description for screen readers.</span>
             </label>
             <label className="block">
-              <span className="mb-1 block text-sm font-medium text-gray-700">Click-through link</span>
+              <span className="mb-1 block text-sm font-medium text-gray-700">Click-through link <span className="text-red-500">*</span></span>
               <input
                 value={form.linkUrl}
                 onChange={(e) => set('linkUrl', e.target.value)}
                 placeholder="https://advertiser.com"
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
               />
-              <span className="mt-1 block text-xs text-gray-500">Leave empty for a banner that isn&apos;t clickable.</span>
+              <span className="mt-1 block text-xs text-gray-500">Opens in a new browser tab.</span>
             </label>
           </div>
 
           <div className="flex flex-wrap gap-x-6 gap-y-2">
-            <label className="flex items-center gap-2 text-sm text-gray-700">
-              <input type="checkbox" checked={form.openInNewTab} onChange={(e) => set('openInNewTab', e.target.checked)} className="h-4 w-4 rounded border-gray-300" />
-              Open link in a new tab
-            </label>
             <label className="flex items-center gap-2 text-sm text-gray-700">
               <input type="checkbox" checked={form.isActive} onChange={(e) => set('isActive', e.target.checked)} className="h-4 w-4 rounded border-gray-300" />
               Show on the home page
@@ -357,7 +354,7 @@ export default function HomeBannersManager() {
                 <div className="flex items-center gap-3 min-w-0 flex-1">
                   <span className="w-5 text-center text-xs font-semibold text-gray-400">{i + 1}</span>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={b.imageUrl} alt="" className={`h-[48px] w-[120px] flex-shrink-0 rounded-md object-contain bg-[#F7F9FB] border border-gray-200 ${b.isActive ? '' : 'opacity-50'}`} />
+                  <img src={b.imageUrl || BANNER_PLACEHOLDER_IMAGE} alt="" onError={(ev) => { if (!ev.currentTarget.src.endsWith(BANNER_PLACEHOLDER_IMAGE)) ev.currentTarget.src = BANNER_PLACEHOLDER_IMAGE; }} className={`h-[48px] w-[120px] flex-shrink-0 rounded-md object-contain bg-[#F7F9FB] border border-gray-200 ${b.isActive ? '' : 'opacity-50'}`} />
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-medium text-gray-900 truncate">{b.title}</span>
@@ -369,10 +366,10 @@ export default function HomeBannersManager() {
                       <div className="mt-0.5 text-xs text-gray-500 truncate">
                         Links to{' '}
                         <a href={b.linkUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{b.linkUrl}</a>
-                        {b.openInNewTab && <span className="text-gray-400"> · new tab</span>}
+                        <span className="text-gray-400"> · new tab</span>
                       </div>
                     ) : (
-                      <div className="mt-0.5 text-xs text-gray-400">Not clickable</div>
+                      <div className="mt-0.5 text-xs text-amber-600">No link yet — edit to add one</div>
                     )}
                   </div>
                 </div>
@@ -383,7 +380,7 @@ export default function HomeBannersManager() {
                   <button
                     onClick={() => setEditor({
                       id: b.id,
-                      form: { title: b.title, imageUrl: b.imageUrl, linkUrl: b.linkUrl || '', openInNewTab: b.openInNewTab, isActive: b.isActive },
+                      form: { title: b.title, imageUrl: b.imageUrl || '', linkUrl: b.linkUrl || '', openInNewTab: true, isActive: b.isActive },
                     })}
                     className="flex items-center gap-1 px-2.5 py-1.5 text-gray-600 text-xs border border-gray-200 rounded-lg hover:bg-gray-50 transition"
                   >

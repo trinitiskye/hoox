@@ -29,22 +29,23 @@ export function parseHomeBannerInput(
     out.title = title;
   }
 
+  // Image is optional — banners without one show the "Advertise with us!" placeholder.
   if (!partial || 'imageUrl' in body) {
-    const imageUrl = str('imageUrl');
-    if (!imageUrl || !isHttpUrl(imageUrl)) return { value: out, error: 'A valid image URL is required.' };
-    out.image_url = imageUrl;
+    const imageUrl = str('imageUrl') || '';
+    if (imageUrl && !isHttpUrl(imageUrl)) return { value: out, error: 'Image URL must start with https:// or http://.' };
+    out.image_url = imageUrl || null;
   }
 
+  // Every banner links somewhere, and always opens in a new browser tab/window.
   if (!partial || 'linkUrl' in body) {
     const link = str('linkUrl') || '';
-    if (link && !isLinkUrl(link)) {
+    if (!link) return { value: out, error: 'A click-through link is required.' };
+    if (!isLinkUrl(link)) {
       return { value: out, error: 'Link must start with https://, http://, or / for a page on this site.' };
     }
-    out.link_url = link || null;
+    out.link_url = link;
+    out.open_in_new_tab = true;
   }
-
-  if ('openInNewTab' in body) out.open_in_new_tab = body.openInNewTab === true;
-  else if (!partial) out.open_in_new_tab = true;
 
   if ('isActive' in body) out.is_active = body.isActive === true;
   else if (!partial) out.is_active = true;

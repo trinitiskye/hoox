@@ -1,6 +1,7 @@
 'use client';
 
 import type { HomeBanner } from '@/types';
+import { BANNER_PLACEHOLDER_IMAGE } from '@/lib/supabase';
 
 interface RecommendedSectionProps {
   /** null while loading; [] hides the section */
@@ -14,24 +15,36 @@ function isExternal(url: string) {
 }
 
 function BannerTile({ b }: { b: HomeBanner }) {
+  const src = b.imageUrl || BANNER_PLACEHOLDER_IMAGE;
   const img = (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={b.imageUrl} alt={b.title} loading="lazy" className="h-full w-full object-contain" />
+    <img
+      src={src}
+      alt={b.title}
+      loading="lazy"
+      className="h-full w-full object-contain"
+      onError={(ev) => {
+        // Broken or missing artwork falls back to the "Advertise with us!" placeholder
+        const el = ev.currentTarget;
+        if (!el.src.endsWith(BANNER_PLACEHOLDER_IMAGE)) el.src = BANNER_PLACEHOLDER_IMAGE;
+      }}
+    />
   );
   const cls =
     'group block aspect-[5/2] overflow-hidden rounded-md border border-hoox-line bg-[#F7F9FB] transition hover:-translate-y-0.5 hover:border-hoox-ui hover:shadow-md';
 
   if (!b.linkUrl) return <div className={cls}>{img}</div>;
 
-  const external = isExternal(b.linkUrl);
+  // Every banner opens in a new browser tab/window.
   return (
     <a
       href={b.linkUrl}
+      target="_blank"
+      rel={isExternal(b.linkUrl) ? 'noopener noreferrer sponsored' : 'noopener'}
       className={cls}
-      {...(b.openInNewTab ? { target: '_blank', rel: external ? 'noopener noreferrer sponsored' : 'noopener' } : external ? { rel: 'sponsored' } : {})}
     >
       {img}
-      <span className="sr-only">{b.title}{b.openInNewTab ? ' (opens in a new tab)' : ''}</span>
+      <span className="sr-only">{b.title} (opens in a new tab)</span>
     </a>
   );
 }
