@@ -327,7 +327,7 @@ export default function LeaderboardSection({ onNavigate }: { onNavigate: (view: 
       {/* Heading — same type as Upcoming Tournaments */}
       <div className="flex flex-wrap items-end justify-between gap-2 px-2 pb-[13px]">
         <div>
-          <h2 id="leaderboard-heading" className="text-[28px] font-bold leading-tight text-hoox-ink">Leaderboard</h2>
+          <h2 id="leaderboard-heading" className="text-[28px] font-bold leading-tight text-hoox-ink">Leaderboards</h2>
           <p className="text-[16px] font-light text-[#869FE6]">Live standings and results from tournaments across the HOOX community.</p>
         </div>
         <button
