@@ -232,7 +232,7 @@ function LiveNow({ live, onLeaderboard }: { live: LiveTournament; onLeaderboard:
   return (
     <section aria-label="Live tournament" className="flex flex-col rounded-lg border border-hoox-line bg-white p-[14px] pt-[16px] shadow-[0_2px_10px_rgba(10,30,60,0.06)]">
       <div className="flex items-start justify-between px-[2px]">
-        <h2 className="flex items-center gap-2.5 text-[24px] font-bold leading-none text-hoox-ink">
+        <h2 className="flex items-center gap-2.5 text-[20px] font-bold leading-none text-hoox-ink">
           <span className="relative flex h-[11px] w-[11px]">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-hoox-teal opacity-60" />
             <span className="relative inline-flex h-[11px] w-[11px] rounded-full bg-hoox-teal" />
