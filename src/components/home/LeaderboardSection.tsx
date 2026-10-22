@@ -245,7 +245,7 @@ function CompactBoardCard({ b, highlight, onStats }: { b: Board; highlight: stri
   const more = b.rows.length - shown.length;
   return (
     <article className="flex flex-col overflow-hidden rounded-lg border border-[#E3ECF4] bg-white shadow-[0_1px_6px_rgba(10,30,60,0.05)]">
-      <BoardBanner b={b} compact />
+      <BoardBanner b={b} />
 
       <div className="px-4 pt-[9px]" role="table" aria-label={`${b.name} top 5`}>
         <div role="row" className={`${CGRID} border-b border-[#EDF1F5] pb-[7px] text-[11px] font-semibold uppercase tracking-[0.02em] text-[#7A8BA3]`}>
