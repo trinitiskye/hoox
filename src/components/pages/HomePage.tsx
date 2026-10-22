@@ -397,10 +397,10 @@ export default function HomePage({ tournaments, onNavigate }: HomePageProps) {
               <p className="text-[16px] font-light text-[#869FE6]">Discover upcoming events and get ready to compete.</p>
             </div>
             <button
-              onClick={() => onNavigate('events')}
+              onClick={() => onNavigate('tournaments')}
               className="mb-4 flex items-center gap-2 text-[17px] font-medium text-[#016F8C] hover:text-hoox-brand transition"
             >
-              View all events <ArrowRight className="h-5 w-5" strokeWidth={2} />
+              View all tournaments <ArrowRight className="h-5 w-5" strokeWidth={2} />
             </button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-[13px]">
