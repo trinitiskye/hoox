@@ -9,6 +9,7 @@ import {
   EventDetail, formatDateRange, monthDay, mapsSearchUrl, mapsDirectionsUrl, mapsEmbedUrl, websiteHref, downloadIcs,
 } from '@/lib/eventDetail';
 import { BOARDS, RankBadge, Avatar } from '@/components/home/LeaderboardSection';
+import { anglerHref } from '@/lib/anglerLinks';
 
 /* ------------------------------------------------------------------ */
 /* Tournament / Event detail — matches the Event Detail mock.          */
@@ -172,7 +173,7 @@ function LeaderboardCard({ e }: { e: EventDetail }) {
               <span role="cell"><RankBadge rank={i + 1} compact /></span>
               <span role="cell" className="flex min-w-0 items-center gap-3">
                 <Avatar boardId={board.id} index={i} size={26} />
-                <span className={`truncate ${INK}`}>{row.angler}</span>
+                <a href={anglerHref(row.angler)} className={`truncate ${INK} hover:text-[#0F6E86] hover:underline`}>{row.angler}</a>
               </span>
               <span role="cell" className="text-[13px] text-[#2A3B55]">{row.boat}</span>
               <span role="cell" className="text-center text-[13px] text-[#2A3B55]">{row.fish}</span>

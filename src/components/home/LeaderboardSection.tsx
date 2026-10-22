@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { anglerHref } from '@/lib/anglerLinks';
 import {
   Search, List, Clock, Trophy, MapPin, CalendarDays, ChevronDown, LayoutGrid, ArrowRight,
 } from 'lucide-react';
@@ -208,7 +209,7 @@ function BoardCard({ b, highlight, onStats }: { b: Board; highlight: string; onS
               <span role="cell" className="pl-[1px]"><RankBadge rank={i + 1} /></span>
               <span role="cell" className="flex min-w-0 items-center gap-2">
                 <Avatar boardId={b.id} index={i} />
-                <span className="truncate text-[#1F334E]">{row.angler}</span>
+                <a href={anglerHref(row.angler)} className="truncate text-[#1F334E] hover:text-[#0F6E86] hover:underline">{row.angler}</a>
               </span>
               <span role="cell" className="text-[12px] text-[#2A3B55]">{row.boat}</span>
               <span role="cell" className="text-[12px] text-[#2A3B55]">{row.fish}</span>
@@ -264,7 +265,7 @@ function CompactBoardCard({ b, highlight, onStats }: { b: Board; highlight: stri
             >
               <span role="cell" className="pl-[1px]"><RankBadge rank={rank} compact /></span>
               <span role="cell"><Avatar boardId={b.id} index={rank - 1} size={26} /></span>
-              <span role="cell" className="truncate text-[#1F334E]">{row.angler}</span>
+              <span role="cell" className="min-w-0 truncate"><a href={anglerHref(row.angler)} className="text-[#1F334E] hover:text-[#0F6E86] hover:underline">{row.angler}</a></span>
               <span role="cell" className="text-center text-[#2A3B55]">{row.fish}</span>
               <span role="cell" className="text-center text-[#2A3B55]">
                 {row.weight !== undefined ? `${row.weight.toFixed(2)} lb` : '-'}
@@ -323,7 +324,7 @@ export default function LeaderboardSection({ onNavigate }: { onNavigate: (view: 
   ];
 
   return (
-    <section aria-labelledby="leaderboard-heading" className="rounded-lg bg-white px-3 sm:px-[12px] pt-[12px] pb-[12px] shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
+    <section id="leaderboards" aria-labelledby="leaderboard-heading" className="scroll-mt-24 rounded-lg bg-white px-3 sm:px-[12px] pt-[12px] pb-[12px] shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
       {/* Heading — same type as Upcoming Tournaments */}
       <div className="flex flex-wrap items-end justify-between gap-2 px-2 pb-[13px]">
         <div>
