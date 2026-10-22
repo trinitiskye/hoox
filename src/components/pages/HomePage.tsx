@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import { Trophy, MapPin, Calendar, DollarSign, Users, ChevronUp, ChevronDown } from 'lucide-react';
+import {
+  Trophy, MapPin, CalendarDays, Users, ChevronRight, ArrowRight, ShieldCheck, Mountain, Waves,
+} from 'lucide-react';
 import { Tournament, Submission, User, SearchParams } from '@/types';
 
 interface HomePageProps {
@@ -12,211 +13,333 @@ interface HomePageProps {
   onSearch: (params: SearchParams) => void;
 }
 
-const DEMO_LEADERBOARD = [
-  { place: 1, angler: 'Sarah Williams', weight: '22.5 lbs' },
-  { place: 2, angler: 'Mike Johnson', weight: '20.1 lbs' },
-  { place: 3, angler: 'Tom Davis', weight: '18.7 lbs' },
+/* ------------------------------------------------------------------ */
+/* Placeholder content (matches the Home mock). Real upcoming /        */
+/* in-progress tournaments replace it automatically when they exist.   */
+/* ------------------------------------------------------------------ */
+
+const SPONSOR = {
+  name: 'TidalGear',
+  logo: '/home/tidalgear-logo.png',
+  image: '/home/sponsor-hero.jpg',
+  headline: ['Built for anglers.', 'Trusted by the water.'],
+  body: 'TidalGear® is proud to support the fishing community and the tournaments that keep our waters and anglers thriving.',
+  cta: 'Visit sponsor',
+  features: [
+    { icon: ShieldCheck, label: 'Premium Quality' },
+    { icon: Mountain, label: 'Outdoor Ready' },
+    { icon: Waves, label: 'Angler Approved' },
+  ],
+};
+
+interface LiveTournament {
+  name: string;
+  location: string;
+  dates: string;
+  anglers: number | string;
+  day: string;
+  elapsed: string;
+  lastUpdate: string;
+  map: string;
+}
+
+const DEMO_LIVE: LiveTournament = {
+  name: 'Lakefront Classic',
+  location: 'Lake Hartwell, GA',
+  dates: 'May 17 – 19, 2025',
+  anglers: 156,
+  day: 'Day 1 of 3',
+  elapsed: '5h 42m',
+  lastUpdate: '10:42 AM',
+  map: '/home/live-map.jpg',
+};
+
+interface UpcomingCard {
+  id: string;
+  name: string;
+  dates: string;
+  location: string;
+  anglers?: number | string;
+  prizePool?: string;
+  image: string;
+}
+
+const CARD_IMAGES = [
+  '/home/coastal-open.jpg',
+  '/home/pine-creek.jpg',
+  '/home/summer-slam.jpg',
+  '/home/mountain-lake.jpg',
+  '/home/bayou-bash.jpg',
+  '/home/fall-classic.jpg',
 ];
 
-const DEMO_ANGLERS = [
-  { name: 'Sarah Williams', wins: 3, state: 'AZ' },
-  { name: 'Mike Johnson', wins: 2, state: 'CA' },
-  { name: 'Tom Davis', wins: 1, state: 'TX' },
+const DEMO_UPCOMING: UpcomingCard[] = [
+  { id: 'd1', name: 'Coastal Open', dates: 'JUN 7 – 8, 2025', location: 'Charleston, SC', anglers: 200, prizePool: '$100,000', image: CARD_IMAGES[0] },
+  { id: 'd2', name: 'Pine Creek Challenge', dates: 'JUN 21 – 22, 2025', location: 'Toledo Bend, TX', anglers: 180, prizePool: '$75,000', image: CARD_IMAGES[1] },
+  { id: 'd3', name: 'Summer Slam', dates: 'JUL 12 – 13, 2025', location: 'Lake Okeechobee, FL', anglers: 220, prizePool: '$125,000', image: CARD_IMAGES[2] },
+  { id: 'd4', name: 'Mountain Lake Invitational', dates: 'AUG 9 – 10, 2025', location: 'Lake Guntersville, AL', anglers: 160, prizePool: '$80,000', image: CARD_IMAGES[3] },
+  { id: 'd5', name: 'Bayou Bash', dates: 'SEP 6 – 7, 2025', location: 'Toledo Bend, LA', anglers: 175, prizePool: '$70,000', image: CARD_IMAGES[4] },
+  { id: 'd6', name: 'Fall Classic', dates: 'OCT 18 – 19, 2025', location: 'Lake Murray, SC', anglers: 190, prizePool: '$90,000', image: CARD_IMAGES[5] },
 ];
 
-export default function HomePage({ tournaments, submissions, users, onNavigate, onSearch }: HomePageProps) {
-  const [activeTab, setActiveTab] = useState<'upcoming' | 'inprocess' | 'archived'>('upcoming');
-  const [searchType, setSearchType] = useState('Tournaments');
-  const [searchQuery, setSearchQuery] = useState('');
+/* ------------------------------ helpers ------------------------------ */
 
+const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+
+function parseDate(s: string) {
+  const d = new Date(s.length <= 10 ? `${s}T00:00:00` : s);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+/** "JUN 7 – 8, 2025" / "JUN 30 – JUL 2, 2025" */
+function formatRange(start: string, end: string, upper = true) {
+  const a = parseDate(start);
+  const b = parseDate(end) ?? a;
+  if (!a || !b) return start;
+  const m = (d: Date) => (upper ? MONTHS[d.getMonth()] : MONTHS[d.getMonth()][0] + MONTHS[d.getMonth()].slice(1).toLowerCase());
+  if (a.toDateString() === b.toDateString()) return `${m(a)} ${a.getDate()}, ${a.getFullYear()}`;
+  if (a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear()) {
+    return `${m(a)} ${a.getDate()} – ${b.getDate()}, ${b.getFullYear()}`;
+  }
+  return `${m(a)} ${a.getDate()} – ${m(b)} ${b.getDate()}, ${b.getFullYear()}`;
+}
+
+function place(t: Tournament) {
+  const cityState = [t.city, t.state].filter(Boolean).join(', ');
+  return cityState || t.location || '';
+}
+
+function toUpcomingCards(tournaments: Tournament[]): UpcomingCard[] {
   const now = new Date();
-  const upcoming = tournaments.filter(t => new Date(t.startDate) > now);
-  const inProcess = tournaments.filter(t => {
-    const start = new Date(t.startDate);
-    const end = new Date(t.endDate);
-    return now >= start && now <= end;
+  const upcoming = tournaments
+    .filter((t) => {
+      const d = parseDate(t.startDate);
+      return d && d > now;
+    })
+    .sort((x, y) => (parseDate(x.startDate)!.getTime() - parseDate(y.startDate)!.getTime()))
+    .slice(0, 6);
+  return upcoming.map((t, i) => ({
+    id: t.id,
+    name: t.name,
+    dates: formatRange(t.startDate, t.endDate),
+    location: place(t),
+    anglers: t.maxParticipants || undefined,
+    image: t.image || CARD_IMAGES[i % CARD_IMAGES.length],
+  }));
+}
+
+function toLive(tournaments: Tournament[]): LiveTournament | null {
+  const now = new Date();
+  const t = tournaments.find((x) => {
+    const s = parseDate(x.startDate);
+    const e = parseDate(x.endDate);
+    if (!s || !e) return false;
+    e.setHours(23, 59, 59);
+    return now >= s && now <= e;
   });
-  const archived = tournaments.filter(t => new Date(t.endDate) < now);
-
-  const tabTournaments = activeTab === 'upcoming' ? upcoming : activeTab === 'inprocess' ? inProcess : archived;
-
-  const handleSearch = () => {
-    if (!searchQuery.trim()) return;
-    onSearch({ type: searchType.toLowerCase() as any, query: searchQuery });
+  if (!t) return null;
+  const s = parseDate(t.startDate)!;
+  const e = parseDate(t.endDate)!;
+  const totalDays = Math.max(1, Math.round((e.getTime() - s.getTime()) / 86400000) + 1);
+  const dayNum = Math.min(totalDays, Math.floor((now.getTime() - s.getTime()) / 86400000) + 1);
+  const mins = Math.max(0, Math.floor((now.getTime() - s.getTime()) / 60000) % (24 * 60));
+  return {
+    name: t.name,
+    location: place(t),
+    dates: formatRange(t.startDate, t.endDate, false),
+    anglers: t.maxParticipants || '—',
+    day: `Day ${dayNum} of ${totalDays}`,
+    elapsed: `${Math.floor(mins / 60)}h ${mins % 60}m`,
+    lastUpdate: now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }),
+    map: DEMO_LIVE.map,
   };
+}
+
+/* ----------------------------- sections ------------------------------ */
+
+function SponsorHero({ onVisit }: { onVisit: () => void }) {
+  return (
+    <section
+      aria-label={`Featured sponsor: ${SPONSOR.name}`}
+      className="relative overflow-hidden rounded-lg bg-hoox-deep min-h-[482px] shadow-[0_2px_10px_rgba(10,30,60,0.12)]"
+    >
+      {/* Photo — right side on desktop, full-bleed on mobile */}
+      <img
+        src={SPONSOR.image}
+        alt=""
+        className="absolute inset-0 h-full w-full object-cover object-[70%_center] md:left-auto md:right-0 md:w-auto md:max-w-[62%] md:object-left md:[-webkit-mask-image:linear-gradient(90deg,transparent_0%,#000_24%)] md:[mask-image:linear-gradient(90deg,transparent_0%,#000_24%)]"
+      />
+      {/* Water/dusk glow behind the copy */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            'radial-gradient(ellipse 55% 60% at 38% 62%, rgba(46,98,128,0.55) 0%, rgba(0,38,59,0) 70%), radial-gradient(ellipse 40% 35% at 30% 20%, rgba(40,80,110,0.35) 0%, rgba(0,38,59,0) 70%)',
+        }}
+      />
+      {/* Blend into photo */}
+      <div className="absolute inset-0 bg-hoox-deep/80 md:hidden" />
+      <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#001B2C]/80 to-transparent" />
+
+      <div className="relative z-10 flex h-full min-h-[482px] flex-col px-6 sm:px-8 pt-[74px] pb-[14px]">
+        <img src={SPONSOR.logo} alt={`${SPONSOR.name} Outdoor Equipment`} className="w-[300px] sm:w-[456px] max-w-full h-auto drop-shadow-[0_2px_6px_rgba(0,0,0,0.35)]" />
+
+        <h2 className="mt-[22px] text-[28px] sm:text-[33px] font-bold leading-[1.16] text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.35)]">
+          {SPONSOR.headline[0]}
+          <br />
+          {SPONSOR.headline[1]}
+        </h2>
+        <p className="mt-[14px] max-w-[330px] text-[17px] leading-[1.45] text-white/95">{SPONSOR.body}</p>
+
+        <button
+          onClick={onVisit}
+          className="mt-[18px] inline-flex w-fit items-center gap-7 rounded-md bg-gradient-to-b from-[#F7AE2C] to-[#EE9A1A] px-[34px] h-[44px] text-[19px] font-semibold text-[#11173A] shadow-[0_3px_10px_rgba(238,154,26,0.35)] hover:brightness-105 transition"
+        >
+          {SPONSOR.cta} <ArrowRight className="h-5 w-5" strokeWidth={2.25} />
+        </button>
+
+        <ul className="mt-auto flex flex-wrap items-center gap-x-14 gap-y-3 pt-6">
+          {SPONSOR.features.map(({ icon: Icon, label }) => (
+            <li key={label} className="flex items-center gap-3 text-white">
+              <Icon className="h-7 w-7" strokeWidth={1.4} />
+              <span className="text-[13px] font-medium uppercase tracking-[0.02em]">{label}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  );
+}
+
+function LiveNow({ live, onLeaderboard }: { live: LiveTournament; onLeaderboard: () => void }) {
+  return (
+    <section aria-label="Live tournament" className="flex flex-col rounded-lg border border-hoox-line bg-white p-[14px] pt-[16px] shadow-[0_2px_10px_rgba(10,30,60,0.06)]">
+      <div className="flex items-start justify-between px-[2px]">
+        <h2 className="flex items-center gap-2.5 text-[24px] font-bold leading-none text-hoox-ink">
+          <span className="relative flex h-[11px] w-[11px]">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-hoox-teal opacity-60" />
+            <span className="relative inline-flex h-[11px] w-[11px] rounded-full bg-hoox-teal" />
+          </span>
+          LIVE NOW
+        </h2>
+        <span className="pt-1 text-[13px] text-hoox-muted">Last update: {live.lastUpdate}</span>
+      </div>
+
+      <span className="mt-[13px] inline-flex w-fit items-center gap-2 rounded-md bg-[#F7A924] px-3.5 py-[6px] text-[12px] font-semibold uppercase text-[#161C36]">
+        <Trophy className="h-4 w-4" fill="currentColor" strokeWidth={1.5} /> Featured Tournament
+      </span>
+
+      <div className="mt-2.5 flex items-start gap-4 pl-[2px]">
+        <img src="/home/live-fish.png" alt="" className="mt-1 h-[58px] w-[74px] flex-shrink-0 object-contain" />
+        <div className="min-w-0">
+          <h3 className="text-[23px] font-bold leading-tight text-hoox-ink">{live.name}</h3>
+          <p className="mt-1.5 flex items-center gap-3 text-[16px] text-[#5884E1]">
+            <MapPin className="h-5 w-5 text-hoox-ink" strokeWidth={1.75} /> {live.location}
+          </p>
+          <p className="mt-1.5 flex items-center gap-3 text-[16px] text-[#5884E1]">
+            <CalendarDays className="h-5 w-5 text-hoox-ink" strokeWidth={1.75} /> {live.dates}
+          </p>
+        </div>
+      </div>
+
+      <dl className="mt-3 grid grid-cols-3 rounded-md bg-hoox-chip py-2.5 text-center">
+        {[
+          { v: live.anglers, l: 'Anglers', c: 'text-[#477CD3]' },
+          { v: live.day, l: 'In Progress', c: 'text-[#14869A]' },
+          { v: live.elapsed, l: 'Elapsed', c: 'text-[#477CD3]' },
+        ].map((s, i) => (
+          <div key={s.l} className={i > 0 ? 'border-l border-[#B9D4E6]' : ''}>
+            <dd className="text-[21px] font-bold leading-tight text-hoox-ink">{s.v}</dd>
+            <dt className={`mt-0.5 text-[14px] ${s.c}`}>{s.l}</dt>
+          </div>
+        ))}
+      </dl>
+
+      <img src={live.map} alt={`Map of ${live.location}`} className="mt-[9px] h-[145px] w-full rounded-md object-cover" />
+
+      <button
+        onClick={onLeaderboard}
+        className="mt-3 flex h-[46px] w-full items-center justify-center gap-4 rounded-md bg-gradient-to-r from-[#00253F] via-[#03304F] to-[#00253F] text-[18px] font-medium text-white hover:brightness-125 transition"
+      >
+        View leaderboard <ArrowRight className="h-5 w-5" strokeWidth={2} />
+      </button>
+    </section>
+  );
+}
+
+function TournamentCard({ t, onOpen }: { t: UpcomingCard; onOpen: () => void }) {
+  return (
+    <button
+      onClick={onOpen}
+      className="group flex w-full flex-col sm:flex-row gap-4 rounded-md border border-hoox-line bg-white p-[13px] text-left transition hover:border-hoox-ui hover:shadow-md"
+    >
+      <img src={t.image} alt="" className="h-[180px] w-full sm:h-[134px] sm:w-[40%] sm:max-w-[166px] flex-shrink-0 rounded-md object-cover" />
+      <div className="flex min-w-0 flex-1 flex-col pt-[4px]">
+        <div className="flex items-start justify-between gap-2">
+          <span className="whitespace-nowrap rounded bg-hoox-chip px-[11px] py-[4px] text-[14px] font-medium text-[#1A2C9F]">{t.dates}</span>
+          <ChevronRight className="mt-6 h-6 w-6 flex-shrink-0 text-hoox-ink transition group-hover:translate-x-0.5" strokeWidth={2} />
+        </div>
+        <h3 className="-mt-1 pr-1 text-[20px] font-bold leading-[1.15] tracking-[-0.01em] text-hoox-ink line-clamp-2">{t.name}</h3>
+        {t.location && (
+          <p className="mt-2 flex items-center gap-2.5 text-[15px] text-[#5884E1]">
+            <MapPin className="h-[17px] w-[17px] flex-shrink-0 text-hoox-ink" strokeWidth={1.75} />
+            <span className="truncate">{t.location}</span>
+          </p>
+        )}
+        <div className="mt-auto flex flex-wrap items-center gap-x-2.5 gap-y-1 pt-3 text-[12.5px] tracking-[-0.01em]">
+          {t.anglers !== undefined && (
+            <span className="flex items-center gap-1.5 text-hoox-muted">
+              <Users className="h-4 w-4 text-hoox-ink" strokeWidth={1.75} /> {t.anglers} Anglers
+            </span>
+          )}
+          {t.prizePool && (
+            <span className="flex items-center gap-1 text-[#7E91E7]">
+              <Trophy className="h-[18px] w-[18px] text-[#FD9C00]" fill="#FDB52A" strokeWidth={1.5} />
+              <b className="font-bold text-hoox-ink">{t.prizePool}</b> Prize Pool
+            </span>
+          )}
+        </div>
+      </div>
+    </button>
+  );
+}
+
+/* -------------------------------- page ------------------------------- */
+
+export default function HomePage({ tournaments, onNavigate }: HomePageProps) {
+  const realUpcoming = toUpcomingCards(tournaments);
+  const upcoming = realUpcoming.length ? realUpcoming : DEMO_UPCOMING;
+  const live = toLive(tournaments) ?? DEMO_LIVE;
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
-      {/* Hero Carousel */}
-      <div className="relative w-full h-64 md:h-80 overflow-hidden bg-gray-900">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 to-teal-800/60 z-10" />
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1200')] bg-cover bg-center opacity-50" />
-        <div className="relative z-20 flex flex-col items-center justify-center h-full text-center px-4">
-          <h1 className="text-3xl md:text-5xl font-bold text-white mb-3">Manage Your Tournaments</h1>
-          <p className="text-lg text-white/90 mb-6">Complete tournament management system</p>
-          <button onClick={() => onNavigate('features')} className="px-6 py-2.5 bg-white text-gray-900 font-semibold rounded-lg hover:bg-gray-100 transition">
-            Learn More
-          </button>
+    <div className="font-roboto bg-hoox-mist">
+      <div className="mx-auto max-w-[1440px] px-4 md:px-[23px] pt-[18px] pb-6 space-y-[14px]">
+        {/* Sponsor hero + Live now */}
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_380px] xl:grid-cols-[minmax(0,1fr)_428px] gap-4">
+          <SponsorHero onVisit={() => onNavigate('sponsors')} />
+          <LiveNow live={live} onLeaderboard={() => onNavigate('tournaments')} />
         </div>
-        {/* Dots */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
-          {[0,1,2].map(i => <button key={i} className={`w-2.5 h-2.5 rounded-full transition ${i === 1 ? 'bg-white' : 'bg-white/40'}`} />)}
-        </div>
-      </div>
 
-      {/* Search Bar */}
-      <div className="bg-gray-800 py-4 px-4">
-        <div className="max-w-4xl mx-auto flex items-center gap-3">
-          <span className="text-white font-medium text-sm whitespace-nowrap">Search</span>
-          <select
-            value={searchType}
-            onChange={e => setSearchType(e.target.value)}
-            className="px-3 py-2 rounded bg-white text-gray-800 text-sm border-0 focus:ring-2 focus:ring-blue-500"
-          >
-            {['Tournaments', 'Series', 'Clubs', 'Directors', 'Anglers'].map(t => (
-              <option key={t}>{t}</option>
+        {/* Upcoming tournaments */}
+        <section aria-labelledby="upcoming-heading" className="rounded-lg bg-white px-3 sm:px-[12px] pt-[12px] pb-[12px] shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
+          <div className="flex flex-wrap items-end justify-between gap-2 px-2 pb-[13px]">
+            <div>
+              <h2 id="upcoming-heading" className="text-[28px] font-bold leading-tight text-hoox-ink">Upcoming Tournaments</h2>
+              <p className="text-[16px] font-light text-[#869FE6]">Discover upcoming events and get ready to compete.</p>
+            </div>
+            <button
+              onClick={() => onNavigate('events')}
+              className="mb-4 flex items-center gap-2 text-[17px] font-medium text-[#016F8C] hover:text-hoox-brand transition"
+            >
+              View all events <ArrowRight className="h-5 w-5" strokeWidth={2} />
+            </button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-[13px]">
+            {upcoming.map((t) => (
+              <TournamentCard key={t.id} t={t} onOpen={() => onNavigate('tournaments')} />
             ))}
-          </select>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleSearch()}
-            placeholder={`Search for ${searchType.toLowerCase()}...`}
-            className="flex-1 px-4 py-2 rounded text-sm border-0 focus:ring-2 focus:ring-blue-500"
-          />
-          <button onClick={handleSearch} className="px-5 py-2 bg-blue-600 text-white rounded font-medium text-sm hover:bg-blue-700 transition whitespace-nowrap">
-            Search
-          </button>
-        </div>
-      </div>
-
-      <div className="flex-grow max-w-7xl mx-auto w-full px-4 md:px-8 py-8">
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Main Content */}
-          <div className="flex-1">
-            {/* Tournaments Table */}
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Tournaments</h2>
-            <div className="border border-gray-200 rounded-lg overflow-hidden mb-8">
-              {/* Tabs */}
-              <div className="flex border-b border-gray-200 bg-white">
-                {(['upcoming', 'inprocess', 'archived'] as const).map(tab => (
-                  <button
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
-                    className={`px-4 py-3 text-sm font-medium flex items-center gap-1.5 transition ${
-                      activeTab === tab ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'
-                    }`}
-                  >
-                    {tab === 'upcoming' ? 'Upcoming' : tab === 'inprocess' ? 'In Process' : 'Archived'}
-                    <span className={`text-xs px-1.5 py-0.5 rounded-full ${activeTab === tab ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-500'}`}>
-                      {tab === 'upcoming' ? upcoming.length : tab === 'inprocess' ? inProcess.length : archived.length}
-                    </span>
-                  </button>
-                ))}
-              </div>
-              {/* Table */}
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    {['Tournament Name', 'Date', 'Location', 'Entry Fee'].map(h => (
-                      <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                        <span className="flex items-center gap-1">{h} <ChevronUp className="w-3 h-3 opacity-40" /></span>
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {tabTournaments.length === 0 ? (
-                    <tr><td colSpan={4} className="px-4 py-8 text-center text-gray-400 text-sm">No tournaments in this category</td></tr>
-                  ) : tabTournaments.map(t => (
-                    <tr key={t.id} className="hover:bg-blue-50/50 cursor-pointer transition" onClick={() => onNavigate('tournaments')}>
-                      <td className="px-4 py-3">
-                        <div className="text-blue-600 font-medium hover:underline">{t.name}</div>
-                        {t.fishTypes?.map(f => (
-                          <span key={f} className="inline-block mt-1 mr-1 px-2 py-0.5 bg-green-50 text-green-700 text-xs rounded-full border border-green-200">{f}</span>
-                        ))}
-                      </td>
-                      <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{t.startDate} – {t.endDate}</td>
-                      <td className="px-4 py-3 text-gray-600">{t.location}<br/><span className="text-gray-400 text-xs">{t.city}, {t.state}</span></td>
-                      <td className="px-4 py-3 text-gray-700 font-medium">{t.entryFee ? `$${t.entryFee}` : t.registrationFee ? `$${t.registrationFee}` : '—'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Leaderboard + Featured Anglers */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Leaderboard */}
-              <div>
-                <h2 className="text-xl font-bold text-gray-900 mb-4">Leaderboard Status</h2>
-                <div className="border border-gray-200 rounded-lg overflow-hidden">
-                  <table className="w-full text-sm">
-                    <thead className="bg-gray-50 border-b border-gray-200">
-                      <tr>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Place</th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Angler</th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Weight (lbs)</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {DEMO_LEADERBOARD.map(row => (
-                        <tr key={row.place} className="hover:bg-gray-50">
-                          <td className="px-4 py-3">
-                            <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
-                              row.place === 1 ? 'bg-yellow-100 text-yellow-700' :
-                              row.place === 2 ? 'bg-gray-100 text-gray-600' :
-                              'bg-orange-50 text-orange-600'
-                            }`}>{row.place}</span>
-                          </td>
-                          <td className="px-4 py-3 text-gray-800 font-medium">{row.angler}</td>
-                          <td className="px-4 py-3 text-gray-600">{row.weight}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* Featured Anglers */}
-              <div>
-                <h2 className="text-xl font-bold text-gray-900 mb-4">Featured Anglers</h2>
-                <div className="border border-gray-200 rounded-lg overflow-hidden">
-                  <div className="divide-y divide-gray-100">
-                    {DEMO_ANGLERS.map(a => (
-                      <div key={a.name} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50">
-                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                          <Users className="w-4 h-4 text-blue-600" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-gray-800 text-sm">{a.name}</div>
-                          <div className="text-xs text-gray-500">{a.state} · {a.wins} wins</div>
-                        </div>
-                        <Trophy className="w-4 h-4 text-yellow-500 flex-shrink-0" />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
-
-          {/* Right Sidebar - Ad */}
-          <div className="lg:w-48 flex-shrink-0">
-            <div className="bg-gray-100 border border-gray-200 rounded-lg p-4 text-center">
-              <p className="text-xs text-gray-400">We Recommend</p>
-              <div className="mt-2 bg-gray-200 rounded h-32 flex items-center justify-center">
-                <p className="text-xs text-gray-400">Partner ads will appear here</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Ad Banner */}
-        <div className="mt-8 bg-gray-100 border border-gray-200 rounded-lg h-20 flex items-center justify-center">
-          <p className="text-sm text-gray-400">728 x 90 pixels</p>
-        </div>
+        </section>
       </div>
     </div>
   );

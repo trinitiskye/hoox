@@ -24,7 +24,7 @@ export default function Home() {
   };
 
   return (
-    <PublicLayout>
+    <PublicLayout bgClassName="bg-hoox-mist">
       <HomePage
         tournaments={tournaments}
         users={users}

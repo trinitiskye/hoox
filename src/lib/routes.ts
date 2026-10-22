@@ -14,6 +14,8 @@ export const ROUTES: Record<string, string> = {
   'tournaments':        '/tournaments',
   'clubs':              '/clubs',
   'events':             '/events',
+  'calendar':           '/events',
+  'sponsors':           '/partner',
   'features':           '/features',
   'admin-dashboard':    '/admin',
   'admin':              '/admin',
