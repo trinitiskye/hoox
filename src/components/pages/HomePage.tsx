@@ -68,6 +68,8 @@ interface UpcomingCard {
   anglers?: number | string;
   prizePool?: string;
   image: string;
+  /** Show the Register button only while registration is open */
+  registrationOpen: boolean;
 }
 
 const CARD_IMAGES = [
@@ -80,12 +82,12 @@ const CARD_IMAGES = [
 ];
 
 const DEMO_UPCOMING: UpcomingCard[] = [
-  { id: 'd1', name: 'Coastal Open', dates: 'JUN 7 – 8, 2025', location: 'Charleston, SC', anglers: 200, prizePool: '$100,000', image: CARD_IMAGES[0] },
-  { id: 'd2', name: 'Pine Creek Challenge', dates: 'JUN 21 – 22, 2025', location: 'Toledo Bend, TX', anglers: 180, prizePool: '$75,000', image: CARD_IMAGES[1] },
-  { id: 'd3', name: 'Summer Slam', dates: 'JUL 12 – 13, 2025', location: 'Lake Okeechobee, FL', anglers: 220, prizePool: '$125,000', image: CARD_IMAGES[2] },
-  { id: 'd4', name: 'Mountain Lake Invitational', dates: 'AUG 9 – 10, 2025', location: 'Lake Guntersville, AL', anglers: 160, prizePool: '$80,000', image: CARD_IMAGES[3] },
-  { id: 'd5', name: 'Bayou Bash', dates: 'SEP 6 – 7, 2025', location: 'Toledo Bend, LA', anglers: 175, prizePool: '$70,000', image: CARD_IMAGES[4] },
-  { id: 'd6', name: 'Fall Classic', dates: 'OCT 18 – 19, 2025', location: 'Lake Murray, SC', anglers: 190, prizePool: '$90,000', image: CARD_IMAGES[5] },
+  { id: 'd1', name: 'Coastal Open', dates: 'JUN 7 – 8, 2025', location: 'Charleston, SC', anglers: 200, prizePool: '$100,000', image: CARD_IMAGES[0], registrationOpen: true },
+  { id: 'd2', name: 'Pine Creek Challenge', dates: 'JUN 21 – 22, 2025', location: 'Toledo Bend, TX', anglers: 180, prizePool: '$75,000', image: CARD_IMAGES[1], registrationOpen: false },
+  { id: 'd3', name: 'Summer Slam', dates: 'JUL 12 – 13, 2025', location: 'Lake Okeechobee, FL', anglers: 220, prizePool: '$125,000', image: CARD_IMAGES[2], registrationOpen: true },
+  { id: 'd4', name: 'Mountain Lake Invitational', dates: 'AUG 9 – 10, 2025', location: 'Lake Guntersville, AL', anglers: 160, prizePool: '$80,000', image: CARD_IMAGES[3], registrationOpen: true },
+  { id: 'd5', name: 'Bayou Bash', dates: 'SEP 6 – 7, 2025', location: 'Toledo Bend, LA', anglers: 175, prizePool: '$70,000', image: CARD_IMAGES[4], registrationOpen: true },
+  { id: 'd6', name: 'Fall Classic', dates: 'OCT 18 – 19, 2025', location: 'Lake Murray, SC', anglers: 190, prizePool: '$90,000', image: CARD_IMAGES[5], registrationOpen: true },
 ];
 
 /* ------------------------------ helpers ------------------------------ */
@@ -131,6 +133,9 @@ function toUpcomingCards(tournaments: Tournament[]): UpcomingCard[] {
     location: place(t),
     anglers: t.maxParticipants || undefined,
     image: t.image || CARD_IMAGES[i % CARD_IMAGES.length],
+    // Same rule as the event page: open until the event ends, unless marked completed.
+    // (Upcoming cards only list events that haven't started yet.)
+    registrationOpen: t.status !== 'completed',
   }));
 }
 
@@ -274,19 +279,33 @@ function LiveNow({ live, onLeaderboard }: { live: LiveTournament; onLeaderboard:
   );
 }
 
-function TournamentCard({ t, onOpen }: { t: UpcomingCard; onOpen: () => void }) {
+function TournamentCard({ t, onOpen, onRegister }: { t: UpcomingCard; onOpen: () => void; onRegister: () => void }) {
   return (
-    <button
-      onClick={onOpen}
-      className="group flex w-full flex-col sm:flex-row gap-4 rounded-md border border-hoox-line bg-white p-[13px] text-left transition hover:border-hoox-ui hover:shadow-md"
-    >
+    <div className="group relative flex w-full flex-col sm:flex-row gap-4 rounded-md border border-hoox-line bg-white p-[13px] text-left transition hover:border-hoox-ui hover:shadow-md focus-within:border-hoox-ui">
       <img src={t.image} alt="" className="h-[180px] w-full sm:h-[134px] sm:w-[40%] sm:max-w-[166px] flex-shrink-0 rounded-md object-cover" />
       <div className="flex min-w-0 flex-1 flex-col pt-[4px]">
-        <div className="flex items-start justify-between gap-2">
-          <span className="whitespace-nowrap rounded bg-hoox-chip px-[11px] py-[4px] text-[14px] font-medium text-[#1A2C9F]">{t.dates}</span>
-          <ChevronRight className="mt-6 h-6 w-6 flex-shrink-0 text-hoox-ink transition group-hover:translate-x-0.5" strokeWidth={2} />
+        <div className="flex items-start justify-between gap-2 pr-6">
+          <div className="flex flex-nowrap items-center gap-2">
+            <span className="whitespace-nowrap rounded bg-hoox-chip px-[10px] py-[4px] text-[14px] font-medium text-[#1A2C9F]">{t.dates}</span>
+            {t.registrationOpen && (
+              <button
+                type="button"
+                onClick={onRegister}
+                aria-label={`Register for ${t.name}`}
+                className="relative z-10 inline-flex h-[27px] flex-shrink-0 items-center rounded bg-gradient-to-b from-[#F7C23C] to-[#F2AE24] px-3 text-[13px] font-semibold text-[#0B1636] shadow-sm transition hover:brightness-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-hoox-ui"
+              >
+                Register
+              </button>
+            )}
+          </div>
+          <ChevronRight className="absolute bottom-4 right-3 h-6 w-6 text-hoox-ink transition group-hover:translate-x-0.5 sm:bottom-auto sm:top-[62px]" strokeWidth={2} aria-hidden />
         </div>
-        <h3 className="-mt-1 pr-1 text-[20px] font-bold leading-[1.15] tracking-[-0.01em] text-hoox-ink line-clamp-2">{t.name}</h3>
+        <h3 className="mt-2 pr-7 text-[20px] font-bold leading-[1.15] tracking-[-0.01em] text-hoox-ink line-clamp-2">
+          {/* Stretched link: the whole card opens the event page */}
+          <button type="button" onClick={onOpen} className="text-left after:absolute after:inset-0 after:content-[''] focus:outline-none">
+            {t.name}
+          </button>
+        </h3>
         {t.location && (
           <p className="mt-2 flex items-center gap-2.5 text-[15px] text-[#5884E1]">
             <MapPin className="h-[17px] w-[17px] flex-shrink-0 text-hoox-ink" strokeWidth={1.75} />
@@ -307,7 +326,7 @@ function TournamentCard({ t, onOpen }: { t: UpcomingCard; onOpen: () => void }) 
           )}
         </div>
       </div>
-    </button>
+    </div>
   );
 }
 
@@ -383,7 +402,12 @@ export default function HomePage({ tournaments, onNavigate }: HomePageProps) {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-[13px]">
             {upcoming.map((t) => (
-              <TournamentCard key={t.id} t={t} onOpen={() => onNavigate(`tournaments/${/^d\d+$/.test(t.id) ? 'lakefront-classic' /* demo cards open the demo event */ : t.id}`)} />
+              <TournamentCard
+                key={t.id}
+                t={t}
+                onOpen={() => onNavigate(`tournaments/${/^d\d+$/.test(t.id) ? 'lakefront-classic' /* demo cards open the demo event */ : t.id}`)}
+                onRegister={() => onNavigate('register-angler')}
+              />
             ))}
           </div>
         </section>
