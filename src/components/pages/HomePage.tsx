@@ -4,6 +4,7 @@ import {
   Trophy, MapPin, CalendarDays, Users, ChevronRight, ArrowRight, ShieldCheck, Mountain, Waves,
 } from 'lucide-react';
 import { Tournament, Submission, User, SearchParams } from '@/types';
+import LeaderboardSection from '@/components/home/LeaderboardSection';
 
 interface HomePageProps {
   tournaments: Tournament[];
@@ -340,6 +341,9 @@ export default function HomePage({ tournaments, onNavigate }: HomePageProps) {
             ))}
           </div>
         </section>
+
+        {/* Leaderboard */}
+        <LeaderboardSection onNavigate={onNavigate} />
       </div>
     </div>
   );
