@@ -251,9 +251,6 @@ function LiveNow({ live, onLeaderboard }: { live: LiveTournament; onLeaderboard:
         <div className="min-w-0">
           <h3 className="text-[23px] font-bold leading-tight text-hoox-ink">{live.name}</h3>
           <p className="mt-1.5 flex items-center gap-3 text-[16px] text-[#5884E1]">
-            <MapPin className="h-5 w-5 text-hoox-ink" strokeWidth={1.75} /> {live.location}
-          </p>
-          <p className="mt-1.5 flex items-center gap-3 text-[16px] text-[#5884E1]">
             <CalendarDays className="h-5 w-5 text-hoox-ink" strokeWidth={1.75} /> {live.dates}
           </p>
         </div>
