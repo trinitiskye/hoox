@@ -67,7 +67,7 @@ export default function HeroCarousel({ slides, fallback }: HeroCarouselProps) {
     return (
       <div
         aria-hidden
-        className="relative overflow-hidden rounded-lg bg-hoox-deep aspect-[1900/964] lg:aspect-auto lg:min-h-[482px] shadow-[0_2px_10px_rgba(10,30,60,0.12)] animate-pulse"
+        className="relative aspect-video w-full self-start overflow-hidden rounded-lg bg-hoox-deep shadow-[0_2px_10px_rgba(10,30,60,0.12)] animate-pulse"
       />
     );
   }
@@ -78,7 +78,7 @@ export default function HeroCarousel({ slides, fallback }: HeroCarouselProps) {
     <section
       aria-roledescription="carousel"
       aria-label="Featured sponsors"
-      className="group/hero relative overflow-hidden rounded-lg bg-hoox-deep aspect-[1900/964] lg:aspect-auto lg:h-full lg:min-h-[482px] shadow-[0_2px_10px_rgba(10,30,60,0.12)] focus:outline-none"
+      className="group/hero relative aspect-video w-full self-start overflow-hidden rounded-lg bg-hoox-deep shadow-[0_2px_10px_rgba(10,30,60,0.12)] focus:outline-none"
       tabIndex={0}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
@@ -114,11 +114,13 @@ export default function HeroCarousel({ slides, fallback }: HeroCarouselProps) {
               active ? 'opacity-100 z-[1]' : 'opacity-0 z-0 pointer-events-none'
             }`}
           >
+            {/* The hero is always 16:9 (matching the recommended 1920×1080 artwork),
+                so the image scales to fill it exactly, centred, at every breakpoint. */}
             <img
               src={s.imageUrl}
               alt={s.title}
               loading={i === 0 ? 'eager' : 'lazy'}
-              className="absolute inset-0 h-full w-full object-cover"
+              className="absolute inset-0 h-full w-full object-cover object-center"
             />
             {s.buttonLabel && s.buttonUrl && (
               <div className={`absolute bottom-7 sm:bottom-11 flex flex-col ${BUTTON_POSITION[s.buttonPosition]}`}>

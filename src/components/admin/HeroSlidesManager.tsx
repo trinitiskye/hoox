@@ -14,7 +14,7 @@ import { Toast, useToast } from '@/components/ui/Toast';
 /* go to /api/admin/hero-slides/** which re-check the admin session.   */
 /* ------------------------------------------------------------------ */
 
-const RECOMMENDED = '1900 × 964 px (about 2:1)';
+const RECOMMENDED = '1920 × 1080 px (16:9)';
 
 interface FormState {
   title: string;
@@ -64,7 +64,7 @@ function SlidePreview({ form }: { form: FormState }) {
     form.buttonPosition === 'bottom-center' ? 'left-1/2 -translate-x-1/2' :
     form.buttonPosition === 'bottom-right' ? 'right-4' : 'left-4';
   return (
-    <div className="relative aspect-[1900/964] w-full overflow-hidden rounded-lg bg-[#00263B]">
+    <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-[#00263B]">
       {form.imageUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={form.imageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
