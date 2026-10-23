@@ -1,7 +1,7 @@
 'use client';
 
 import {
-  Trophy, MapPin, CalendarDays, Users, ChevronRight, ArrowRight, ShieldCheck, Mountain, Waves, Navigation,
+  Trophy, MapPin, Users, ChevronRight, ArrowRight, ShieldCheck, Mountain, Waves, Navigation,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Tournament, Submission, User, SearchParams, HeroSlide, HomeBanner } from '@/types';
@@ -259,9 +259,7 @@ function LiveNow({ live, onLeaderboard }: { live: LiveTournament; onLeaderboard:
         <img src="/home/live-fish.png" alt="" className="mt-1 h-[58px] w-[74px] flex-shrink-0 object-contain" />
         <div className="min-w-0">
           <h3 className="text-[23px] font-bold leading-tight text-hoox-ink">{live.name}</h3>
-          <p className="mt-1.5 flex items-center gap-3 text-[16px] text-[#5884E1]">
-            <CalendarDays className="h-5 w-5 text-hoox-ink" strokeWidth={1.75} /> {live.dates}
-          </p>
+          <p className="mt-0 text-[16px] font-semibold text-[#5884E1]">{live.dates}</p>
         </div>
       </div>
 
@@ -272,8 +270,8 @@ function LiveNow({ live, onLeaderboard }: { live: LiveTournament; onLeaderboard:
           { v: live.elapsed, l: 'Elapsed', c: 'text-[#477CD3]' },
         ].map((s, i) => (
           <div key={s.l} className={i > 0 ? 'border-l border-[#B9D4E6]' : ''}>
-            <dd className="text-[21px] font-bold leading-tight text-hoox-ink">{s.v}</dd>
-            <dt className={`mt-0.5 text-[14px] ${s.c}`}>{s.l}</dt>
+            <dd className="text-[18px] font-bold leading-tight text-hoox-ink">{s.v}</dd>
+            <dt className={`mt-0.5 text-[14px] font-semibold ${s.c}`}>{s.l}</dt>
           </div>
         ))}
       </dl>
