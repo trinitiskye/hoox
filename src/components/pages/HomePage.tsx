@@ -242,9 +242,18 @@ function LiveNow({ live, onLeaderboard }: { live: LiveTournament; onLeaderboard:
         <span className="pt-1 text-[13px] text-hoox-muted">Last update: {live.lastUpdate}</span>
       </div>
 
-      <span className="mt-[13px] inline-flex w-fit items-center gap-2 rounded-md bg-[#F7A924] px-3.5 py-[6px] text-[12px] font-semibold uppercase text-[#161C36]">
-        <Trophy className="h-4 w-4" fill="currentColor" strokeWidth={1.5} /> Featured Tournament
-      </span>
+      {/* Featured badge + View leaderboard: same height, padding and type size */}
+      <div className="mt-[13px] flex flex-wrap items-center gap-2">
+        <span className="inline-flex w-fit items-center gap-2 rounded-md bg-[#F7A924] px-3.5 py-[6px] text-[12px] font-semibold uppercase text-[#161C36]">
+          <Trophy className="h-4 w-4" fill="currentColor" strokeWidth={1.5} /> Featured Tournament
+        </span>
+        <button
+          onClick={onLeaderboard}
+          className="inline-flex w-fit items-center gap-2 rounded-md bg-gradient-to-r from-[#00253F] via-[#03304F] to-[#00253F] px-3.5 py-[6px] text-[12px] font-semibold uppercase text-white transition hover:brightness-125"
+        >
+          View leaderboard <ArrowRight className="h-4 w-4" strokeWidth={2} />
+        </button>
+      </div>
 
       <div className="mt-2.5 flex items-start gap-4 pl-[2px]">
         <img src="/home/live-fish.png" alt="" className="mt-1 h-[58px] w-[74px] flex-shrink-0 object-contain" />
@@ -310,12 +319,6 @@ function LiveNow({ live, onLeaderboard }: { live: LiveTournament; onLeaderboard:
         </div>
       )}
 
-      <button
-        onClick={onLeaderboard}
-        className="mt-3 flex h-[46px] w-full items-center justify-center gap-4 rounded-md bg-gradient-to-r from-[#00253F] via-[#03304F] to-[#00253F] text-[18px] font-medium text-white hover:brightness-125 transition"
-      >
-        View leaderboard <ArrowRight className="h-5 w-5" strokeWidth={2} />
-      </button>
     </section>
   );
 }
