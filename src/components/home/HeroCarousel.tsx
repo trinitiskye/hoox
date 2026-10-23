@@ -114,20 +114,11 @@ export default function HeroCarousel({ slides, fallback }: HeroCarouselProps) {
               active ? 'opacity-100 z-[1]' : 'opacity-0 z-0 pointer-events-none'
             }`}
           >
-            {/* The hero box can be taller or wider than the artwork (it matches the
-                Live Now card's height), so never crop the slide: show the whole image,
-                and fill any leftover space with a blurred copy of the same image. */}
-            <img
-              src={s.imageUrl}
-              alt=""
-              aria-hidden
-              className="absolute inset-0 h-full w-full scale-110 object-cover blur-2xl brightness-75"
-            />
             <img
               src={s.imageUrl}
               alt={s.title}
               loading={i === 0 ? 'eager' : 'lazy'}
-              className="absolute inset-0 h-full w-full object-contain"
+              className="absolute inset-0 h-full w-full object-cover"
             />
             {s.buttonLabel && s.buttonUrl && (
               <div className={`absolute bottom-7 sm:bottom-11 flex flex-col ${BUTTON_POSITION[s.buttonPosition]}`}>
