@@ -194,7 +194,10 @@ export default function ClubsMap({ clubs, onSelect }: { clubs: MapClub[]; onSele
   }, [clubs, engine]);
 
   return (
-    <div className="relative overflow-hidden rounded-lg border border-[#E8EEF4] bg-[#E9F2F7] shadow-[0_2px_10px_rgba(10,30,60,0.06)]">
+    // `isolate z-0` gives the map its own stacking context, so Leaflet's internal
+    // z-indexes (panes, popups, controls up to 1000) can't rise above the sticky
+    // header or the club details dialog.
+    <div className="relative isolate z-0 overflow-hidden rounded-lg border border-[#E8EEF4] bg-[#E9F2F7] shadow-[0_2px_10px_rgba(10,30,60,0.06)]">
       <div
         ref={el}
         role="region"
