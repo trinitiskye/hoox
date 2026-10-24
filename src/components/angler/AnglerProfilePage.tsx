@@ -200,13 +200,12 @@ export default function AnglerProfilePage({ a }: { a: AnglerProfile }) {
         <p className="py-8 text-center text-[14px] text-[#7586A0]">No completed tournament results yet.</p>
       ) : (
         <div className="mt-3 overflow-x-auto rounded-md border border-[#E3EAF1]">
-          <table className="w-full min-w-[640px] text-left text-[14px]">
+          <table className="w-full min-w-[560px] text-left text-[14px]">
             <thead className="bg-[#F5F8FA] text-[11px] font-semibold uppercase tracking-[0.03em] text-[#416184]">
               <tr>
                 <th className="px-3 py-[9px]">Date</th>
                 <th className="px-3 py-[9px]">Tournament</th>
                 <th className="px-3 py-[9px]">Location</th>
-                <th className="px-3 py-[9px]">Boat #</th>
                 <th className="px-3 py-[9px]">Place</th>
                 <th className="px-3 py-[9px] text-center">Fish</th>
                 <th className="px-3 py-[9px]">Total Weight</th>
@@ -224,7 +223,6 @@ export default function AnglerProfilePage({ a }: { a: AnglerProfile }) {
                     )}
                   </td>
                   <td className="px-3 py-[7px] text-[#536B84]">{r.location}</td>
-                  <td className="px-3 py-[7px] text-[#536B84]">{r.boat}</td>
                   <td className="px-3 py-[7px]"><PlaceBadge place={r.place} /></td>
                   <td className="px-3 py-[7px] text-center text-[#536B84]">{r.fish}</td>
                   <td className={`whitespace-nowrap px-3 py-[7px] font-medium ${INK}`}>{fmtWeight(r.weight)}</td>

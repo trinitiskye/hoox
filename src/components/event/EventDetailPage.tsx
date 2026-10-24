@@ -152,6 +152,7 @@ function RulesCard({ e }: { e: EventDetail }) {
   );
 }
 
+// Boat # is intentionally not shown publicly.
 function LeaderboardCard({ e }: { e: EventDetail }) {
   const board = e.isDemo ? BOARDS.find((b) => b.id === 'lakefront-classic') : undefined;
   return (
@@ -161,21 +162,19 @@ function LeaderboardCard({ e }: { e: EventDetail }) {
         <Empty>Standings will appear here once the tournament starts.</Empty>
       ) : (
         <div role="table" aria-label={`${e.name} standings`} className="mt-1">
-          <div role="row" className="grid grid-cols-[48px_minmax(0,1fr)_70px_50px_110px] border-b border-[#EDF1F5] py-2 text-[11px] font-semibold uppercase tracking-[0.02em] text-[#7A8BA3]">
+          <div role="row" className="grid grid-cols-[48px_minmax(0,1fr)_50px_110px] border-b border-[#EDF1F5] py-2 text-[11px] font-semibold uppercase tracking-[0.02em] text-[#7A8BA3]">
             <span role="columnheader">Rank</span>
             <span role="columnheader" className="pl-[36px]">Angler</span>
-            <span role="columnheader">Boat #</span>
             <span role="columnheader" className="text-center">Fish</span>
             <span role="columnheader" className="text-right">Total Weight</span>
           </div>
           {board.rows.map((row, i) => (
-            <div role="row" key={row.angler} className="grid h-[38px] grid-cols-[48px_minmax(0,1fr)_70px_50px_110px] items-center border-b border-[#EEF2F6] text-[14px] last:border-0">
+            <div role="row" key={row.angler} className="grid h-[38px] grid-cols-[48px_minmax(0,1fr)_50px_110px] items-center border-b border-[#EEF2F6] text-[14px] last:border-0">
               <span role="cell"><RankBadge rank={i + 1} compact /></span>
               <span role="cell" className="flex min-w-0 items-center gap-3">
                 <Avatar boardId={board.id} index={i} size={26} />
                 <a href={anglerHref(row.angler)} className={`truncate ${INK} hover:text-[#0F6E86] hover:underline`}>{row.angler}</a>
               </span>
-              <span role="cell" className="text-[13px] text-[#2A3B55]">{row.boat}</span>
               <span role="cell" className="text-center text-[13px] text-[#2A3B55]">{row.fish}</span>
               <span role="cell" className={`text-right text-[13px] font-medium ${INK}`}>{row.weight !== undefined ? `${row.weight.toFixed(2)} lb` : '-'}</span>
             </div>
