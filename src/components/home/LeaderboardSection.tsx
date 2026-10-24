@@ -181,7 +181,8 @@ function BoardBanner({ b, compact = false }: { b: Board; compact?: boolean }) {
   );
 }
 
-const GRID = 'grid grid-cols-[28px_minmax(0,1fr)_40px_28px_74px] sm:grid-cols-[34px_minmax(0,1fr)_48px_34px_90px] items-center';
+// Boat # is intentionally not shown publicly.
+const GRID = 'grid grid-cols-[28px_minmax(0,1fr)_40px_74px] sm:grid-cols-[34px_minmax(0,1fr)_48px_90px] items-center';
 
 function BoardCard({ b, highlight, onStats }: { b: Board; highlight: string; onStats: () => void }) {
   const q = highlight.trim().toLowerCase();
@@ -194,8 +195,7 @@ function BoardCard({ b, highlight, onStats }: { b: Board; highlight: string; onS
         <div role="row" className={`${GRID} pb-[5px] text-[10.5px] font-medium uppercase tracking-[0.02em] text-[#75869A]`}>
           <span role="columnheader" className="pl-[1px]">Rank</span>
           <span role="columnheader" className="pl-[22px]">Angler</span>
-          <span role="columnheader">Boat #</span>
-          <span role="columnheader">Fish</span>
+          <span role="columnheader" className="text-center">Fish</span>
           <span role="columnheader" className="whitespace-nowrap text-right pr-1">Total Weight</span>
         </div>
         {b.rows.slice(0, 10).map((row, i) => {
@@ -211,8 +211,7 @@ function BoardCard({ b, highlight, onStats }: { b: Board; highlight: string; onS
                 <Avatar boardId={b.id} index={i} />
                 <a href={anglerHref(row.angler)} className="truncate text-[#1F334E] hover:text-[#0F6E86] hover:underline">{row.angler}</a>
               </span>
-              <span role="cell" className="text-[12px] text-[#2A3B55]">{row.boat}</span>
-              <span role="cell" className="text-[12px] text-[#2A3B55]">{row.fish}</span>
+              <span role="cell" className="text-center text-[12px] text-[#2A3B55]">{row.fish}</span>
               <span role="cell" className="text-right pr-1 text-[12px] text-[#2A3B55]">
                 {row.weight !== undefined ? `${row.weight.toFixed(2)} lb` : '-'}
               </span>
