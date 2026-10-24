@@ -12,9 +12,9 @@ interface HeaderProps {
   onLogout: () => void;
 }
 
-// Primary nav — matches the Home mock (Register, Tournaments, Calendar, Sponsors)
+// Primary nav — matches the Home mock (Get Hoox!, Tournaments, Calendar, Sponsors)
 const PRIMARY_NAV = [
-  { view: 'register', label: 'Register' },
+  { view: 'register', label: 'Get Hoox!' },
   { view: 'tournaments', label: 'Tournaments' },
   { view: 'calendar', label: 'Calendar' },
   { view: 'sponsors', label: 'Sponsors' },
@@ -29,20 +29,37 @@ const MORE_NAV = [
   { view: 'sponsor', label: 'Become a Partner' },
 ];
 
+/* ------------------------------------------------------------------ */
+/* Mega menus — open on hover (or keyboard focus) for these nav items.  */
+/* Content is placeholder until the final menu content is supplied.    */
+/* ------------------------------------------------------------------ */
+type MegaLink = { view: string; label: string; description?: string };
+type MegaColumn = { title: string; links: MegaLink[] };
+
+const MEGA_MENUS: Record<string, MegaColumn[]> = {
+  tournaments: [
+    { title: 'Tournaments', links: [{ view: 'tournaments', label: 'All Tournaments', description: 'Browse upcoming and live events' }] },
+  ],
+  calendar: [
+    { title: 'Calendar', links: [{ view: 'calendar', label: 'Tournament Calendar', description: 'See what’s coming up' }] },
+  ],
+  sponsors: [
+    { title: 'Sponsors', links: [{ view: 'sponsors', label: 'Our Sponsors', description: 'The brands that support HOOX' }] },
+  ],
+  more: [{ title: 'More', links: MORE_NAV }],
+};
+
+const MEGA_CLOSE_DELAY = 150; // ms — lets the pointer travel from the nav item into the panel
+
 export function HooxLogo({ onClick }: { onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      aria-label="HOOX Tournament App home"
+      aria-label="HOOX home"
       className="flex items-center gap-1.5 flex-shrink-0 hover:opacity-90 transition"
     >
       <img src="/home/hoox-mark.png" alt="" className="h-[60px] w-auto -ml-1" />
-      <span className="flex flex-col items-start leading-none font-montserrat">
-        <span className="text-[33px] font-bold tracking-[0.04em] text-[#0E2A47]">HOOX</span>
-        <span className="mt-[3px] text-[12.5px] font-medium tracking-[0.2em] text-[#14889A] whitespace-nowrap">
-          TOURNAMENT <span className="font-bold text-[#141B7A]">APP</span>
-        </span>
-      </span>
+      <span className="font-montserrat text-[33px] font-bold leading-none tracking-[0.04em] text-[#0E2A47]">HOOX</span>
     </button>
   );
 }
@@ -56,22 +73,47 @@ export default function Header({ currentUser, onNavigate, onLogout }: HeaderProp
     return path !== '/' && (pathname === path || pathname.startsWith(`${path}/`));
   };
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [moreOpen, setMoreOpen] = useState(false);
+  const [mega, setMega] = useState<string | null>(null);
   const [query, setQuery] = useState('');
-  const moreRef = useRef<HTMLDivElement>(null);
+  const navRef = useRef<HTMLDivElement>(null);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const cancelClose = () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    closeTimer.current = null;
+  };
+  const openMega = (key: string) => {
+    cancelClose();
+    setMega(key);
+  };
+  const scheduleClose = () => {
+    cancelClose();
+    closeTimer.current = setTimeout(() => setMega(null), MEGA_CLOSE_DELAY);
+  };
 
   useEffect(() => {
-    const close = (e: MouseEvent) => {
-      if (moreRef.current && !moreRef.current.contains(e.target as Node)) setMoreOpen(false);
+    const onDown = (e: MouseEvent) => {
+      if (navRef.current && !navRef.current.contains(e.target as Node)) setMega(null);
     };
-    document.addEventListener('mousedown', close);
-    return () => document.removeEventListener('mousedown', close);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMega(null);
+    };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('keydown', onKey);
+      cancelClose();
+    };
   }, []);
+
+  // Close any open menu on route change
+  useEffect(() => setMega(null), [pathname]);
 
   const go = (view: string) => {
     onNavigate(view);
     setMobileMenuOpen(false);
-    setMoreOpen(false);
+    setMega(null);
   };
 
   const submitSearch = (e: React.FormEvent) => {
@@ -103,46 +145,72 @@ export default function Header({ currentUser, onNavigate, onLogout }: HeaderProp
 
           {!currentUser ? (
             <>
-              {/* Desktop navigation */}
-              <nav className="hidden xl:flex flex-shrink-0 items-center gap-5 2xl:gap-9 ml-2 2xl:ml-6" aria-label="Main">
-                {PRIMARY_NAV.map((item) => {
+              {/* Desktop navigation — Tournaments, Calendar, Sponsors and More open a mega menu on hover */}
+              <nav
+                ref={navRef}
+                onMouseLeave={scheduleClose}
+                onMouseEnter={cancelClose}
+                className="hidden xl:flex flex-shrink-0 items-center gap-5 2xl:gap-9 ml-2 2xl:ml-6 self-stretch"
+                aria-label="Main"
+              >
+                {[...PRIMARY_NAV, { view: 'more', label: 'More' }].map((item) => {
                   const active = isActive(item.view);
+                  const hasMega = !!MEGA_MENUS[item.view];
+                  const open = mega === item.view;
                   return (
-                    <button
+                    <div
                       key={item.view}
-                      onClick={() => go(item.view)}
-                      aria-current={active ? 'page' : undefined}
-                      className={`relative py-1 text-[16px] transition whitespace-nowrap ${active ? 'text-hoox-brand' : 'text-hoox-link hover:text-hoox-brand'}`}
+                      className="flex h-full items-center"
+                      onMouseEnter={() => (hasMega ? openMega(item.view) : setMega(null))}
+                      onFocus={() => hasMega && openMega(item.view)}
                     >
-                      {item.label}
-                      {active && <span className="absolute inset-x-0 -bottom-[6px] h-[3px] rounded-full bg-hoox-ui" />}
-                    </button>
+                      <button
+                        onClick={() => (item.view === 'more' ? setMega(open ? null : 'more') : go(item.view))}
+                        aria-current={active ? 'page' : undefined}
+                        aria-expanded={hasMega ? open : undefined}
+                        aria-controls={hasMega ? `mega-${item.view}` : undefined}
+                        className={`relative flex items-center gap-1 py-1 text-[16px] transition whitespace-nowrap ${active || open ? 'text-hoox-brand' : 'text-hoox-link hover:text-hoox-brand'}`}
+                      >
+                        {item.label}
+                        {hasMega && <ChevronDown aria-hidden className={`h-4 w-4 transition ${open ? 'rotate-180' : ''}`} />}
+                        {(active || open) && <span className="absolute inset-x-0 -bottom-[6px] h-[3px] rounded-full bg-hoox-ui" />}
+                      </button>
+                    </div>
                   );
                 })}
-                <div className="relative" ref={moreRef}>
-                  <button
-                    onClick={() => setMoreOpen((o) => !o)}
-                    aria-expanded={moreOpen}
-                    aria-haspopup="menu"
-                    className="flex items-center gap-1 text-[16px] text-hoox-link hover:text-hoox-brand transition"
+
+                {/* Full-width panel under the header */}
+                {mega && MEGA_MENUS[mega] && (
+                  <div
+                    id={`mega-${mega}`}
+                    role="region"
+                    aria-label={`${mega === 'more' ? 'More' : PRIMARY_NAV.find((n) => n.view === mega)?.label} menu`}
+                    className="absolute inset-x-0 top-full border-b border-[#E8EEF4] bg-white shadow-[0_12px_24px_rgba(15,40,80,0.10)]"
                   >
-                    More <ChevronDown className={`w-4 h-4 transition ${moreOpen ? 'rotate-180' : ''}`} />
-                  </button>
-                  {moreOpen && (
-                    <div role="menu" className="absolute left-1/2 -translate-x-1/2 mt-3 w-52 rounded-lg border border-hoox-line bg-white py-2 shadow-lg">
-                      {MORE_NAV.map((item) => (
-                        <button
-                          key={item.view}
-                          role="menuitem"
-                          onClick={() => go(item.view)}
-                          className="block w-full text-left px-4 py-2 text-[15px] text-hoox-link hover:bg-hoox-light hover:text-hoox-brand"
-                        >
-                          {item.label}
-                        </button>
+                    <div className="mx-auto grid max-w-[1440px] grid-cols-4 gap-8 px-5 py-6">
+                      {MEGA_MENUS[mega].map((col) => (
+                        <div key={col.title}>
+                          <p className="font-montserrat text-[13px] font-bold uppercase tracking-[0.06em] text-[#7A8BA3]">{col.title}</p>
+                          <ul className="mt-3 space-y-1">
+                            {col.links.map((l) => (
+                              <li key={l.view + l.label}>
+                                <button
+                                  onClick={() => go(l.view)}
+                                  className="-mx-3 block w-[calc(100%+24px)] rounded-md px-3 py-2 text-left hover:bg-hoox-light"
+                                >
+                                  <span className="block text-[15px] font-medium text-hoox-link">{l.label}</span>
+                                  {'description' in l && l.description && (
+                                    <span className="mt-0.5 block text-[13px] text-[#5F7896]">{l.description}</span>
+                                  )}
+                                </button>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
                       ))}
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </nav>
 
               <div className="hidden xl:flex items-center gap-3 2xl:gap-4 flex-1 justify-end min-w-0">
