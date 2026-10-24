@@ -8,7 +8,7 @@ export default function Page() {
   const router = useRouter();
   const navigate = (view: string) => router.push(toPath(view));
   return (
-    <PublicLayout>
+    <PublicLayout bgClassName="bg-[#F1F6FA]">
       <ClubsPage onNavigate={navigate} />
     </PublicLayout>
   );
