@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Search, MapPin, Fish, Users, User, CalendarDays, ChevronDown, ArrowUpDown, ArrowRight, Star, X, Sparkles, LayoutGrid, Map as MapIcon,
+  Search, MapPin, Fish, Users, User, CalendarDays, ChevronDown, ArrowUpDown, ArrowRight, Star, X, LayoutGrid, Map as MapIcon,
 } from 'lucide-react';
 import ClubsMap from '@/components/clubs/ClubsMap';
 
@@ -23,7 +23,7 @@ interface Club {
   name: string;
   city: string;
   state: string;
-  species: string[]; // shown on the card
+  species: string[]; // not displayed; still matched by search
   styles: Style[]; // used by the Fishing Style filter
   members: number;
   schedule: string;
@@ -179,7 +179,7 @@ function ClubDialog({ club, onClose, onNavigate }: { club: Club; onClose: () => 
             <div><dt className="text-[#5F7896]">Members</dt><dd className={`font-semibold ${INK}`}>{club.members.toLocaleString()}</dd></div>
             <div><dt className="text-[#5F7896]">Meets</dt><dd className={`font-semibold ${INK}`}>{club.schedule}</dd></div>
             <div><dt className="text-[#5F7896]">Skill level</dt><dd className={`font-semibold ${INK}`}>{club.level}</dd></div>
-            <div><dt className="text-[#5F7896]">Fishing for</dt><dd className={`font-semibold ${INK}`}>{club.species.join(', ')}</dd></div>
+            <div><dt className="text-[#5F7896]">Fishing style</dt><dd className={`font-semibold ${INK}`}>{club.styles.join(', ')}</dd></div>
           </dl>
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
             <button
@@ -314,7 +314,7 @@ export default function ClubsPage({ onNavigate }: ClubsPageProps) {
                 </div>
                 <p className="mt-5 flex flex-wrap items-center gap-x-10 gap-y-2 text-[16px] text-white">
                   <span className="flex items-center gap-2.5"><Users className="h-5 w-5" fill="currentColor" strokeWidth={1.5} />{featured.members.toLocaleString()} members</span>
-                  <span className="flex items-center gap-2.5"><FishGlyph className="h-5 w-5" />{featured.species.join('  •  ')}</span>
+                  <span className="flex items-center gap-2.5"><FishGlyph className="h-5 w-5" />{featured.styles.join('  •  ')}</span>
                 </p>
               </div>
               <button
@@ -378,15 +378,11 @@ export default function ClubsPage({ onNavigate }: ClubsPageProps) {
                   <h3 className={`font-montserrat text-[19px] font-bold leading-tight ${INK}`}>{c.name}</h3>
                   <ul className="mt-2 space-y-[6px] text-[14.5px]">
                     <li className="flex items-center gap-3 text-[#5F7896]"><MapPin className="h-[17px] w-[17px] flex-shrink-0 text-[#0D1B4C]" fill="currentColor" stroke="white" strokeWidth={1.5} />{c.city}, {c.state}</li>
-                    <li className={`flex items-center gap-3 font-medium ${INK}`}><FishGlyph className="text-[#0D1B4C]" />{c.species.join(' • ')}</li>
+                    <li className={`flex items-center gap-3 font-medium ${INK}`}><FishGlyph className="text-[#0D1B4C]" />{c.styles.join(' • ')}</li>
                     <li className="flex items-center gap-3 text-[#5F7896]"><User className="h-[17px] w-[17px] flex-shrink-0 text-[#0D1B4C]" fill="currentColor" strokeWidth={1.5} />{c.members.toLocaleString()} members</li>
                   </ul>
                   <p className="mt-4 flex flex-wrap items-center gap-x-10 gap-y-1.5 text-[13px] text-[#5F7896]">
                     <span className="flex items-center gap-2"><CalendarDays className="h-4 w-4" strokeWidth={1.75} />{c.schedule}</span>
-                    <span className="flex items-center gap-2">
-                      {c.level === 'Beginner friendly' ? <Sparkles className="h-4 w-4" strokeWidth={1.75} /> : <Users className="h-4 w-4" strokeWidth={1.75} />}
-                      {c.level}
-                    </span>
                   </p>
                   <div className="mt-auto pt-[18px]">
                     <button
