@@ -2,8 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Search, MapPin, Fish, Users, User, CalendarDays, ChevronDown, ArrowUpDown, ArrowRight, Star, X, Sparkles,
+  Search, MapPin, Fish, Users, User, CalendarDays, ChevronDown, ArrowUpDown, ArrowRight, Star, X, Sparkles, LayoutGrid, Map as MapIcon,
 } from 'lucide-react';
+import ClubsMap from '@/components/clubs/ClubsMap';
 
 interface ClubsPageProps {
   onNavigate: (view: string) => void;
@@ -31,61 +32,63 @@ interface Club {
   about: string;
   featured?: boolean;
   logo?: string;
+  lat: number;
+  lng: number;
 }
 
 const IMG = '/clubs/demo/';
 
 const CLUBS: Club[] = [
   {
-    id: 'coastal-wave-anglers', name: 'Coastal Wave Anglers', city: 'Oregon Coast', state: 'OR', featured: true,
+    id: 'coastal-wave-anglers', lat: 45.8918, lng: -123.9615, name: 'Coastal Wave Anglers', city: 'Oregon Coast', state: 'OR', featured: true,
     species: ['Saltwater', 'Salmon', 'Halibut', 'Rockfish'], styles: ['Saltwater', 'Inshore'], members: 842,
     schedule: 'Weekly outings', level: 'All skill levels', image: `${IMG}featured.jpg`, logo: `${IMG}featured-logo.jpg`,
     about: 'A welcoming club for saltwater anglers who love the Pacific Northwest. From salmon to halibut, we fish together and share the adventure.',
   },
   {
-    id: 'bluewater-brotherhood', name: 'Bluewater Brotherhood', city: 'San Diego', state: 'CA',
+    id: 'bluewater-brotherhood', lat: 32.7157, lng: -117.1611, name: 'Bluewater Brotherhood', city: 'San Diego', state: 'CA',
     species: ['Tuna', 'Marlin', 'Offshore'], styles: ['Saltwater', 'Offshore'], members: 612,
     schedule: 'Monthly trips', level: 'Beginner friendly', image: `${IMG}bluewater-brotherhood.jpg`,
     about: 'Offshore trips out of San Diego chasing tuna and marlin, with experienced captains happy to show newcomers the ropes.',
   },
   {
-    id: 'high-country-fly-fishers', name: 'High Country Fly Fishers', city: 'Bozeman', state: 'MT',
+    id: 'high-country-fly-fishers', lat: 45.677, lng: -111.0429, name: 'High Country Fly Fishers', city: 'Bozeman', state: 'MT',
     species: ['Trout', 'Grayling', 'Fly Fishing'], styles: ['Freshwater', 'Fly Fishing'], members: 431,
     schedule: 'Weekly outings', level: 'All skill levels', image: `${IMG}high-country-fly-fishers.jpg`,
     about: 'Fly fishing Montana’s rivers and alpine lakes, with casting clinics, fly-tying nights and weekly outings.',
   },
   {
-    id: 'lakeview-bass-club', name: 'Lakeview Bass Club', city: 'Austin', state: 'TX',
+    id: 'lakeview-bass-club', lat: 30.2672, lng: -97.7431, name: 'Lakeview Bass Club', city: 'Austin', state: 'TX',
     species: ['Largemouth Bass', 'Sunfish'], styles: ['Freshwater', 'Bass'], members: 298,
     schedule: 'Bi-weekly', level: 'All skill levels', image: `${IMG}lakeview-bass-club.jpg`,
     about: 'Central Texas bass anglers fishing local lakes every other weekend, with club tournaments throughout the season.',
   },
   {
-    id: 'riverbend-anglers', name: 'Riverbend Anglers', city: 'Asheville', state: 'NC',
+    id: 'riverbend-anglers', lat: 35.5951, lng: -82.5515, name: 'Riverbend Anglers', city: 'Asheville', state: 'NC',
     species: ['Trout', 'Smallmouth', 'Fly Fishing'], styles: ['Freshwater', 'Fly Fishing'], members: 367,
     schedule: 'Monthly trips', level: 'Intermediate+', image: `${IMG}riverbend-anglers.jpg`,
     about: 'Wading the rivers of the Blue Ridge for trout and smallmouth, with monthly trips for anglers ready to step up their game.',
   },
   {
-    id: 'sunsetbend-fishing-club', name: 'SunsetBend Fishing Club', city: 'Naples', state: 'FL',
+    id: 'sunsetbend-fishing-club', lat: 26.142, lng: -81.7948, name: 'SunsetBend Fishing Club', city: 'Naples', state: 'FL',
     species: ['Tarpon', 'Snook', 'Inshore'], styles: ['Saltwater', 'Inshore'], members: 523,
     schedule: 'Weekly outings', level: 'All skill levels', image: `${IMG}sunsetbend-fishing-club.jpg`,
     about: 'Inshore fishing along Florida’s Gulf Coast for tarpon and snook, from the beach, the pier and the backcountry.',
   },
   {
-    id: 'kayak-anglers-collective', name: 'Kayak Anglers Collective', city: 'Seattle', state: 'WA',
+    id: 'kayak-anglers-collective', lat: 47.6062, lng: -122.3321, name: 'Kayak Anglers Collective', city: 'Seattle', state: 'WA',
     species: ['Salmon', 'Halibut', 'Kayak'], styles: ['Saltwater', 'Kayak'], members: 276,
     schedule: 'Monthly trips', level: 'Beginner friendly', image: `${IMG}kayak-anglers-collective.jpg`,
     about: 'Paddle-powered fishing on Puget Sound and nearby lakes, with safety sessions and gear swaps for new kayak anglers.',
   },
   {
-    id: 'deep-sea-explorers', name: 'Deep Sea Explorers', city: 'Fort Lauderdale', state: 'FL',
+    id: 'deep-sea-explorers', lat: 26.1224, lng: -80.1373, name: 'Deep Sea Explorers', city: 'Fort Lauderdale', state: 'FL',
     species: ['Tuna', 'Mahi Mahi', 'Wahoo'], styles: ['Saltwater', 'Offshore'], members: 689,
     schedule: 'Bi-weekly', level: 'Intermediate+', image: `${IMG}deep-sea-explorers.jpg`,
     about: 'Blue-water trips off South Florida for mahi, wahoo and tuna, running twice a month during the season.',
   },
   {
-    id: 'mountain-brook-anglers', name: 'Mountain Brook Anglers', city: 'Bend', state: 'OR',
+    id: 'mountain-brook-anglers', lat: 44.0582, lng: -121.3153, name: 'Mountain Brook Anglers', city: 'Bend', state: 'OR',
     species: ['Trout', 'Steelhead', 'Fly Fishing'], styles: ['Freshwater', 'Fly Fishing'], members: 412,
     schedule: 'Monthly trips', level: 'All skill levels', image: `${IMG}mountain-brook-anglers.jpg`,
     about: 'Central Oregon’s rivers for trout and steelhead, with a mentoring program that pairs new members with veterans.',
@@ -204,6 +207,7 @@ export default function ClubsPage({ onNavigate }: ClubsPageProps) {
   const [level, setLevel] = useState('all');
   const [sort, setSort] = useState<Sort>('members');
   const [open, setOpen] = useState<Club | null>(null);
+  const [view, setView] = useState<'grid' | 'map'>('grid');
 
   const states = useMemo(() => Array.from(new Set(CLUBS.map((c) => c.state))).sort((a, b) => (STATE_NAMES[a] ?? a).localeCompare(STATE_NAMES[b] ?? b)), []);
 
@@ -323,14 +327,47 @@ export default function ClubsPage({ onNavigate }: ClubsPageProps) {
           </section>
         )}
 
-        {/* Club cards */}
-        {grid.length === 0 ? (
-          <div className="mt-8 rounded-lg border border-dashed border-[#C9D8E5] bg-white px-6 py-14 text-center">
+        {/* Grid / Map toggle — under the featured club, right-aligned */}
+        <div className="mt-6 flex justify-end">
+          <div role="group" aria-label="Choose view" className="inline-flex rounded-md border border-[#D9E3EC] bg-white p-1 shadow-[0_1px_3px_rgba(10,30,60,0.04)]">
+            {([
+              { key: 'grid', label: 'Grid view', icon: <LayoutGrid className="h-4 w-4" strokeWidth={2} /> },
+              { key: 'map', label: 'Map view', icon: <MapIcon className="h-4 w-4" strokeWidth={2} /> },
+            ] as const).map((b) => {
+              const active = view === b.key;
+              return (
+                <button
+                  key={b.key}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => setView(b.key)}
+                  className={`flex h-[36px] items-center gap-2 rounded px-4 text-[14px] font-semibold transition ${
+                    active ? 'bg-[#0E7C7B] text-white shadow-sm' : 'text-[#0D1B4C] hover:bg-[#EEF9F8]'
+                  }`}
+                >
+                  {b.icon}
+                  {b.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Club cards (grid) or club map */}
+        {view === 'map' ? (
+          <div className="mt-4">
+            <ClubsMap
+              clubs={results.map((c) => ({ id: c.id, name: c.name, place: `${c.city}, ${c.state}`, members: c.members, lat: c.lat, lng: c.lng }))}
+              onSelect={(id) => setOpen(CLUBS.find((c) => c.id === id) ?? null)}
+            />
+          </div>
+        ) : grid.length === 0 ? (
+          <div className="mt-4 rounded-lg border border-dashed border-[#C9D8E5] bg-white px-6 py-14 text-center">
             <p className={`text-[17px] font-semibold ${INK}`}>No clubs match your filters.</p>
             <button onClick={reset} className="mt-3 text-[15px] font-semibold text-[#0E7C7B] hover:underline">Clear filters</button>
           </div>
         ) : (
-          <ul className="mt-7 grid grid-cols-1 gap-[26px] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <ul className="mt-4 grid grid-cols-1 gap-[26px] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {grid.map((c) => (
               <li key={c.id} className="flex flex-col overflow-hidden rounded-lg border border-[#E8EEF4] bg-white p-[7px] shadow-[0_2px_10px_rgba(10,30,60,0.06)]">
                 <div className="aspect-[2.85/1] overflow-hidden rounded-md bg-[#E9F2F7]">
