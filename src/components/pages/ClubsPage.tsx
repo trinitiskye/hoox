@@ -209,6 +209,11 @@ export default function ClubsPage({ onNavigate }: ClubsPageProps) {
   const [open, setOpen] = useState<Club | null>(null);
   const [view, setView] = useState<'grid' | 'map'>('grid');
 
+  // Deep link from the menu: /clubs?view=map opens the map
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('view') === 'map') setView('map');
+  }, []);
+
   const states = useMemo(() => Array.from(new Set(CLUBS.map((c) => c.state))).sort((a, b) => (STATE_NAMES[a] ?? a).localeCompare(STATE_NAMES[b] ?? b)), []);
 
   const results = useMemo(() => {

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { toPath } from '@/lib/routes';
 import { Menu, X, Search, ChevronDown } from 'lucide-react';
@@ -30,24 +31,45 @@ const MORE_NAV = [
 ];
 
 /* ------------------------------------------------------------------ */
-/* Mega menus — open on hover (or keyboard focus) for these nav items.  */
-/* Content is placeholder until the final menu content is supplied.    */
+/* Mega menu — one shared panel, opened by hovering (or focusing)       */
+/* Tournaments, Calendar, Sponsors or More. Five columns; 4 and 5 are   */
+/* still to be filled in.                                               */
 /* ------------------------------------------------------------------ */
-type MegaLink = { view: string; label: string; description?: string };
+type MegaLink = { href: string; label: string };
 type MegaColumn = { title: string; links: MegaLink[] };
 
-const MEGA_MENUS: Record<string, MegaColumn[]> = {
-  tournaments: [
-    { title: 'Tournaments', links: [{ view: 'tournaments', label: 'All Tournaments', description: 'Browse upcoming and live events' }] },
-  ],
-  calendar: [
-    { title: 'Calendar', links: [{ view: 'calendar', label: 'Tournament Calendar', description: 'See what’s coming up' }] },
-  ],
-  sponsors: [
-    { title: 'Sponsors', links: [{ view: 'sponsors', label: 'Our Sponsors', description: 'The brands that support HOOX' }] },
-  ],
-  more: [{ title: 'More', links: MORE_NAV }],
-};
+const MEGA_COLUMNS: MegaColumn[] = [
+  {
+    title: 'Tournaments',
+    links: [
+      { href: '/search?type=tournaments', label: 'Search' },
+      { href: '/tournaments', label: 'Tournament Calendar' },
+      { href: '/tournaments/submit', label: 'Submit a Tournament' },
+      { href: '/tournaments/feature', label: 'Feature a Tournament' },
+    ],
+  },
+  {
+    title: 'Events',
+    links: [
+      { href: '/events', label: 'Search' },
+      { href: '/events', label: 'Event Calendar' },
+      { href: '/events/list-expo', label: 'List your Expo or Tradeshow' },
+      { href: '/events/list-activity', label: 'List an Activity' },
+    ],
+  },
+  {
+    title: 'Clubs',
+    links: [
+      { href: '/search?type=clubs', label: 'Search' },
+      { href: '/clubs?view=map', label: 'Club Location Map' },
+      { href: '/clubs', label: 'Club Directory' },
+    ],
+  },
+  { title: 'Advertising with us', links: [] },
+];
+
+/** Nav items that open the mega menu */
+const MEGA_TRIGGERS = new Set(['tournaments', 'calendar', 'sponsors', 'more']);
 
 const MEGA_CLOSE_DELAY = 150; // ms — lets the pointer travel from the nav item into the panel
 
@@ -73,6 +95,7 @@ export default function Header({ currentUser, onNavigate, onLogout }: HeaderProp
     return path !== '/' && (pathname === path || pathname.startsWith(`${path}/`));
   };
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  // Which trigger opened the shared mega menu (null = closed)
   const [mega, setMega] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const navRef = useRef<HTMLDivElement>(null);
@@ -155,7 +178,7 @@ export default function Header({ currentUser, onNavigate, onLogout }: HeaderProp
               >
                 {[...PRIMARY_NAV, { view: 'more', label: 'More' }].map((item) => {
                   const active = isActive(item.view);
-                  const hasMega = !!MEGA_MENUS[item.view];
+                  const hasMega = MEGA_TRIGGERS.has(item.view);
                   const open = mega === item.view;
                   return (
                     <div
@@ -168,7 +191,7 @@ export default function Header({ currentUser, onNavigate, onLogout }: HeaderProp
                         onClick={() => (item.view === 'more' ? setMega(open ? null : 'more') : go(item.view))}
                         aria-current={active ? 'page' : undefined}
                         aria-expanded={hasMega ? open : undefined}
-                        aria-controls={hasMega ? `mega-${item.view}` : undefined}
+                        aria-controls={hasMega ? 'mega-menu' : undefined}
                         className={`relative flex items-center gap-1 py-1 text-[16px] transition whitespace-nowrap ${active || open ? 'text-hoox-brand' : 'text-hoox-link hover:text-hoox-brand'}`}
                       >
                         {item.label}
@@ -180,32 +203,32 @@ export default function Header({ currentUser, onNavigate, onLogout }: HeaderProp
                 })}
 
                 {/* Full-width panel under the header */}
-                {mega && MEGA_MENUS[mega] && (
+                {mega && (
                   <div
-                    id={`mega-${mega}`}
+                    id="mega-menu"
                     role="region"
-                    aria-label={`${mega === 'more' ? 'More' : PRIMARY_NAV.find((n) => n.view === mega)?.label} menu`}
+                    aria-label="Site menu"
                     className="absolute inset-x-0 top-full border-b border-[#E8EEF4] bg-white shadow-[0_12px_24px_rgba(15,40,80,0.10)]"
                   >
-                    <div className="mx-auto grid max-w-[1440px] grid-cols-4 gap-8 px-5 py-6">
-                      {MEGA_MENUS[mega].map((col) => (
+                    <div className="mx-auto grid max-w-[1440px] grid-cols-5 gap-8 px-5 pb-7 pt-6">
+                      {MEGA_COLUMNS.map((col) => (
                         <div key={col.title}>
-                          <p className="font-montserrat text-[13px] font-bold uppercase tracking-[0.06em] text-[#7A8BA3]">{col.title}</p>
-                          <ul className="mt-3 space-y-1">
-                            {col.links.map((l) => (
-                              <li key={l.view + l.label}>
-                                <button
-                                  onClick={() => go(l.view)}
-                                  className="-mx-3 block w-[calc(100%+24px)] rounded-md px-3 py-2 text-left hover:bg-hoox-light"
-                                >
-                                  <span className="block text-[15px] font-medium text-hoox-link">{l.label}</span>
-                                  {'description' in l && l.description && (
-                                    <span className="mt-0.5 block text-[13px] text-[#5F7896]">{l.description}</span>
-                                  )}
-                                </button>
-                              </li>
-                            ))}
-                          </ul>
+                          <p className="font-montserrat text-[15px] font-bold text-[#0D1B4C]">{col.title}</p>
+                          {col.links.length > 0 && (
+                            <ul className="mt-3 space-y-[2px]">
+                              {col.links.map((l) => (
+                                <li key={l.label}>
+                                  <Link
+                                    href={l.href}
+                                    onClick={() => setMega(null)}
+                                    className="-mx-2 block rounded-md px-2 py-[7px] text-[15px] text-hoox-link transition hover:bg-hoox-light hover:text-hoox-brand"
+                                  >
+                                    {l.label}
+                                  </Link>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
                         </div>
                       ))}
                     </div>
