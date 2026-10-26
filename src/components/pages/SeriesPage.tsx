@@ -494,8 +494,10 @@ export default function SeriesPage({ onNavigate }: SeriesPageProps) {
   }, [matchingOtherFilters, state, sort, statusById]);
 
   const filtering = q.trim() !== '' || state !== 'all' || style !== 'all' || status !== 'all';
-  const featured = !filtering ? results.find((s) => s.featured) : undefined;
-  const grid = featured ? results.filter((s) => s.id !== featured.id) : results;
+  // Featured series sits under the page intro and stays put while filtering;
+  // it's left out of the grid only when no filters are applied.
+  const featured = SERIES.find((s) => s.featured);
+  const grid = featured && !filtering ? results.filter((s) => s.id !== featured.id) : results;
   const reset = () => { setQ(''); setState('all'); setStyle('all'); setStatus('all'); };
 
   return (
@@ -508,8 +510,41 @@ export default function SeriesPage({ onNavigate }: SeriesPageProps) {
           </p>
         </header>
 
+        {/* Featured series */}
+        {featured && (
+          <section aria-labelledby="featured-series" className="relative mt-6 overflow-hidden rounded-lg bg-[#0A2A47] shadow-[0_6px_20px_rgba(5,30,60,0.18)]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={featured.image}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover opacity-35 md:left-auto md:right-0 md:w-[56%] md:opacity-100 md:[-webkit-mask-image:linear-gradient(90deg,transparent_0%,#000_35%)] md:[mask-image:linear-gradient(90deg,transparent_0%,#000_35%)]"
+            />
+            <div className="relative z-10 flex flex-col gap-6 px-6 py-7 sm:px-10 md:min-h-[292px] md:flex-row md:items-end md:justify-between">
+              <div className="max-w-[640px]">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#1E4F63] px-3 py-1 text-[12px] font-bold uppercase tracking-[0.02em] text-[#3FD6D0]">
+                  <Star className="h-3.5 w-3.5" fill="currentColor" strokeWidth={1.5} /> Featured Series
+                </span>
+                <h2 id="featured-series" className="mt-4 font-montserrat text-[26px] font-bold leading-tight text-white sm:text-[32px]">{featured.name}</h2>
+                <PresentedBy s={featured} className="mt-1 text-[16px] font-medium text-[#3FD6D0]" />
+                <p className="mt-4 max-w-[560px] text-[16px] leading-[26px] text-white/90">{featured.about}</p>
+                <p className="mt-5 flex flex-wrap items-center gap-x-8 gap-y-2 text-[16px] text-white">
+                  <span className="flex items-center gap-2.5"><CalendarDays className="h-5 w-5" strokeWidth={1.75} />{fmtRange(featured.start, featured.end)}</span>
+                  <span className="flex items-center gap-2.5"><Trophy className="h-5 w-5" strokeWidth={1.75} />{featured.stops.length} events</span>
+                  <span className="flex items-center gap-2.5"><MapPin className="h-5 w-5" strokeWidth={1.75} />{featured.city}, {featured.state}, {featured.country}</span>
+                </p>
+              </div>
+              <button
+                onClick={() => setOpen(featured)}
+                className="flex h-[48px] w-fit flex-shrink-0 items-center gap-4 rounded-md bg-[#22B3B5] px-7 text-[17px] font-semibold text-white shadow-[0_4px_12px_rgba(34,179,181,0.35)] transition hover:bg-[#1C9C9E]"
+              >
+                View series <ArrowRight className="h-5 w-5" strokeWidth={2} />
+              </button>
+            </div>
+          </section>
+        )}
+
         {/* Filters */}
-        <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 min-[1440px]:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)_minmax(0,1.15fr)_minmax(0,1fr)_auto_250px] min-[1440px]:items-center min-[1440px]:gap-[16px]" role="search" aria-label="Find series">
+        <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 min-[1440px]:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)_minmax(0,1.15fr)_minmax(0,1fr)_auto_250px] min-[1440px]:items-center min-[1440px]:gap-[16px]" role="search" aria-label="Find series">
           <label className="relative block sm:col-span-2 lg:col-span-3 min-[1440px]:col-span-1">
             <span className="sr-only">Search series</span>
             <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#5F7896]" strokeWidth={2} />
@@ -551,42 +586,9 @@ export default function SeriesPage({ onNavigate }: SeriesPageProps) {
           </label>
         </div>
 
-        {/* Featured series */}
-        {featured && (
-          <section aria-labelledby="featured-series" className="relative mt-8 overflow-hidden rounded-lg bg-[#0A2A47] shadow-[0_6px_20px_rgba(5,30,60,0.18)]">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={featured.image}
-              alt=""
-              className="absolute inset-0 h-full w-full object-cover opacity-35 md:left-auto md:right-0 md:w-[56%] md:opacity-100 md:[-webkit-mask-image:linear-gradient(90deg,transparent_0%,#000_35%)] md:[mask-image:linear-gradient(90deg,transparent_0%,#000_35%)]"
-            />
-            <div className="relative z-10 flex flex-col gap-6 px-6 py-7 sm:px-10 md:min-h-[292px] md:flex-row md:items-end md:justify-between">
-              <div className="max-w-[640px]">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#1E4F63] px-3 py-1 text-[12px] font-bold uppercase tracking-[0.02em] text-[#3FD6D0]">
-                  <Star className="h-3.5 w-3.5" fill="currentColor" strokeWidth={1.5} /> Featured Series
-                </span>
-                <h2 id="featured-series" className="mt-4 font-montserrat text-[26px] font-bold leading-tight text-white sm:text-[32px]">{featured.name}</h2>
-                <PresentedBy s={featured} className="mt-1 text-[16px] font-medium text-[#3FD6D0]" />
-                <p className="mt-4 max-w-[560px] text-[16px] leading-[26px] text-white/90">{featured.about}</p>
-                <p className="mt-5 flex flex-wrap items-center gap-x-8 gap-y-2 text-[16px] text-white">
-                  <span className="flex items-center gap-2.5"><CalendarDays className="h-5 w-5" strokeWidth={1.75} />{fmtRange(featured.start, featured.end)}</span>
-                  <span className="flex items-center gap-2.5"><Trophy className="h-5 w-5" strokeWidth={1.75} />{featured.stops.length} events</span>
-                  <span className="flex items-center gap-2.5"><MapPin className="h-5 w-5" strokeWidth={1.75} />{featured.city}, {featured.state}, {featured.country}</span>
-                </p>
-              </div>
-              <button
-                onClick={() => setOpen(featured)}
-                className="flex h-[48px] w-fit flex-shrink-0 items-center gap-4 rounded-md bg-[#22B3B5] px-7 text-[17px] font-semibold text-white shadow-[0_4px_12px_rgba(34,179,181,0.35)] transition hover:bg-[#1C9C9E]"
-              >
-                View series <ArrowRight className="h-5 w-5" strokeWidth={2} />
-              </button>
-            </div>
-          </section>
-        )}
-
         {/* Series cards */}
         {grid.length === 0 ? (
-          <div className="mt-8 flex flex-col items-center rounded-lg border border-dashed border-[#C9D8E5] bg-white px-6 py-16 text-center">
+          <div className="mt-6 flex flex-col items-center rounded-lg border border-dashed border-[#C9D8E5] bg-white px-6 py-16 text-center">
             <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[#E6F4F5] text-[#0E7C7B]">
               <Trophy className="h-7 w-7" strokeWidth={1.75} aria-hidden />
             </span>
@@ -612,7 +614,7 @@ export default function SeriesPage({ onNavigate }: SeriesPageProps) {
             </div>
           </div>
         ) : (
-          <ul className="mt-8 grid grid-cols-1 gap-[26px] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <ul className="mt-6 grid grid-cols-1 gap-[26px] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {grid.map((s) => (
               <li key={s.id} className="flex flex-col overflow-hidden rounded-lg border border-[#E8EEF4] bg-white p-[7px] shadow-[0_2px_10px_rgba(10,30,60,0.06)]">
                 <div className="relative aspect-[2.2/1] overflow-hidden rounded-md bg-[#E9F2F7]">
