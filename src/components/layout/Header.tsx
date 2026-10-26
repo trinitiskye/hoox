@@ -32,7 +32,7 @@ const MORE_NAV = [
 
 /* ------------------------------------------------------------------ */
 /* Mega menu — one shared panel, opened by hovering (or focusing)       */
-/* Tournaments, Calendar, Sponsors or More. Four columns.                */
+/* Tournaments, Calendar, Sponsors or More. Five columns.                */
 /* ------------------------------------------------------------------ */
 type MegaLink = { href: string; label: string };
 type MegaSection = { title: string; links: MegaLink[] };
@@ -77,6 +77,8 @@ const MEGA_COLUMNS: MegaColumn[] = [
         { href: '/features', label: 'App Features' },
       ],
     },
+  ],
+  [
     {
       title: 'Advertise with us!',
       links: [
@@ -231,7 +233,7 @@ export default function Header({ currentUser, onNavigate, onLogout }: HeaderProp
                     aria-label="Site menu"
                     className="absolute inset-x-0 top-full border-b border-[#E8EEF4] bg-white shadow-[0_12px_24px_rgba(15,40,80,0.10)]"
                   >
-                    <div className="mx-auto grid max-w-[1440px] grid-cols-4 gap-8 px-5 pb-7 pt-6">
+                    <div className="mx-auto grid max-w-[1440px] grid-cols-5 gap-8 px-5 pb-7 pt-6">
                       {MEGA_COLUMNS.map((col) => (
                         <div key={col[0].title} className="space-y-6">
                           {col.map((sec) => (
