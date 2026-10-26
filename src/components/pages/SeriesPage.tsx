@@ -140,9 +140,16 @@ const SERIES: SeriesItem[] = [
   },
 ];
 
+/** All 50 U.S. states, for the Location filter */
 const STATE_NAMES: Record<string, string> = {
-  AL: 'Alabama', AR: 'Arkansas', CA: 'California', FL: 'Florida', GA: 'Georgia', ID: 'Idaho', LA: 'Louisiana',
-  MO: 'Missouri', MT: 'Montana', NC: 'North Carolina', OK: 'Oklahoma', TN: 'Tennessee', TX: 'Texas',
+  AL: 'Alabama', AK: 'Alaska', AZ: 'Arizona', AR: 'Arkansas', CA: 'California', CO: 'Colorado', CT: 'Connecticut',
+  DE: 'Delaware', FL: 'Florida', GA: 'Georgia', HI: 'Hawaii', ID: 'Idaho', IL: 'Illinois', IN: 'Indiana', IA: 'Iowa',
+  KS: 'Kansas', KY: 'Kentucky', LA: 'Louisiana', ME: 'Maine', MD: 'Maryland', MA: 'Massachusetts', MI: 'Michigan',
+  MN: 'Minnesota', MS: 'Mississippi', MO: 'Missouri', MT: 'Montana', NE: 'Nebraska', NV: 'Nevada', NH: 'New Hampshire',
+  NJ: 'New Jersey', NM: 'New Mexico', NY: 'New York', NC: 'North Carolina', ND: 'North Dakota', OH: 'Ohio',
+  OK: 'Oklahoma', OR: 'Oregon', PA: 'Pennsylvania', RI: 'Rhode Island', SC: 'South Carolina', SD: 'South Dakota',
+  TN: 'Tennessee', TX: 'Texas', UT: 'Utah', VT: 'Vermont', VA: 'Virginia', WA: 'Washington', WV: 'West Virginia',
+  WI: 'Wisconsin', WY: 'Wyoming',
 };
 const STYLES: Style[] = ['Bass', 'Crappie', 'Freshwater', 'Fly Fishing', 'Inshore', 'Kayak', 'Offshore', 'Saltwater'];
 const STATUSES: Status[] = ['In progress', 'Upcoming', 'Completed'];
@@ -332,15 +339,13 @@ export default function SeriesPage({ onNavigate }: SeriesPageProps) {
 
   const today = useMemo(() => new Date(), []);
   const statusById = useMemo(() => Object.fromEntries(SERIES.map((s) => [s.id, statusOf(s, today)])) as Record<string, Status>, [today]);
-  const states = useMemo(
-    () => Array.from(new Set(SERIES.flatMap((s) => s.states))).sort((a, b) => (STATE_NAMES[a] ?? a).localeCompare(STATE_NAMES[b] ?? b)),
-    [],
-  );
+  // Every state is listed, whether or not it has a series yet
+  const states = useMemo(() => Object.keys(STATE_NAMES).sort((a, b) => STATE_NAMES[a].localeCompare(STATE_NAMES[b])), []);
 
   const results = useMemo(() => {
     const term = q.trim().toLowerCase();
     const list = SERIES.filter((s) => {
-      if (state !== 'all' && !s.states.includes(state)) return false;
+      if (state !== 'all' && !s.states.includes(state) && s.state !== STATE_NAMES[state]) return false;
       if (style !== 'all' && !s.styles.includes(style as Style)) return false;
       if (status !== 'all' && statusById[s.id] !== status) return false;
       if (!term) return true;
@@ -454,9 +459,30 @@ export default function SeriesPage({ onNavigate }: SeriesPageProps) {
 
         {/* Series cards */}
         {grid.length === 0 ? (
-          <div className="mt-8 rounded-lg border border-dashed border-[#C9D8E5] bg-white px-6 py-14 text-center">
-            <p className={`text-[17px] font-semibold ${INK}`}>No series match your filters.</p>
-            <button onClick={reset} className="mt-3 text-[15px] font-semibold text-[#0E7C7B] hover:underline">Clear filters</button>
+          <div className="mt-8 flex flex-col items-center rounded-lg border border-dashed border-[#C9D8E5] bg-white px-6 py-16 text-center">
+            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[#E6F4F5] text-[#0E7C7B]">
+              <Trophy className="h-7 w-7" strokeWidth={1.75} aria-hidden />
+            </span>
+            <h2 className={`mt-4 font-montserrat text-[22px] font-bold ${INK}`}>No tournament series found</h2>
+            <p className="mt-2 max-w-[460px] text-[15px] leading-[22px] text-[#536B84]">
+              {state !== 'all'
+                ? `There are no tournament series in ${STATE_NAMES[state]}${q.trim() || style !== 'all' || status !== 'all' ? ' that match your filters' : ''} yet. Try a nearby state or check back soon.`
+                : 'No tournament series match your search. Try different filters or check back soon.'}
+            </p>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              <button
+                onClick={reset}
+                className="h-[42px] rounded-md bg-[#0E7C7B] px-6 text-[15px] font-semibold text-white transition hover:bg-[#0B6766]"
+              >
+                View all series
+              </button>
+              <button
+                onClick={() => onNavigate('tournaments')}
+                className="h-[42px] rounded-md border border-[#1FA3A6] bg-white px-6 text-[15px] font-semibold text-[#0E7C7B] transition hover:bg-[#EEF9F8]"
+              >
+                Browse tournaments
+              </button>
+            </div>
           </div>
         ) : (
           <ul className="mt-8 grid grid-cols-1 gap-[26px] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
