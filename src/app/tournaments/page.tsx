@@ -9,13 +9,16 @@ import { Tournament } from '@/types';
 
 export default function Page() {
   const router = useRouter();
-  const [tournaments, setTournaments] = useState<Tournament[]>([]);
+  // null while loading so the page doesn't flash demo content
+  const [tournaments, setTournaments] = useState<Tournament[] | null>(null);
   const navigate = (view: string) => router.push(toPath(view));
 
-  useEffect(() => { fetchTournaments().then(setTournaments); }, []);
+  useEffect(() => {
+    fetchTournaments().then(setTournaments).catch(() => setTournaments([]));
+  }, []);
 
   return (
-    <PublicLayout>
+    <PublicLayout bgClassName="bg-[#F1F6FA]">
       <TournamentsPage tournaments={tournaments} onNavigate={navigate} />
     </PublicLayout>
   );
