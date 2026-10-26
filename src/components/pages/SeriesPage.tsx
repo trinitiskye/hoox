@@ -239,7 +239,128 @@ function PresentedBy({ s, className }: { s: SeriesItem; className: string }) {
   );
 }
 
+/** A series counts for a state if any stop is there or its home city is */
+const inState = (s: SeriesItem, code: string) => s.states.includes(code) || s.state === STATE_NAMES[code];
+
 const place = (s: SeriesItem) => `${s.city}, ${s.state}, ${s.country}`;
+
+/* --------------------------- location menu --------------------------- */
+
+/** Custom dropdown so each state can show its series count on the right. */
+function LocationSelect({
+  value, onChange, options,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  options: { value: string; label: string; count: number }[];
+}) {
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState(0);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const current = options.find((o) => o.value === value) ?? options[0];
+
+  // Close on outside click
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, [open]);
+
+  // On open, highlight the selected option and focus the list
+  useEffect(() => {
+    if (!open) return;
+    setActive(Math.max(0, options.findIndex((o) => o.value === value)));
+    listRef.current?.focus();
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Keep the highlighted option in view
+  useEffect(() => {
+    if (open) listRef.current?.querySelector(`[data-i="${active}"]`)?.scrollIntoView({ block: 'nearest' });
+  }, [active, open]);
+
+  const choose = (i: number) => {
+    onChange(options[i].value);
+    setOpen(false);
+    btnRef.current?.focus();
+  };
+
+  const onListKey = (e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowDown') { e.preventDefault(); setActive((a) => Math.min(options.length - 1, a + 1)); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); setActive((a) => Math.max(0, a - 1)); }
+    else if (e.key === 'Home') { e.preventDefault(); setActive(0); }
+    else if (e.key === 'End') { e.preventDefault(); setActive(options.length - 1); }
+    else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); choose(active); }
+    else if (e.key === 'Escape' || e.key === 'Tab') { setOpen(false); if (e.key === 'Escape') btnRef.current?.focus(); }
+    else if (/^[a-z]$/i.test(e.key)) {
+      // Type a letter to jump to the next state starting with it
+      const k = e.key.toLowerCase();
+      const n = options.length;
+      for (let step = 1; step <= n; step++) {
+        const i = (active + step) % n;
+        if (options[i].value !== 'all' && options[i].label.toLowerCase().startsWith(k)) { setActive(i); break; }
+      }
+    }
+  };
+
+  return (
+    <div ref={wrapRef} className="relative">
+      <button
+        ref={btnRef}
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label={`Location: ${current.label}`}
+        onClick={() => setOpen((o) => !o)}
+        onKeyDown={(e) => { if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); setOpen(true); } }}
+        className={`${CONTROL} flex items-center pl-12 pr-10 text-left font-medium`}
+      >
+        <MapPin className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#0D1B4C]" strokeWidth={2} />
+        <span className="truncate">{current.label}</span>
+        <ChevronDown className={`pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#0D1B4C] transition ${open ? 'rotate-180' : ''}`} strokeWidth={2.25} />
+      </button>
+      {open && (
+        <ul
+          ref={listRef}
+          role="listbox"
+          tabIndex={-1}
+          aria-label="Location"
+          aria-activedescendant={`loc-opt-${active}`}
+          onKeyDown={onListKey}
+          className="absolute left-0 z-30 mt-1.5 max-h-[340px] w-full min-w-[240px] overflow-y-auto rounded-md border border-[#D9E3EC] bg-white py-1.5 shadow-[0_12px_28px_rgba(10,30,60,0.16)] focus:outline-none"
+        >
+          {options.map((o, i) => {
+            const selected = o.value === value;
+            return (
+              <li
+                key={o.value}
+                id={`loc-opt-${i}`}
+                data-i={i}
+                role="option"
+                aria-selected={selected}
+                onMouseEnter={() => setActive(i)}
+                onClick={() => choose(i)}
+                className={`flex cursor-pointer items-center justify-between gap-3 px-4 py-2 text-[15px] ${i === active ? 'bg-[#EEF6F9]' : ''} ${selected ? `font-semibold ${INK}` : o.count === 0 ? 'text-[#7D8BA0]' : 'text-[#1F2D3D]'} ${o.value === 'all' ? 'border-b border-[#EDF1F5] pb-2.5 mb-1' : ''}`}
+              >
+                <span className="truncate">{o.label}</span>
+                <span
+                  aria-label={`${o.count} series`}
+                  className={`min-w-[26px] rounded-full px-2 py-[1px] text-center text-[12px] font-semibold ${o.count > 0 ? 'bg-[#E6F4F5] text-[#0E7C7B]' : 'bg-[#F1F4F7] text-[#9AA8B8]'}`}
+                >
+                  {o.count}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
 
 /* ------------------------------ details ----------------------------- */
 
@@ -342,23 +463,35 @@ export default function SeriesPage({ onNavigate }: SeriesPageProps) {
   // Every state is listed, whether or not it has a series yet
   const states = useMemo(() => Object.keys(STATE_NAMES).sort((a, b) => STATE_NAMES[a].localeCompare(STATE_NAMES[b])), []);
 
-  const results = useMemo(() => {
+  // Series matching everything except the Location filter (also drives the per-state counts)
+  const matchingOtherFilters = useMemo(() => {
     const term = q.trim().toLowerCase();
-    const list = SERIES.filter((s) => {
-      if (state !== 'all' && !s.states.includes(state) && s.state !== STATE_NAMES[state]) return false;
+    return SERIES.filter((s) => {
       if (style !== 'all' && !s.styles.includes(style as Style)) return false;
       if (status !== 'all' && statusById[s.id] !== status) return false;
       if (!term) return true;
       return [s.name, s.sponsor ?? '', s.region, s.about, ...s.styles, s.city, s.state, s.country, ...s.states.map((x) => STATE_NAMES[x] ?? x), ...s.stops.flatMap((st) => [st.name, st.place])]
         .some((v) => v.toLowerCase().includes(term));
     });
+  }, [q, style, status, statusById]);
+
+  const locationOptions = useMemo(
+    () => [
+      { value: 'all', label: 'All Locations', count: matchingOtherFilters.length },
+      ...states.map((code) => ({ value: code, label: STATE_NAMES[code], count: matchingOtherFilters.filter((s) => inState(s, code)).length })),
+    ],
+    [matchingOtherFilters, states],
+  );
+
+  const results = useMemo(() => {
+    const list = matchingOtherFilters.filter((s) => state === 'all' || inState(s, state));
     return list.sort((a, b) => {
       if (sort === 'name') return a.name.localeCompare(b.name);
       if (sort === 'events') return b.stops.length - a.stops.length;
       if (sort === 'start') return a.start.localeCompare(b.start);
       return STATUS_ORDER[statusById[a.id]] - STATUS_ORDER[statusById[b.id]] || a.start.localeCompare(b.start);
     });
-  }, [q, state, style, status, sort, statusById]);
+  }, [matchingOtherFilters, state, sort, statusById]);
 
   const filtering = q.trim() !== '' || state !== 'all' || style !== 'all' || status !== 'all';
   const featured = !filtering ? results.find((s) => s.featured) : undefined;
@@ -388,13 +521,7 @@ export default function SeriesPage({ onNavigate }: SeriesPageProps) {
               className={`${CONTROL} pl-12 pr-4 placeholder:text-[#7D8BA0]`}
             />
           </label>
-          <FilterSelect
-            label="Location"
-            icon={<MapPin className="h-5 w-5" strokeWidth={2} />}
-            value={state}
-            onChange={setState}
-            options={[{ value: 'all', label: 'All Locations' }, ...states.map((s) => ({ value: s, label: STATE_NAMES[s] ?? s }))]}
-          />
+          <LocationSelect value={state} onChange={setState} options={locationOptions} />
           <FilterSelect
             label="Fishing style"
             icon={<Fish className="h-[18px] w-[18px]" strokeWidth={2} />}
