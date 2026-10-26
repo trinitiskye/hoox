@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Search, MapPin, Fish, Trophy, CalendarDays, ChevronDown, ArrowUpDown, ArrowRight, Star, X, Flag,
+  Search, MapPin, Fish, Trophy, CalendarDays, ChevronDown, ArrowUpDown, ArrowRight, Star, X, Flag, ExternalLink,
 } from 'lucide-react';
 
 interface SeriesPageProps {
@@ -27,7 +27,11 @@ interface SeriesItem {
   id: string;
   name: string;
   sponsor?: string;
+  sponsorUrl?: string; // opens in a new tab from "Presented by"
   region: string; // shown on cards
+  city: string; // home base / host city
+  state: string; // full state name
+  country: string;
   states: string[]; // used by the Location filter
   styles: Style[];
   start: string; // ISO
@@ -40,7 +44,8 @@ interface SeriesItem {
 
 const SERIES: SeriesItem[] = [
   {
-    id: 'hoox-pro-bass', featured: true, name: 'HOOX Pro Bass Series', sponsor: 'TidalGear',
+    id: 'hoox-pro-bass', featured: true, name: 'HOOX Pro Bass Series', sponsor: 'TidalGear', sponsorUrl: 'https://example.com',
+    city: 'Guntersville', state: 'Alabama', country: 'United States',
     region: 'Tennessee, Alabama & Georgia', states: ['TN', 'AL', 'GA'], styles: ['Bass'],
     start: '2026-03-14', end: '2026-11-15', image: '/home/summer-slam.jpg',
     about: 'Eight stops across the Southeast’s best bass lakes, with points carrying through to a championship weigh-in on Lake Guntersville.',
@@ -56,7 +61,8 @@ const SERIES: SeriesItem[] = [
     ],
   },
   {
-    id: 'gulf-coast-inshore', name: 'Gulf Coast Inshore Trail', sponsor: 'Coastal Outfitters',
+    id: 'gulf-coast-inshore', name: 'Gulf Coast Inshore Trail', sponsor: 'Coastal Outfitters', sponsorUrl: 'https://example.com',
+    city: 'Galveston', state: 'Texas', country: 'United States',
     region: 'Texas, Louisiana & Florida', states: ['TX', 'LA', 'FL'], styles: ['Inshore', 'Saltwater'],
     start: '2026-04-04', end: '2026-10-10', image: '/home/coastal-open.jpg',
     about: 'Redfish and speckled trout from Galveston to the Florida Panhandle. Two-angler teams, total-weight format.',
@@ -70,6 +76,7 @@ const SERIES: SeriesItem[] = [
   },
   {
     id: 'pine-creek-kayak', name: 'Pine Creek Kayak Series',
+    city: 'Mooresville', state: 'North Carolina', country: 'United States',
     region: 'North Carolina', states: ['NC'], styles: ['Kayak', 'Freshwater'],
     start: '2026-08-01', end: '2026-12-05', image: '/home/pine-creek.jpg',
     about: 'Catch-photo-release kayak events on Carolina rivers and reservoirs, judged in the HOOX app.',
@@ -81,7 +88,8 @@ const SERIES: SeriesItem[] = [
     ],
   },
   {
-    id: 'fall-classic-crappie', name: 'Fall Classic Crappie Circuit', sponsor: 'Lakeside Tackle',
+    id: 'fall-classic-crappie', name: 'Fall Classic Crappie Circuit', sponsor: 'Lakeside Tackle', sponsorUrl: 'https://example.com',
+    city: 'Warsaw', state: 'Missouri', country: 'United States',
     region: 'Missouri, Arkansas & Oklahoma', states: ['MO', 'AR', 'OK'], styles: ['Crappie', 'Freshwater'],
     start: '2026-10-03', end: '2026-12-12', image: '/home/fall-classic.jpg',
     about: 'A short fall circuit for crappie teams, with seven-fish limits and a big-fish side pot at every stop.',
@@ -93,6 +101,7 @@ const SERIES: SeriesItem[] = [
   },
   {
     id: 'bayou-bass-classic', name: 'Bayou Bass Classic Series',
+    city: 'Morgan City', state: 'Louisiana', country: 'United States',
     region: 'Louisiana', states: ['LA'], styles: ['Bass'],
     start: '2026-11-07', end: '2027-02-20', image: '/home/bayou-bash.jpg',
     about: 'Winter bass fishing in the Atchafalaya Basin and Louisiana’s big reservoirs. Open to solo anglers and teams.',
@@ -105,6 +114,7 @@ const SERIES: SeriesItem[] = [
   },
   {
     id: 'mountain-lakes-trout', name: 'Mountain Lakes Trout Series',
+    city: 'Bozeman', state: 'Montana', country: 'United States',
     region: 'Montana & Idaho', states: ['MT', 'ID'], styles: ['Fly Fishing', 'Freshwater'],
     start: '2026-05-16', end: '2026-09-26', image: '/home/mountain-lake.jpg',
     about: 'High-country lake and river events for fly anglers, scored by total length of measured trout.',
@@ -116,7 +126,8 @@ const SERIES: SeriesItem[] = [
     ],
   },
   {
-    id: 'pacific-offshore', name: 'Pacific Offshore Challenge', sponsor: 'Bluewater Marine',
+    id: 'pacific-offshore', name: 'Pacific Offshore Challenge', sponsor: 'Bluewater Marine', sponsorUrl: 'https://example.com',
+    city: 'San Diego', state: 'California', country: 'United States',
     region: 'California', states: ['CA'], styles: ['Offshore', 'Saltwater'],
     start: '2027-03-20', end: '2027-09-11', image: '/clubs/demo/deep-sea-explorers.jpg',
     about: 'Tuna, yellowtail and dorado off the Southern California coast, with live leaderboards for every stop.',
@@ -201,6 +212,28 @@ function FilterSelect<T extends string>({
   );
 }
 
+/** "Presented by Sponsor ↗" — links out in a new tab when the sponsor has a URL */
+function PresentedBy({ s, className }: { s: SeriesItem; className: string }) {
+  if (!s.sponsor) return null;
+  const text = <>Presented by {s.sponsor}</>;
+  return s.sponsorUrl ? (
+    <a
+      href={s.sponsorUrl}
+      target="_blank"
+      rel="noopener noreferrer sponsored"
+      className={`inline-flex items-center gap-1.5 hover:underline ${className}`}
+    >
+      {text}
+      <ExternalLink className="h-[0.95em] w-[0.95em] flex-shrink-0" strokeWidth={2} aria-hidden />
+      <span className="sr-only">(opens in a new tab)</span>
+    </a>
+  ) : (
+    <p className={className}>{text}</p>
+  );
+}
+
+const place = (s: SeriesItem) => `${s.city}, ${s.state}, ${s.country}`;
+
 /* ------------------------------ details ----------------------------- */
 
 function SeriesDialog({ s, status, onClose, onNavigate }: { s: SeriesItem; status: Status; onClose: () => void; onNavigate: (v: string) => void }) {
@@ -242,12 +275,12 @@ function SeriesDialog({ s, status, onClose, onNavigate }: { s: SeriesItem; statu
         <div className="px-6 pb-6 pt-5">
           <StatusChip status={status} />
           <h2 id="series-dialog-title" className={`mt-2 font-montserrat text-[24px] font-bold leading-tight ${INK}`}>{s.name}</h2>
-          {s.sponsor && <p className="mt-1 text-[15px] font-medium text-[#0E7C7B]">Presented by {s.sponsor}</p>}
+          <PresentedBy s={s} className="mt-1 text-[15px] font-medium text-[#0E7C7B]" />
           <p className="mt-4 text-[15px] leading-[22px] text-[#3E5675]">{s.about}</p>
           <dl className="mt-5 grid grid-cols-2 gap-4 rounded-md bg-[#F2F7FA] p-4 text-[14px]">
             <div><dt className="text-[#5F7896]">Season</dt><dd className={`font-semibold ${INK}`}>{fmtRange(s.start, s.end)}</dd></div>
             <div><dt className="text-[#5F7896]">Events</dt><dd className={`font-semibold ${INK}`}>{s.stops.length}</dd></div>
-            <div><dt className="text-[#5F7896]">Region</dt><dd className={`font-semibold ${INK}`}>{s.region}</dd></div>
+            <div><dt className="text-[#5F7896]">Location</dt><dd className={`font-semibold ${INK}`}>{s.region}<span className="block font-normal text-[#536B84]">{place(s)}</span></dd></div>
             <div><dt className="text-[#5F7896]">Fishing style</dt><dd className={`font-semibold ${INK}`}>{s.styles.join(', ')}</dd></div>
           </dl>
 
@@ -311,7 +344,7 @@ export default function SeriesPage({ onNavigate }: SeriesPageProps) {
       if (style !== 'all' && !s.styles.includes(style as Style)) return false;
       if (status !== 'all' && statusById[s.id] !== status) return false;
       if (!term) return true;
-      return [s.name, s.sponsor ?? '', s.region, s.about, ...s.styles, ...s.states.map((x) => STATE_NAMES[x] ?? x), ...s.stops.flatMap((st) => [st.name, st.place])]
+      return [s.name, s.sponsor ?? '', s.region, s.about, ...s.styles, s.city, s.state, s.country, ...s.states.map((x) => STATE_NAMES[x] ?? x), ...s.stops.flatMap((st) => [st.name, st.place])]
         .some((v) => v.toLowerCase().includes(term));
     });
     return list.sort((a, b) => {
@@ -401,12 +434,12 @@ export default function SeriesPage({ onNavigate }: SeriesPageProps) {
                   <Star className="h-3.5 w-3.5" fill="currentColor" strokeWidth={1.5} /> Featured Series
                 </span>
                 <h2 id="featured-series" className="mt-4 font-montserrat text-[26px] font-bold leading-tight text-white sm:text-[32px]">{featured.name}</h2>
-                {featured.sponsor && <p className="mt-1 text-[16px] font-medium text-[#3FD6D0]">Presented by {featured.sponsor}</p>}
+                <PresentedBy s={featured} className="mt-1 text-[16px] font-medium text-[#3FD6D0]" />
                 <p className="mt-4 max-w-[560px] text-[16px] leading-[26px] text-white/90">{featured.about}</p>
                 <p className="mt-5 flex flex-wrap items-center gap-x-8 gap-y-2 text-[16px] text-white">
                   <span className="flex items-center gap-2.5"><CalendarDays className="h-5 w-5" strokeWidth={1.75} />{fmtRange(featured.start, featured.end)}</span>
                   <span className="flex items-center gap-2.5"><Trophy className="h-5 w-5" strokeWidth={1.75} />{featured.stops.length} events</span>
-                  <span className="flex items-center gap-2.5"><MapPin className="h-5 w-5" strokeWidth={1.75} />{featured.region}</span>
+                  <span className="flex items-center gap-2.5"><MapPin className="h-5 w-5" strokeWidth={1.75} />{featured.city}, {featured.state}, {featured.country}</span>
                 </p>
               </div>
               <button
@@ -436,10 +469,14 @@ export default function SeriesPage({ onNavigate }: SeriesPageProps) {
                 </div>
                 <div className="flex flex-1 flex-col px-[12px] pb-[12px] pt-[14px]">
                   <h3 className={`font-montserrat text-[19px] font-bold leading-tight ${INK}`}>{s.name}</h3>
-                  {s.sponsor && <p className="mt-1 text-[14px] font-medium text-[#0E7C7B]">Presented by {s.sponsor}</p>}
+                  <PresentedBy s={s} className="mt-1 w-fit text-[14px] font-medium text-[#0E7C7B]" />
+                  <p className="mt-2.5 line-clamp-3 text-[14px] leading-[20px] text-[#536B84]">{s.about}</p>
                   <ul className="mt-3 space-y-[6px] text-[14.5px]">
                     <li className={`flex items-center gap-3 font-medium ${INK}`}><CalendarDays className="h-[17px] w-[17px] flex-shrink-0 text-[#0D1B4C]" strokeWidth={2} />{fmtRange(s.start, s.end)}</li>
-                    <li className="flex items-center gap-3 text-[#5F7896]"><MapPin className="h-[17px] w-[17px] flex-shrink-0 text-[#0D1B4C]" fill="currentColor" stroke="white" strokeWidth={1.5} />{s.region}</li>
+                    <li className="flex items-start gap-3 text-[#5F7896]">
+                      <MapPin className="mt-[2px] h-[17px] w-[17px] flex-shrink-0 text-[#0D1B4C]" fill="currentColor" stroke="white" strokeWidth={1.5} />
+                      <span>{s.region}<span className="block">{place(s)}</span></span>
+                    </li>
                     <li className="flex items-center gap-3 text-[#5F7896]"><Fish className="h-[17px] w-[17px] flex-shrink-0 text-[#0D1B4C]" strokeWidth={2} />{s.styles.join(' • ')}</li>
                     <li className="flex items-center gap-3 text-[#5F7896]"><Trophy className="h-[17px] w-[17px] flex-shrink-0 text-[#0D1B4C]" strokeWidth={2} />{s.stops.length} events</li>
                   </ul>
