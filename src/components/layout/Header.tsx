@@ -52,10 +52,9 @@ const MEGA_COLUMNS: MegaColumn[] = [
   {
     title: 'Events',
     links: [
-      { href: '/events', label: 'Search' },
-      { href: '/events', label: 'Event Calendar' },
-      { href: '/events/list-expo', label: 'List your Expo or Tradeshow' },
-      { href: '/events/list-activity', label: 'List an Activity' },
+      { href: '/events', label: 'Expos and Trade Shows' },
+      { href: '/events/activities', label: 'Activities' },
+      { href: '/events/submit', label: 'Submit your Event' },
     ],
   },
   {

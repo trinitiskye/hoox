@@ -1,14 +1,14 @@
 import PublicLayout from '@/components/layout/PublicLayout';
 import ComingSoon from '@/components/common/ComingSoon';
 
-export const metadata = { title: 'List an Activity | HOOX' };
+export const metadata = { title: 'Submit your Event | HOOX' };
 
 export default function Page() {
   return (
     <PublicLayout bgClassName="bg-[#F1F6FA]">
       <ComingSoon
-        title="List an Activity"
-        description="Soon you’ll be able to list fishing activities, clinics and meetups on the HOOX event calendar."
+        title="Submit your Event"
+        description="Soon you’ll be able to submit your fishing expo, trade show or activity to be listed on HOOX."
         backHref="/events"
         backLabel="Browse events"
       />
