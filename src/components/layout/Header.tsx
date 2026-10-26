@@ -32,14 +32,16 @@ const MORE_NAV = [
 
 /* ------------------------------------------------------------------ */
 /* Mega menu — one shared panel, opened by hovering (or focusing)       */
-/* Tournaments, Calendar, Sponsors or More. Five columns; 4 and 5 are   */
+/* Tournaments, Calendar, Sponsors or More. Five columns; column 5 is   */
 /* still to be filled in.                                               */
 /* ------------------------------------------------------------------ */
 type MegaLink = { href: string; label: string };
-type MegaColumn = { title: string; links: MegaLink[] };
+type MegaSection = { title: string; links: MegaLink[] };
+/** A column holds one or more titled sections */
+type MegaColumn = MegaSection[];
 
 const MEGA_COLUMNS: MegaColumn[] = [
-  {
+  [{
     title: 'Tournaments',
     links: [
       { href: '/search?type=tournaments', label: 'Search' },
@@ -48,8 +50,8 @@ const MEGA_COLUMNS: MegaColumn[] = [
       { href: '/series', label: 'View all Series' },
       { href: '/tournaments', label: 'Calendar' },
     ],
-  },
-  {
+  }],
+  [{
     title: 'Events',
     links: [
       { href: '/events', label: 'Expos and Trade Shows' },
@@ -57,8 +59,8 @@ const MEGA_COLUMNS: MegaColumn[] = [
       { href: '/events', label: 'Event Calendar' },
       { href: '/events/submit', label: 'Submit your Event' },
     ],
-  },
-  {
+  }],
+  [{
     title: 'Clubs',
     links: [
       { href: '/search?type=clubs', label: 'Search Clubs' },
@@ -66,8 +68,24 @@ const MEGA_COLUMNS: MegaColumn[] = [
       { href: '/clubs', label: 'View Directory' },
       { href: '/clubs/feature', label: 'Feature your Club' },
     ],
-  },
-  { title: 'Advertising with us', links: [] },
+  }],
+  [
+    {
+      title: 'Support',
+      links: [
+        { href: '/faq', label: 'FAQ' },
+        { href: '/contact', label: 'Contact Us' },
+      ],
+    },
+    {
+      title: 'Advertise with us!',
+      links: [
+        { href: '/advertise/featured-listings', label: 'Featured Listings' },
+        { href: '/advertise/banners', label: 'Digital Banner Advertising' },
+        { href: '/advertise/affiliates', label: 'Affiliate Programs' },
+      ],
+    },
+  ],
 ];
 
 /** Nav items that open the mega menu */
@@ -214,23 +232,25 @@ export default function Header({ currentUser, onNavigate, onLogout }: HeaderProp
                   >
                     <div className="mx-auto grid max-w-[1440px] grid-cols-5 gap-8 px-5 pb-7 pt-6">
                       {MEGA_COLUMNS.map((col) => (
-                        <div key={col.title}>
-                          <p className="font-montserrat text-[15px] font-bold text-[#0D1B4C]">{col.title}</p>
-                          {col.links.length > 0 && (
-                            <ul className="mt-3 space-y-[2px]">
-                              {col.links.map((l) => (
-                                <li key={l.label}>
-                                  <Link
-                                    href={l.href}
-                                    onClick={() => setMega(null)}
-                                    className="-mx-2 block rounded-md px-2 py-[7px] text-[15px] text-hoox-link transition hover:bg-hoox-light hover:text-hoox-brand"
-                                  >
-                                    {l.label}
-                                  </Link>
-                                </li>
-                              ))}
-                            </ul>
-                          )}
+                        <div key={col[0].title} className="space-y-6">
+                          {col.map((sec) => (
+                            <div key={sec.title}>
+                              <p className="font-montserrat text-[15px] font-bold text-[#0D1B4C]">{sec.title}</p>
+                              <ul className="mt-3 space-y-[2px]">
+                                {sec.links.map((l) => (
+                                  <li key={l.label}>
+                                    <Link
+                                      href={l.href}
+                                      onClick={() => setMega(null)}
+                                      className="-mx-2 block rounded-md px-2 py-[7px] text-[15px] text-hoox-link transition hover:bg-hoox-light hover:text-hoox-brand"
+                                    >
+                                      {l.label}
+                                    </Link>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          ))}
                         </div>
                       ))}
                     </div>
