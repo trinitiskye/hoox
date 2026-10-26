@@ -43,9 +43,10 @@ const MEGA_COLUMNS: MegaColumn[] = [
     title: 'Tournaments',
     links: [
       { href: '/search?type=tournaments', label: 'Search' },
-      { href: '/tournaments', label: 'Tournament Calendar' },
-      { href: '/tournaments/submit', label: 'Submit a Tournament' },
-      { href: '/tournaments/feature', label: 'Feature a Tournament' },
+      { href: '/tournaments/submit', label: 'List your Tournament' },
+      { href: '/tournaments/feature', label: 'Feature your Tournament' },
+      { href: '/series', label: 'View all Series' },
+      { href: '/tournaments', label: 'Calendar' },
     ],
   },
   {

@@ -1,13 +1,13 @@
 import PublicLayout from '@/components/layout/PublicLayout';
 import ComingSoon from '@/components/common/ComingSoon';
 
-export const metadata = { title: 'Feature a Tournament | HOOX' };
+export const metadata = { title: 'Feature your Tournament | HOOX' };
 
 export default function Page() {
   return (
     <PublicLayout bgClassName="bg-[#F1F6FA]">
       <ComingSoon
-        title="Feature a Tournament"
+        title="Feature your Tournament"
         description="Soon you’ll be able to promote your tournament with featured placement across HOOX."
         backHref="/tournaments"
         backLabel="Browse tournaments"
