@@ -3,7 +3,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Search, MapPin, Fish, Trophy, CalendarDays, ChevronDown, ArrowUpDown, ArrowRight, Star, X, Flag, ExternalLink,
+  LayoutGrid, List as ListIcon, Map as MapIcon,
 } from 'lucide-react';
+import ClubsMap from '@/components/clubs/ClubsMap';
 
 interface SeriesPageProps {
   onNavigate: (view: string) => void;
@@ -32,6 +34,8 @@ interface SeriesItem {
   city: string; // home base / host city
   state: string; // full state name
   country: string;
+  lat: number; // home city, for the map
+  lng: number;
   states: string[]; // used by the Location filter
   styles: Style[];
   start: string; // ISO
@@ -45,7 +49,7 @@ interface SeriesItem {
 const SERIES: SeriesItem[] = [
   {
     id: 'hoox-pro-bass', featured: true, name: 'HOOX Pro Bass Series', sponsor: 'TidalGear', sponsorUrl: 'https://example.com',
-    city: 'Guntersville', state: 'Alabama', country: 'United States',
+    city: 'Guntersville', lat: 34.3582, lng: -86.2947, state: 'Alabama', country: 'United States',
     region: 'Tennessee, Alabama & Georgia', states: ['TN', 'AL', 'GA'], styles: ['Bass'],
     start: '2026-03-14', end: '2026-11-15', image: '/home/summer-slam.jpg',
     about: 'Eight stops across the Southeast’s best bass lakes, with points carrying through to a championship weigh-in on Lake Guntersville.',
@@ -62,7 +66,7 @@ const SERIES: SeriesItem[] = [
   },
   {
     id: 'gulf-coast-inshore', name: 'Gulf Coast Inshore Trail', sponsor: 'Coastal Outfitters', sponsorUrl: 'https://example.com',
-    city: 'Galveston', state: 'Texas', country: 'United States',
+    city: 'Galveston', lat: 29.3013, lng: -94.7977, state: 'Texas', country: 'United States',
     region: 'Texas, Louisiana & Florida', states: ['TX', 'LA', 'FL'], styles: ['Inshore', 'Saltwater'],
     start: '2026-04-04', end: '2026-10-10', image: '/home/coastal-open.jpg',
     about: 'Redfish and speckled trout from Galveston to the Florida Panhandle. Two-angler teams, total-weight format.',
@@ -76,7 +80,7 @@ const SERIES: SeriesItem[] = [
   },
   {
     id: 'pine-creek-kayak', name: 'Pine Creek Kayak Series',
-    city: 'Mooresville', state: 'North Carolina', country: 'United States',
+    city: 'Mooresville', lat: 35.5849, lng: -80.8101, state: 'North Carolina', country: 'United States',
     region: 'North Carolina', states: ['NC'], styles: ['Kayak', 'Freshwater'],
     start: '2026-08-01', end: '2026-12-05', image: '/home/pine-creek.jpg',
     about: 'Catch-photo-release kayak events on Carolina rivers and reservoirs, judged in the HOOX app.',
@@ -89,7 +93,7 @@ const SERIES: SeriesItem[] = [
   },
   {
     id: 'fall-classic-crappie', name: 'Fall Classic Crappie Circuit', sponsor: 'Lakeside Tackle', sponsorUrl: 'https://example.com',
-    city: 'Warsaw', state: 'Missouri', country: 'United States',
+    city: 'Warsaw', lat: 38.2431, lng: -93.3819, state: 'Missouri', country: 'United States',
     region: 'Missouri, Arkansas & Oklahoma', states: ['MO', 'AR', 'OK'], styles: ['Crappie', 'Freshwater'],
     start: '2026-10-03', end: '2026-12-12', image: '/home/fall-classic.jpg',
     about: 'A short fall circuit for crappie teams, with seven-fish limits and a big-fish side pot at every stop.',
@@ -101,7 +105,7 @@ const SERIES: SeriesItem[] = [
   },
   {
     id: 'bayou-bass-classic', name: 'Bayou Bass Classic Series',
-    city: 'Morgan City', state: 'Louisiana', country: 'United States',
+    city: 'Morgan City', lat: 29.6994, lng: -91.2068, state: 'Louisiana', country: 'United States',
     region: 'Louisiana', states: ['LA'], styles: ['Bass'],
     start: '2026-11-07', end: '2027-02-20', image: '/home/bayou-bash.jpg',
     about: 'Winter bass fishing in the Atchafalaya Basin and Louisiana’s big reservoirs. Open to solo anglers and teams.',
@@ -114,7 +118,7 @@ const SERIES: SeriesItem[] = [
   },
   {
     id: 'mountain-lakes-trout', name: 'Mountain Lakes Trout Series',
-    city: 'Bozeman', state: 'Montana', country: 'United States',
+    city: 'Bozeman', lat: 45.677, lng: -111.0429, state: 'Montana', country: 'United States',
     region: 'Montana & Idaho', states: ['MT', 'ID'], styles: ['Fly Fishing', 'Freshwater'],
     start: '2026-05-16', end: '2026-09-26', image: '/home/mountain-lake.jpg',
     about: 'High-country lake and river events for fly anglers, scored by total length of measured trout.',
@@ -127,7 +131,7 @@ const SERIES: SeriesItem[] = [
   },
   {
     id: 'pacific-offshore', name: 'Pacific Offshore Challenge', sponsor: 'Bluewater Marine', sponsorUrl: 'https://example.com',
-    city: 'San Diego', state: 'California', country: 'United States',
+    city: 'San Diego', lat: 32.7157, lng: -117.1611, state: 'California', country: 'United States',
     region: 'California', states: ['CA'], styles: ['Offshore', 'Saltwater'],
     start: '2027-03-20', end: '2027-09-11', image: '/clubs/demo/deep-sea-explorers.jpg',
     about: 'Tuna, yellowtail and dorado off the Southern California coast, with live leaderboards for every stop.',
@@ -457,6 +461,13 @@ export default function SeriesPage({ onNavigate }: SeriesPageProps) {
   const [status, setStatus] = useState('all');
   const [sort, setSort] = useState<Sort>('season');
   const [open, setOpen] = useState<SeriesItem | null>(null);
+  const [view, setView] = useState<'grid' | 'list' | 'map'>('grid');
+
+  // Deep link: /series?view=map or ?view=list
+  useEffect(() => {
+    const v = new URLSearchParams(window.location.search).get('view');
+    if (v === 'map' || v === 'list') setView(v);
+  }, []);
 
   const today = useMemo(() => new Date(), []);
   const statusById = useMemo(() => Object.fromEntries(SERIES.map((s) => [s.id, statusOf(s, today)])) as Record<string, Status>, [today]);
@@ -544,7 +555,7 @@ export default function SeriesPage({ onNavigate }: SeriesPageProps) {
         )}
 
         {/* Filters */}
-        <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 min-[1440px]:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)_minmax(0,1.15fr)_minmax(0,1fr)_auto_250px] min-[1440px]:items-center min-[1440px]:gap-[16px]" role="search" aria-label="Find series">
+        <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 min-[1440px]:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)_minmax(0,1.15fr)_minmax(0,1fr)_auto_220px_auto] min-[1440px]:items-center min-[1440px]:gap-[16px]" role="search" aria-label="Find series">
           <label className="relative block sm:col-span-2 lg:col-span-3 min-[1440px]:col-span-1">
             <span className="sr-only">Search series</span>
             <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#5F7896]" strokeWidth={2} />
@@ -552,7 +563,7 @@ export default function SeriesPage({ onNavigate }: SeriesPageProps) {
               type="search"
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Search series, lakes, sponsors..."
+              placeholder="Search series, lakes..."
               className={`${CONTROL} pl-12 pr-4 placeholder:text-[#7D8BA0]`}
             />
           </label>
@@ -571,23 +582,67 @@ export default function SeriesPage({ onNavigate }: SeriesPageProps) {
             onChange={setStatus}
             options={[{ value: 'all', label: 'All Seasons' }, ...STATUSES.map((s) => ({ value: s, label: s }))]}
           />
-          <p className="flex items-center whitespace-nowrap text-[14px] text-[#7D8BA0] sm:col-span-1 lg:col-span-2 lg:justify-end min-[1440px]:col-span-1" aria-live="polite">
+          <p className="flex items-center whitespace-nowrap text-[14px] text-[#7D8BA0] lg:justify-end" aria-live="polite">
             {results.length} series found
           </p>
           <label className="relative block">
             <span className="sr-only">Sort series</span>
             <span className="pointer-events-none absolute left-4 top-1/2 flex -translate-y-1/2 items-center gap-2 text-[14px] text-[#5F7896]">
-              <ArrowUpDown className="h-4 w-4 text-[#0D1B4C]" strokeWidth={2} /> Sort by
+              <ArrowUpDown className="h-4 w-4 text-[#0D1B4C]" strokeWidth={2} /> <span className="min-[1440px]:sr-only">Sort by</span>
             </span>
-            <select value={sort} onChange={(e) => setSort(e.target.value as Sort)} className={`${CONTROL} pl-[100px] pr-9 text-[14px] font-semibold ${INK}`}>
+            <select value={sort} onChange={(e) => setSort(e.target.value as Sort)} className={`${CONTROL} pl-[100px] pr-9 min-[1440px]:pl-11 text-[14px] font-semibold ${INK}`}>
               {(Object.keys(SORTS) as Sort[]).map((k) => <option key={k} value={k}>{SORTS[k]}</option>)}
             </select>
             <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#0D1B4C]" strokeWidth={2.25} />
           </label>
+
+          {/* View toggle — right of the sorter */}
+          <div role="group" aria-label="Choose view" className="flex h-[50px] rounded-md border border-[#D9E3EC] bg-white p-1 shadow-[0_1px_3px_rgba(10,30,60,0.04)]">
+            {([
+              { key: 'grid', label: 'Grid', icon: <LayoutGrid className="h-[18px] w-[18px]" strokeWidth={2} /> },
+              { key: 'list', label: 'List', icon: <ListIcon className="h-[18px] w-[18px]" strokeWidth={2} /> },
+              { key: 'map', label: 'Map', icon: <MapIcon className="h-[18px] w-[18px]" strokeWidth={2} /> },
+            ] as const).map((b) => {
+              const active = view === b.key;
+              return (
+                <button
+                  key={b.key}
+                  type="button"
+                  aria-pressed={active}
+                  title={`${b.label} view`}
+                  onClick={() => setView(b.key)}
+                  className={`flex h-full flex-1 items-center justify-center gap-2 rounded px-3 text-[14px] font-semibold transition min-[1440px]:w-[42px] min-[1440px]:flex-none min-[1440px]:px-0 ${
+                    active ? 'bg-[#0E7C7B] text-white shadow-sm' : 'text-[#0D1B4C] hover:bg-[#EEF9F8]'
+                  }`}
+                >
+                  {b.icon}
+                  <span className="min-[1440px]:sr-only">{b.label}<span className="sr-only"> view</span></span>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
-        {/* Series cards */}
-        {grid.length === 0 ? (
+        {/* Series: map, list or grid */}
+        {view === 'map' && results.length > 0 ? (
+          <div className="mt-6">
+            <ClubsMap
+              clubs={results.map((s) => ({
+                id: s.id,
+                name: s.name,
+                place: `${s.city}, ${s.state}`,
+                meta: `${s.stops.length} events · ${fmtRange(s.start, s.end)}`,
+                lat: s.lat,
+                lng: s.lng,
+              }))}
+              onSelect={(id) => setOpen(SERIES.find((s) => s.id === id) ?? null)}
+              noun="tournament series"
+              nounPlural="tournament series"
+              emptyText="No tournament series found."
+              cta="View series"
+            />
+          </div>
+        ) : grid.length === 0 ? (
           <div className="mt-6 flex flex-col items-center rounded-lg border border-dashed border-[#C9D8E5] bg-white px-6 py-16 text-center">
             <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[#E6F4F5] text-[#0E7C7B]">
               <Trophy className="h-7 w-7" strokeWidth={1.75} aria-hidden />
@@ -613,6 +668,39 @@ export default function SeriesPage({ onNavigate }: SeriesPageProps) {
               </button>
             </div>
           </div>
+        ) : view === 'list' ? (
+          <ul className="mt-6 divide-y divide-[#EDF1F5] overflow-hidden rounded-lg border border-[#E8EEF4] bg-white shadow-[0_2px_10px_rgba(10,30,60,0.06)]">
+            {grid.map((s) => (
+              <li key={s.id} className="grid grid-cols-[96px_minmax(0,1fr)] gap-x-4 gap-y-3 p-4 sm:grid-cols-[180px_minmax(0,1fr)] sm:gap-4 lg:grid-cols-[200px_minmax(0,1fr)_minmax(0,300px)_auto] lg:items-center lg:gap-6">
+                <div className="relative aspect-square overflow-hidden rounded-md bg-[#E9F2F7] sm:aspect-[2.2/1]">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={s.image} alt="" loading="lazy" className="h-full w-full object-cover" />
+                </div>
+                <div className="min-w-0">
+                  <StatusChip status={statusById[s.id]} />
+                  <h3 className={`mt-1.5 font-montserrat text-[18px] font-bold leading-tight ${INK}`}>{s.name}</h3>
+                  <PresentedBy s={s} className="mt-1 w-fit text-[14px] font-medium text-[#0E7C7B]" />
+                  <p className="mt-1.5 hidden text-[14px] leading-[20px] text-[#536B84] sm:line-clamp-2">{s.about}</p>
+                </div>
+                <p className="col-span-2 line-clamp-2 text-[14px] leading-[20px] text-[#536B84] sm:hidden">{s.about}</p>
+                <ul className="col-span-2 space-y-[5px] text-[14px] sm:col-span-1 sm:col-start-2 lg:col-start-auto">
+                  <li className={`flex items-center gap-3 font-medium ${INK}`}><CalendarDays className="h-[16px] w-[16px] flex-shrink-0 text-[#0D1B4C]" strokeWidth={2} />{fmtRange(s.start, s.end)}</li>
+                  <li className="flex items-start gap-3 text-[#5F7896]">
+                    <MapPin className="mt-[2px] h-[16px] w-[16px] flex-shrink-0 text-[#0D1B4C]" fill="currentColor" stroke="white" strokeWidth={1.5} />
+                    <span>{s.region}<span className="block">{place(s)}</span></span>
+                  </li>
+                  <li className="flex items-center gap-3 text-[#5F7896]"><Trophy className="h-[16px] w-[16px] flex-shrink-0 text-[#0D1B4C]" strokeWidth={2} />{s.stops.length} events · {s.styles.join(' • ')}</li>
+                </ul>
+                <button
+                  onClick={() => setOpen(s)}
+                  aria-label={`View series ${s.name}`}
+                  className="flex h-[38px] items-center justify-center gap-2 whitespace-nowrap rounded-md border border-[#1FA3A6] px-5 text-[14px] font-semibold text-[#0E7C7B] transition hover:bg-[#EEF9F8] col-span-2 sm:col-span-1 sm:col-start-2 sm:w-fit lg:col-start-auto"
+                >
+                  View series <ArrowRight className="h-4 w-4" strokeWidth={2} />
+                </button>
+              </li>
+            ))}
+          </ul>
         ) : (
           <ul className="mt-6 grid grid-cols-1 gap-[26px] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {grid.map((s) => (

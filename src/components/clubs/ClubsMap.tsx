@@ -16,7 +16,9 @@ export interface MapClub {
   id: string;
   name: string;
   place: string; // "Bozeman, MT"
-  members: number;
+  members?: number;
+  /** Second-line detail in the popup; defaults to "N members" */
+  meta?: string;
   lat: number;
   lng: number;
 }
@@ -55,21 +57,37 @@ function escapeHtml(s: string) {
   return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
 }
 
-function popupHtml(c: MapClub) {
+function popupHtml(c: MapClub, cta: string) {
+  const meta = c.meta ?? `${(c.members ?? 0).toLocaleString()} members`;
   return `
     <div style="font-family:Roboto,system-ui,sans-serif;min-width:190px">
       <div style="font:700 15px/1.25 Montserrat,system-ui,sans-serif;color:#0D1B4C">${escapeHtml(c.name)}</div>
-      <div style="margin-top:3px;font-size:13px;color:#5F7896">${escapeHtml(c.place)} · ${c.members.toLocaleString()} members</div>
+      <div style="margin-top:3px;font-size:13px;color:#5F7896">${escapeHtml(c.place)} · ${escapeHtml(meta)}</div>
       <button type="button" data-club="${escapeHtml(c.id)}"
         style="margin-top:10px;width:100%;height:32px;border:1px solid #1FA3A6;border-radius:6px;background:#fff;color:#0E7C7B;font:600 13px Roboto,system-ui,sans-serif;cursor:pointer">
-        View details →
+        ${escapeHtml(cta)} →
       </button>
     </div>`;
 }
 
 /* ------------------------------ component ----------------------------- */
 
-export default function ClubsMap({ clubs, onSelect }: { clubs: MapClub[]; onSelect: (id: string) => void }) {
+/** Pin map shared by the Clubs and Series pages. */
+export default function ClubsMap({
+  clubs,
+  onSelect,
+  noun = 'fishing club',
+  nounPlural,
+  emptyText = 'No clubs match your filters.',
+  cta = 'View details',
+}: {
+  clubs: MapClub[];
+  onSelect: (id: string) => void;
+  noun?: string;
+  nounPlural?: string;
+  emptyText?: string;
+  cta?: string;
+}) {
   const el = useRef<HTMLDivElement>(null);
   const map = useRef<any>(null);
   const layer = useRef<any[]>([]);
@@ -158,7 +176,7 @@ export default function ClubsMap({ clubs, onSelect }: { clubs: MapClub[]; onSele
           },
         });
         mk.addListener('click', () => {
-          info.setContent(popupHtml(c));
+          info.setContent(popupHtml(c, cta));
           info.open({ map: m, anchor: mk });
         });
         layer.current.push(mk);
@@ -185,13 +203,13 @@ export default function ClubsMap({ clubs, onSelect }: { clubs: MapClub[]; onSele
       clubs.forEach((c) => {
         const mk = L.marker([c.lat, c.lng], { icon, title: c.name, alt: c.name, keyboard: true })
           .addTo(m)
-          .bindPopup(popupHtml(c));
+          .bindPopup(popupHtml(c, cta));
         layer.current.push(mk);
       });
       if (clubs.length === 1) m.setView([clubs[0].lat, clubs[0].lng], 8);
       else m.fitBounds(L.latLngBounds(clubs.map((c) => [c.lat, c.lng])), { padding: [48, 48] });
     }
-  }, [clubs, engine]);
+  }, [clubs, engine, cta]);
 
   return (
     // `isolate z-0` gives the map its own stacking context, so Leaflet's internal
@@ -201,7 +219,7 @@ export default function ClubsMap({ clubs, onSelect }: { clubs: MapClub[]; onSele
       <div
         ref={el}
         role="region"
-        aria-label={`Map of ${clubs.length} fishing club${clubs.length === 1 ? '' : 's'}`}
+        aria-label={`Map of ${clubs.length} ${clubs.length === 1 ? noun : nounPlural ?? `${noun}s`}`}
         className="h-[420px] w-full sm:h-[520px] xl:h-[600px]"
       />
       {!engine && !error && (
@@ -210,7 +228,7 @@ export default function ClubsMap({ clubs, onSelect }: { clubs: MapClub[]; onSele
       {error && <div className="absolute inset-0 flex items-center justify-center px-6 text-center text-[15px] text-[#5F7896]">{error}</div>}
       {engine && clubs.length === 0 && (
         <div className="pointer-events-none absolute inset-x-0 top-4 mx-auto w-fit rounded-md bg-white px-4 py-2 text-[14px] font-medium text-[#0D1B4C] shadow">
-          No clubs match your filters.
+          {emptyText}
         </div>
       )}
     </div>
