@@ -175,7 +175,7 @@ export default function Header({ currentUser, onNavigate, onLogout }: HeaderProp
                 ref={navRef}
                 onMouseLeave={scheduleClose}
                 onMouseEnter={cancelClose}
-                className="hidden xl:flex flex-shrink-0 items-center gap-5 2xl:gap-9 ml-2 2xl:ml-6 self-stretch"
+                className="hidden xl:flex flex-1 justify-center items-center gap-5 2xl:gap-9 self-stretch"
                 aria-label="Main"
               >
                 {PRIMARY_NAV.map((item) => {
@@ -243,7 +243,7 @@ export default function Header({ currentUser, onNavigate, onLogout }: HeaderProp
                 )}
               </nav>
 
-              <div className="hidden xl:flex items-center gap-3 2xl:gap-4 flex-1 justify-end min-w-0">
+              <div className="hidden xl:flex flex-shrink-0 items-center">
                 {/* One login for everyone — the account type comes from the user's credentials */}
                 <button
                   onClick={() => go('login')}

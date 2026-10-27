@@ -325,14 +325,13 @@ export default function LeaderboardSection({ onNavigate }: { onNavigate: (view: 
   return (
     <section id="leaderboards" aria-labelledby="leaderboard-heading" className="scroll-mt-24 rounded-lg bg-white px-3 sm:px-[12px] pt-[12px] pb-[12px] shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
       {/* Heading — same type as Upcoming Tournaments */}
-      <div className="flex flex-wrap items-end justify-between gap-2 px-2 pb-[13px]">
+      <div className="flex flex-wrap items-center justify-between gap-2 px-2 pb-[13px]">
         <div>
           <h2 id="leaderboard-heading" className="text-[28px] font-bold leading-tight text-hoox-ink">Leaderboards</h2>
-          <p className="text-[16px] font-light text-[#869FE6]">Live standings and results from tournaments across the HOOX community.</p>
         </div>
         <button
           onClick={() => onNavigate('tournaments')}
-          className="mb-4 flex items-center gap-2 text-[17px] font-medium text-[#016F8C] hover:text-hoox-brand transition"
+          className="flex items-center gap-2 text-[17px] font-medium text-[#016F8C] hover:text-hoox-brand transition"
         >
           View all results <ArrowRight className="h-5 w-5" strokeWidth={2} />
         </button>

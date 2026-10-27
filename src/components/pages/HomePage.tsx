@@ -412,14 +412,13 @@ function UpcomingSection({ cards, onNavigate }: { cards: UpcomingCard[]; onNavig
 
   return (
     <section aria-labelledby="upcoming-heading" className="rounded-lg bg-white px-3 sm:px-[12px] pt-[12px] pb-[12px] shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
-      <div className="flex flex-wrap items-end justify-between gap-2 px-2 pb-[13px]">
+      <div className="flex flex-wrap items-center justify-between gap-2 px-2 pb-[13px]">
         <div>
           <h2 id="upcoming-heading" className="text-[28px] font-bold leading-tight text-hoox-ink">Upcoming Tournaments</h2>
-          <p className="text-[16px] font-light text-[#869FE6]">Discover upcoming events and get ready to compete.</p>
         </div>
         <button
           onClick={() => onNavigate('tournaments')}
-          className="mb-4 flex items-center gap-2 text-[17px] font-medium text-[#016F8C] hover:text-hoox-brand transition"
+          className="flex items-center gap-2 text-[17px] font-medium text-[#016F8C] hover:text-hoox-brand transition"
         >
           View all tournaments <ArrowRight className="h-5 w-5" strokeWidth={2} />
         </button>
