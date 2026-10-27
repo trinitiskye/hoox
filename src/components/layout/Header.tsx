@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { useRouter, usePathname } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { toPath } from '@/lib/routes';
-import { Menu, X, Search, ChevronDown } from 'lucide-react';
+import { Menu, X, ChevronDown } from 'lucide-react';
 import { User } from '@/types';
 
 interface HeaderProps {
@@ -13,26 +13,20 @@ interface HeaderProps {
   onLogout: () => void;
 }
 
-// Primary nav — matches the Home mock (Get Hoox!, Tournaments, Calendar, Sponsors)
+// Primary nav — "Get Hoox!" links to sign-up; the rest open the mega menu
+// and match its columns, in the same order.
 const PRIMARY_NAV = [
   { view: 'register', label: 'Get Hoox!' },
   { view: 'tournaments', label: 'Tournaments' },
-  { view: 'calendar', label: 'Calendar' },
-  { view: 'sponsors', label: 'Sponsors' },
-];
-
-// Existing nav items kept under "More" so nothing is lost
-const MORE_NAV = [
-  { view: 'series', label: 'Series' },
-  { view: 'clubs', label: 'Clubs' },
   { view: 'events', label: 'Events' },
-  { view: 'features', label: 'App Features' },
-  { view: 'sponsor', label: 'Become a Partner' },
+  { view: 'clubs', label: 'Clubs' },
+  { view: 'support', label: 'Support' },
+  { view: 'advertise', label: 'Advertise with us' },
 ];
 
 /* ------------------------------------------------------------------ */
 /* Mega menu — one shared panel, opened by hovering (or focusing)       */
-/* Tournaments, Calendar, Sponsors or More. Five columns.                */
+/* any nav item except Get Hoox!. Five columns.                        */
 /* ------------------------------------------------------------------ */
 type MegaLink = { href: string; label: string };
 type MegaSection = { title: string; links: MegaLink[] };
@@ -93,14 +87,14 @@ const MEGA_COLUMNS: MegaColumn[] = [
 ];
 
 /** Nav items that open the mega menu */
-const MEGA_TRIGGERS = new Set(['tournaments', 'calendar', 'sponsors', 'more']);
+const MEGA_TRIGGERS = new Set(['tournaments', 'events', 'clubs', 'support', 'advertise']);
 
 /** Menu-only items: clicking just opens/closes the mega menu instead of navigating */
 const MENU_ONLY = MEGA_TRIGGERS;
 
 /** Column highlighted (light blue) when the menu is opened from that nav item */
 // 0 Tournaments · 1 Events · 2 Clubs · 3 Support · 4 Advertise with us!
-const MEGA_FOCUS_COLUMN: Record<string, number> = { tournaments: 0, calendar: 1, more: 3, sponsors: 4 };
+const MEGA_FOCUS_COLUMN: Record<string, number> = { tournaments: 0, events: 1, clubs: 2, support: 3, advertise: 4 };
 
 const MEGA_CLOSE_DELAY = 150; // ms — lets the pointer travel from the nav item into the panel
 
@@ -118,7 +112,6 @@ export function HooxLogo({ onClick }: { onClick: () => void }) {
 }
 
 export default function Header({ currentUser, onNavigate, onLogout }: HeaderProps) {
-  const router = useRouter();
   const pathname = usePathname();
   // Highlight the current section (e.g. Register on /register, Tournaments on /tournaments/...)
   const isActive = (view: string) => {
@@ -128,7 +121,6 @@ export default function Header({ currentUser, onNavigate, onLogout }: HeaderProp
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   // Which trigger opened the shared mega menu (null = closed)
   const [mega, setMega] = useState<string | null>(null);
-  const [query, setQuery] = useState('');
   const navRef = useRef<HTMLDivElement>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -170,27 +162,6 @@ export default function Header({ currentUser, onNavigate, onLogout }: HeaderProp
     setMega(null);
   };
 
-  const submitSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!query.trim()) return;
-    router.push(`/search?type=tournaments&q=${encodeURIComponent(query.trim())}`);
-    setMobileMenuOpen(false);
-  };
-
-  const searchField = (extra = '') => (
-    <form onSubmit={submitSearch} role="search" className={`relative ${extra}`}>
-      <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[22px] h-[22px] text-[#1F2D3D]" strokeWidth={1.75} />
-      <input
-        type="search"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search tournaments..."
-        aria-label="Search tournaments"
-        className="w-full h-[42px] pl-12 pr-4 rounded-md border border-[#DDE3EA] bg-[#F7F9FB] text-[15px] text-hoox-text placeholder:text-[#8A96A6] focus:outline-none focus:ring-2 focus:ring-hoox-ui/50 focus:border-hoox-ui"
-      />
-    </form>
-  );
-
   return (
     <header className="font-roboto bg-white/95 backdrop-blur border-b border-[#E8EEF4] shadow-[0_1px_8px_rgba(15,40,80,0.05)] sticky top-0 z-50">
       <div className="max-w-[1440px] mx-auto px-4 md:px-5">
@@ -207,7 +178,7 @@ export default function Header({ currentUser, onNavigate, onLogout }: HeaderProp
                 className="hidden xl:flex flex-shrink-0 items-center gap-5 2xl:gap-9 ml-2 2xl:ml-6 self-stretch"
                 aria-label="Main"
               >
-                {[...PRIMARY_NAV, { view: 'more', label: 'More' }].map((item) => {
+                {PRIMARY_NAV.map((item) => {
                   const active = isActive(item.view);
                   const hasMega = MEGA_TRIGGERS.has(item.view);
                   const open = mega === item.view;
@@ -273,18 +244,12 @@ export default function Header({ currentUser, onNavigate, onLogout }: HeaderProp
               </nav>
 
               <div className="hidden xl:flex items-center gap-3 2xl:gap-4 flex-1 justify-end min-w-0">
-                {searchField('flex-1 max-w-[306px] min-w-[150px]')}
+                {/* One login for everyone — the account type comes from the user's credentials */}
                 <button
                   onClick={() => go('login')}
-                  className="h-[38px] px-5 2xl:px-6 rounded-md bg-hoox-navy text-white text-[15px] font-medium shadow-sm hover:bg-[#03385E] transition whitespace-nowrap"
+                  className="h-[38px] px-8 2xl:px-10 rounded-md bg-gradient-to-b from-[#077A92] to-[#02566E] text-white text-[15px] font-medium shadow-sm hover:brightness-110 transition whitespace-nowrap"
                 >
-                  Director Login
-                </button>
-                <button
-                  onClick={() => go('login')}
-                  className="h-[38px] px-6 2xl:px-10 rounded-md bg-gradient-to-b from-[#077A92] to-[#02566E] text-white text-[15px] font-medium shadow-sm hover:brightness-110 transition whitespace-nowrap"
-                >
-                  Angler Login
+                  Log In
                 </button>
               </div>
 
@@ -323,22 +288,31 @@ export default function Header({ currentUser, onNavigate, onLogout }: HeaderProp
         {/* Mobile menu */}
         {!currentUser && mobileMenuOpen && (
           <div className="xl:hidden border-t border-hoox-line py-4 space-y-1">
-            {searchField('mb-3')}
-            {[...PRIMARY_NAV, ...MORE_NAV].map((item) => (
-              <button
-                key={item.view + item.label}
-                onClick={() => go(item.view)}
-                className="w-full text-left px-3 py-2.5 text-[15px] text-hoox-link hover:bg-hoox-light hover:text-hoox-brand rounded-lg"
-              >
-                {item.label}
-              </button>
+            <button
+              onClick={() => go('register')}
+              className="w-full text-left px-3 py-2.5 text-[15px] font-semibold text-hoox-link hover:bg-hoox-light hover:text-hoox-brand rounded-lg"
+            >
+              Get Hoox!
+            </button>
+            {/* Same groups as the desktop mega menu */}
+            {MEGA_COLUMNS.flat().map((sec) => (
+              <div key={sec.title} className="pt-2">
+                <p className="px-3 pb-1 font-montserrat text-[13px] font-bold uppercase tracking-[0.04em] text-[#7A8BA3]">{sec.title}</p>
+                {sec.links.map((l) => (
+                  <Link
+                    key={l.label}
+                    href={l.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block px-3 py-2 text-[15px] text-hoox-link hover:bg-hoox-light hover:text-hoox-brand rounded-lg"
+                  >
+                    {l.label}
+                  </Link>
+                ))}
+              </div>
             ))}
-            <div className="flex gap-3 pt-3 border-t border-hoox-line mt-2">
-              <button onClick={() => go('login')} className="flex-1 h-[40px] rounded-md bg-hoox-navy text-white font-medium text-sm">
-                Director Login
-              </button>
-              <button onClick={() => go('login')} className="flex-1 h-[40px] rounded-md bg-gradient-to-b from-[#077A92] to-[#02566E] text-white font-medium text-sm">
-                Angler Login
+            <div className="pt-3 border-t border-hoox-line mt-2">
+              <button onClick={() => go('login')} className="w-full h-[42px] rounded-md bg-gradient-to-b from-[#077A92] to-[#02566E] text-white font-medium text-[15px]">
+                Log In
               </button>
             </div>
           </div>

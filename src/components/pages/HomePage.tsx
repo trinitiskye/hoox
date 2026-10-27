@@ -2,8 +2,9 @@
 
 import {
   Trophy, MapPin, Users, ChevronRight, ArrowRight, ShieldCheck, Mountain, Waves, Navigation,
+  Search, List, Lock, ChevronDown,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Tournament, Submission, User, SearchParams, HeroSlide, HomeBanner } from '@/types';
 import { getActiveHeroSlides, dbHeroSlideToApp, getActiveHomeBanners, dbHomeBannerToApp } from '@/lib/supabase';
 import RecommendedSection from '@/components/home/RecommendedSection';
@@ -68,6 +69,7 @@ interface UpcomingCard {
   id: string;
   name: string;
   dates: string;
+  start: string; // ISO date, for sorting
   location: string;
   anglers?: number | string;
   prizePool?: string;
@@ -86,12 +88,12 @@ const CARD_IMAGES = [
 ];
 
 const DEMO_UPCOMING: UpcomingCard[] = [
-  { id: 'd1', name: 'Coastal Open', dates: 'JUN 7 – 8, 2025', location: 'Charleston, SC', anglers: 200, prizePool: '$100,000', image: CARD_IMAGES[0], registrationOpen: true },
-  { id: 'd2', name: 'Pine Creek Challenge', dates: 'JUN 21 – 22, 2025', location: 'Toledo Bend, TX', anglers: 180, prizePool: '$75,000', image: CARD_IMAGES[1], registrationOpen: false },
-  { id: 'd3', name: 'Summer Slam', dates: 'JUL 12 – 13, 2025', location: 'Lake Okeechobee, FL', anglers: 220, prizePool: '$125,000', image: CARD_IMAGES[2], registrationOpen: true },
-  { id: 'd4', name: 'Mountain Lake Invitational', dates: 'AUG 9 – 10, 2025', location: 'Lake Guntersville, AL', anglers: 160, prizePool: '$80,000', image: CARD_IMAGES[3], registrationOpen: true },
-  { id: 'd5', name: 'Bayou Bash', dates: 'SEP 6 – 7, 2025', location: 'Toledo Bend, LA', anglers: 175, prizePool: '$70,000', image: CARD_IMAGES[4], registrationOpen: true },
-  { id: 'd6', name: 'Fall Classic', dates: 'OCT 18 – 19, 2025', location: 'Lake Murray, SC', anglers: 190, prizePool: '$90,000', image: CARD_IMAGES[5], registrationOpen: true },
+  { id: 'd1', name: 'Coastal Open', dates: 'JUN 7 – 8, 2025', start: '2025-06-07', location: 'Charleston, SC', anglers: 200, prizePool: '$100,000', image: CARD_IMAGES[0], registrationOpen: true },
+  { id: 'd2', name: 'Pine Creek Challenge', dates: 'JUN 21 – 22, 2025', start: '2025-06-21', location: 'Toledo Bend, TX', anglers: 180, prizePool: '$75,000', image: CARD_IMAGES[1], registrationOpen: false },
+  { id: 'd3', name: 'Summer Slam', dates: 'JUL 12 – 13, 2025', start: '2025-07-12', location: 'Lake Okeechobee, FL', anglers: 220, prizePool: '$125,000', image: CARD_IMAGES[2], registrationOpen: true },
+  { id: 'd4', name: 'Mountain Lake Invitational', dates: 'AUG 9 – 10, 2025', start: '2025-08-09', location: 'Lake Guntersville, AL', anglers: 160, prizePool: '$80,000', image: CARD_IMAGES[3], registrationOpen: true },
+  { id: 'd5', name: 'Bayou Bash', dates: 'SEP 6 – 7, 2025', start: '2025-09-06', location: 'Toledo Bend, LA', anglers: 175, prizePool: '$70,000', image: CARD_IMAGES[4], registrationOpen: true },
+  { id: 'd6', name: 'Fall Classic', dates: 'OCT 18 – 19, 2025', start: '2025-10-18', location: 'Lake Murray, SC', anglers: 190, prizePool: '$90,000', image: CARD_IMAGES[5], registrationOpen: true },
 ];
 
 /* ------------------------------ helpers ------------------------------ */
@@ -128,12 +130,12 @@ function toUpcomingCards(tournaments: Tournament[]): UpcomingCard[] {
       const d = parseDate(t.startDate);
       return d && d > now;
     })
-    .sort((x, y) => (parseDate(x.startDate)!.getTime() - parseDate(y.startDate)!.getTime()))
-    .slice(0, 6);
+    .sort((x, y) => (parseDate(x.startDate)!.getTime() - parseDate(y.startDate)!.getTime()));
   return upcoming.map((t, i) => ({
     id: t.id,
     name: t.name,
     dates: formatRange(t.startDate, t.endDate),
+    start: t.startDate,
     location: place(t),
     anglers: t.maxParticipants || undefined,
     image: t.image || CARD_IMAGES[i % CARD_IMAGES.length],
@@ -378,6 +380,122 @@ function TournamentCard({ t, onOpen, onRegister }: { t: UpcomingCard; onOpen: ()
 
 /* -------------------------------- page ------------------------------- */
 
+/* ------------------------- upcoming tournaments ------------------------- */
+
+type UpcomingFilter = 'all' | 'open' | 'closed';
+type UpcomingSort = 'soonest' | 'latest' | 'name';
+const UPCOMING_SORTS: Record<UpcomingSort, string> = { soonest: 'Date (soonest first)', latest: 'Date (latest first)', name: 'Name (A–Z)' };
+const UPCOMING_LIMIT = 6;
+
+/** Upcoming Tournaments — toolbar styled like the Leaderboards section */
+function UpcomingSection({ cards, onNavigate }: { cards: UpcomingCard[]; onNavigate: (view: string) => void }) {
+  const [query, setQuery] = useState('');
+  const [filter, setFilter] = useState<UpcomingFilter>('all');
+  const [sort, setSort] = useState<UpcomingSort>('soonest');
+
+  const shown = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const list = cards.filter((t) => {
+      if (filter === 'open' && !t.registrationOpen) return false;
+      if (filter === 'closed' && t.registrationOpen) return false;
+      return !q || t.name.toLowerCase().includes(q) || t.location.toLowerCase().includes(q);
+    });
+    list.sort((a, b) => (sort === 'name' ? a.name.localeCompare(b.name) : sort === 'latest' ? b.start.localeCompare(a.start) : a.start.localeCompare(b.start)));
+    return list.slice(0, UPCOMING_LIMIT);
+  }, [cards, query, filter, sort]);
+
+  const pills: { key: UpcomingFilter; label: string; icon: React.ReactNode }[] = [
+    { key: 'all', label: 'All', icon: <List className="h-[18px] w-[18px]" strokeWidth={2} /> },
+    { key: 'open', label: 'Open', icon: <span className="h-[10px] w-[10px] rounded-full bg-[#2FB08A]" /> },
+    { key: 'closed', label: 'Closed', icon: <Lock className="h-[15px] w-[15px]" strokeWidth={2} /> },
+  ];
+
+  return (
+    <section aria-labelledby="upcoming-heading" className="rounded-lg bg-white px-3 sm:px-[12px] pt-[12px] pb-[12px] shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
+      <div className="flex flex-wrap items-end justify-between gap-2 px-2 pb-[13px]">
+        <div>
+          <h2 id="upcoming-heading" className="text-[28px] font-bold leading-tight text-hoox-ink">Upcoming Tournaments</h2>
+          <p className="text-[16px] font-light text-[#869FE6]">Discover upcoming events and get ready to compete.</p>
+        </div>
+        <button
+          onClick={() => onNavigate('tournaments')}
+          className="mb-4 flex items-center gap-2 text-[17px] font-medium text-[#016F8C] hover:text-hoox-brand transition"
+        >
+          View all tournaments <ArrowRight className="h-5 w-5" strokeWidth={2} />
+        </button>
+      </div>
+
+      {/* Toolbar — same look as the Leaderboards search */}
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-3 px-1 pb-[13px]">
+        <label className="relative w-full sm:w-auto sm:flex-1 sm:min-w-[240px] sm:max-w-[460px]">
+          <span className="sr-only">Search upcoming tournaments by name or location</span>
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-[19px] w-[19px] -translate-y-1/2 text-[#1F334E]" strokeWidth={2} />
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search tournaments or locations..."
+            className="h-[36px] w-full rounded-md border border-[#DDE5EC] bg-white pl-11 pr-3 text-[14px] text-hoox-text placeholder:text-[#7D8BA0] focus:border-hoox-ui focus:outline-none focus:ring-2 focus:ring-hoox-ui/40"
+          />
+        </label>
+
+        <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Registration">
+          <span className="mr-2 text-[14px] text-[#6F8290]">Registration</span>
+          {pills.map((p) => {
+            const active = filter === p.key;
+            return (
+              <button
+                key={p.key}
+                onClick={() => setFilter(p.key)}
+                aria-pressed={active}
+                className={`flex h-[34px] items-center gap-2 rounded-full px-[22px] text-[14px] font-semibold transition ${
+                  active ? 'bg-[#388081] text-white shadow-sm' : 'bg-[#E9F1F7] text-[#1F334E] hover:bg-[#DCE8F1]'
+                }`}
+              >
+                {p.icon}
+                {p.label}
+              </button>
+            );
+          })}
+        </div>
+
+        <label className="flex w-full min-w-0 items-center gap-3 sm:ml-auto sm:w-auto">
+          <span className="whitespace-nowrap text-[14px] text-[#6F8290]">Sort by</span>
+          <span className="relative min-w-0 flex-1 sm:flex-none">
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value as UpcomingSort)}
+              className="h-[36px] w-full sm:w-[214px] appearance-none rounded-md border border-[#DDE5EC] bg-white pl-3 pr-9 text-[14px] text-[#1F334E] focus:border-hoox-ui focus:outline-none focus:ring-2 focus:ring-hoox-ui/40"
+            >
+              {(Object.keys(UPCOMING_SORTS) as UpcomingSort[]).map((k) => (
+                <option key={k} value={k}>{UPCOMING_SORTS[k]}</option>
+              ))}
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#1F334E]" strokeWidth={2.25} />
+          </span>
+        </label>
+      </div>
+
+      {shown.length === 0 ? (
+        <div className="rounded-md border border-dashed border-[#D6E2EC] py-12 text-center text-[15px] text-[#6F8290]">
+          No upcoming tournaments match your search.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-[13px]">
+          {shown.map((t) => (
+            <TournamentCard
+              key={t.id}
+              t={t}
+              onOpen={() => onNavigate(`tournaments/${/^d\d+$/.test(t.id) ? 'lakefront-classic' /* demo cards open the demo event */ : t.id}`)}
+              onRegister={() => onNavigate('register-angler')}
+            />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
 export default function HomePage({ tournaments, onNavigate }: HomePageProps) {
   // Hero carousel slides (Admin → Advertising → Hero Carousel). Falls back to
   // the built-in sponsor hero when none are active or the table isn't set up.
@@ -439,30 +557,7 @@ export default function HomePage({ tournaments, onNavigate }: HomePageProps) {
         <LeaderboardSection onNavigate={onNavigate} />
 
         {/* Upcoming tournaments */}
-        <section aria-labelledby="upcoming-heading" className="rounded-lg bg-white px-3 sm:px-[12px] pt-[12px] pb-[12px] shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
-          <div className="flex flex-wrap items-end justify-between gap-2 px-2 pb-[13px]">
-            <div>
-              <h2 id="upcoming-heading" className="text-[28px] font-bold leading-tight text-hoox-ink">Upcoming Tournaments</h2>
-              <p className="text-[16px] font-light text-[#869FE6]">Discover upcoming events and get ready to compete.</p>
-            </div>
-            <button
-              onClick={() => onNavigate('tournaments')}
-              className="mb-4 flex items-center gap-2 text-[17px] font-medium text-[#016F8C] hover:text-hoox-brand transition"
-            >
-              View all tournaments <ArrowRight className="h-5 w-5" strokeWidth={2} />
-            </button>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-[13px]">
-            {upcoming.map((t) => (
-              <TournamentCard
-                key={t.id}
-                t={t}
-                onOpen={() => onNavigate(`tournaments/${/^d\d+$/.test(t.id) ? 'lakefront-classic' /* demo cards open the demo event */ : t.id}`)}
-                onRegister={() => onNavigate('register-angler')}
-              />
-            ))}
-          </div>
-        </section>
+        <UpcomingSection cards={upcoming} onNavigate={onNavigate} />
       </div>
     </div>
   );
