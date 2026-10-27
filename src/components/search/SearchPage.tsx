@@ -398,10 +398,7 @@ export default function SearchPage() {
         ) : null}
 
         <header>
-          <h1 className={`font-montserrat text-[34px] font-bold leading-tight sm:text-[46px] ${INK}`}>Search</h1>
-          <p className="mt-2 max-w-[640px] text-[17px] leading-[24px] text-[#68819B] sm:text-[19px] sm:leading-[27px]">
-            Find tournaments and series by location, species, date, or distance from you.
-          </p>
+          <h1 className={`font-montserrat text-[34px] font-bold leading-tight sm:text-[46px] ${INK}`}>Search Tournaments and Series</h1>
         </header>
 
         {/* Search form */}
