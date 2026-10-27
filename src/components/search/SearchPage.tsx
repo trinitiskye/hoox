@@ -14,7 +14,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Search, MapPin, Fish, Trophy, CalendarDays, ChevronDown, ArrowUpDown, ArrowRight, Flag, ExternalLink, Users, Ticket,
-  LocateFixed, Navigation, X, Loader2, Layers,
+  LocateFixed, Navigation, X, Loader2, Layers, Star,
 } from 'lucide-react';
 import ClubsMap from '@/components/clubs/ClubsMap';
 import {
@@ -205,6 +205,14 @@ export default function SearchPage() {
   const [geoError, setGeoError] = useState('');
   const [openSeries, setOpenSeries] = useState<SeriesItem | null>(null);
 
+  // Results stay hidden until the visitor runs a search (or opens a shared search link)
+  const [searched, setSearched] = useState(() => ['search', 'q', 'state', 'species', 'status', 'from', 'zip'].some((k) => params.get(k)));
+  const resultsRef = useRef<HTMLDivElement>(null);
+  const runSearch = () => {
+    setSearched(true);
+    setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+  };
+
   const [tournaments, setTournaments] = useState<Tournament[] | null>(null);
   useEffect(() => {
     fetchTournaments().then(setTournaments).catch(() => setTournaments([]));
@@ -229,11 +237,12 @@ export default function SearchPage() {
     if (to && to !== from) p.set('to', to);
     if (origin?.source === 'zip' && origin.zip) { p.set('zip', origin.zip); p.set('radius', String(radius)); }
     if (origin?.source === 'ip') p.set('radius', String(radius));
+    if (searched) p.set('search', '1');
     if (sort !== 'soonest') p.set('sort', sort);
     if (view !== 'grid') p.set('view', view);
     const next = `/search?${p.toString()}`;
     if (next !== `/search?${params.toString()}`) router.replace(next, { scroll: false });
-  }, [kind, q, state, species, status, from, to, origin, radius, sort, view]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [kind, q, state, species, status, from, to, origin, radius, sort, view, searched]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const applyZip = async (zip: string) => {
     if (!/^\d{5}$/.test(zip)) { setGeoError('Enter a 5-digit ZIP code.'); return; }
@@ -242,6 +251,7 @@ export default function SearchPage() {
       const o = await lookupZip(zip);
       setOrigin(o);
       setSort('nearest');
+      runSearch();
     } catch {
       setGeoError(`We couldn’t find ZIP code ${zip}.`);
     } finally {
@@ -256,6 +266,7 @@ export default function SearchPage() {
       setOrigin(o);
       setZipInput('');
       setSort('nearest');
+      runSearch();
     } catch {
       setGeoError('We couldn’t detect your location. Enter a ZIP code instead.');
     } finally {
@@ -272,6 +283,17 @@ export default function SearchPage() {
 
   /* ---------- data ---------- */
   const loading = kind === 'tournaments' && tournaments === null;
+
+  // Featured tournament hero: a featured listing, otherwise the next one coming up
+  const featured = useMemo(() => {
+    if (tournaments === null) return null;
+    const list = tournaments.length ? tournaments.map(fromTournament) : DEMO_TOURNAMENTS;
+    const now = new Date();
+    const pick =
+      list.find((t) => t.featured) ??
+      list.filter((t) => !t.completed && new Date(`${t.end}T23:59:59`) >= now).sort((a, b) => a.start.localeCompare(b.start))[0];
+    return pick ? fromTItem(pick) : null;
+  }, [tournaments]);
   const items = useMemo<Result[]>(() => {
     if (kind === 'series') return SERIES.map(fromSeries);
     const list = tournaments && tournaments.length ? tournaments.map(fromTournament) : DEMO_TOURNAMENTS;
@@ -340,6 +362,41 @@ export default function SearchPage() {
   return (
     <div className="font-roboto">
       <div className="mx-auto max-w-[1440px] px-4 pb-12 pt-8 sm:px-6 lg:px-[42px] lg:pt-[34px]">
+        {/* Featured tournament */}
+        {featured ? (
+          <section aria-labelledby="featured-tournament" className="relative mb-8 overflow-hidden rounded-lg bg-[#0A2A47] shadow-[0_6px_20px_rgba(5,30,60,0.18)]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={featured.image}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover opacity-35 md:left-auto md:right-0 md:w-[56%] md:opacity-100 md:[-webkit-mask-image:linear-gradient(90deg,transparent_0%,#000_35%)] md:[mask-image:linear-gradient(90deg,transparent_0%,#000_35%)]"
+            />
+            <div className="relative z-10 flex flex-col gap-6 px-6 py-7 sm:px-10 md:min-h-[292px] md:flex-row md:items-end md:justify-between">
+              <div className="max-w-[640px]">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#1E4F63] px-3 py-1 text-[12px] font-bold uppercase tracking-[0.02em] text-[#3FD6D0]">
+                  <Star className="h-3.5 w-3.5" fill="currentColor" strokeWidth={1.5} /> Featured Tournament
+                </span>
+                <h2 id="featured-tournament" className="mt-4 font-montserrat text-[26px] font-bold leading-tight text-white sm:text-[32px]">{featured.name}</h2>
+                <PresentedBy r={featured} className="mt-1 text-[16px] font-medium text-[#3FD6D0]" />
+                <p className="mt-4 max-w-[560px] text-[16px] leading-[26px] text-white/90">{featured.about}</p>
+                <p className="mt-5 flex flex-wrap items-center gap-x-8 gap-y-2 text-[16px] text-white">
+                  <span className="flex items-center gap-2.5"><CalendarDays className="h-5 w-5" strokeWidth={1.75} />{fmtRange(featured.start, featured.end)}</span>
+                  {featured.prizePool && <span className="flex items-center gap-2.5"><Trophy className="h-5 w-5" strokeWidth={1.75} />{featured.prizePool} prize pool</span>}
+                  <span className="flex items-center gap-2.5"><MapPin className="h-5 w-5" strokeWidth={1.75} />{[featured.place1, featured.place2.replace(/, United States$/, '')].filter(Boolean).join(' · ')}</span>
+                </p>
+              </div>
+              <Link
+                href={featured.href ?? '/tournaments'}
+                className="flex h-[48px] w-fit flex-shrink-0 items-center gap-4 rounded-md bg-[#22B3B5] px-7 text-[17px] font-semibold text-white shadow-[0_4px_12px_rgba(34,179,181,0.35)] transition hover:bg-[#1C9C9E]"
+              >
+                View tournament <ArrowRight className="h-5 w-5" strokeWidth={2} />
+              </Link>
+            </div>
+          </section>
+        ) : tournaments === null ? (
+          <div className="mb-8 h-[292px] animate-pulse rounded-lg bg-[#DCE6EE]" aria-hidden />
+        ) : null}
+
         <header>
           <h1 className={`font-montserrat text-[34px] font-bold leading-tight sm:text-[46px] ${INK}`}>Search</h1>
           <p className="mt-2 max-w-[640px] text-[17px] leading-[24px] text-[#68819B] sm:text-[19px] sm:leading-[27px]">
@@ -349,7 +406,7 @@ export default function SearchPage() {
 
         {/* Search form */}
         <section aria-label="Search filters" className="mt-6 rounded-lg border border-[#E8EEF4] bg-white p-4 shadow-[0_2px_10px_rgba(10,30,60,0.06)] sm:p-5">
-          <form onSubmit={(e) => e.preventDefault()} role="search" className="space-y-3">
+          <form onSubmit={(e) => { e.preventDefault(); runSearch(); }} role="search" className="space-y-3">
             <div className="grid grid-cols-1 gap-3 lg:grid-cols-[auto_minmax(0,1fr)]">
               {/* Tournaments / Series */}
               <div role="radiogroup" aria-label="Search for" className="flex h-[50px] rounded-md border border-[#D9E3EC] bg-[#F5F8FA] p-1">
@@ -466,139 +523,150 @@ export default function SearchPage() {
                 </span>
               )}
               {geoError && <p role="alert" className="text-[14px] text-[#B42318]">{geoError}</p>}
+
+              <button
+                type="submit"
+                className="flex h-[50px] items-center justify-center gap-2.5 rounded-md bg-[#22B3B5] px-8 text-[16px] font-semibold text-white shadow-[0_4px_12px_rgba(34,179,181,0.3)] transition hover:bg-[#1C9C9E] md:ml-auto"
+              >
+                <Search className="h-5 w-5" strokeWidth={2.25} /> Search
+              </button>
             </div>
           </form>
         </section>
 
-        {/* Results bar */}
-        <div className="mt-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <p className="text-[15px] text-[#5F7896]" aria-live="polite">
-            {loading ? 'Loading…' : <><span className={`font-semibold ${INK}`}>{results.length}</span> {noun} found</>}
-            {filtering && !loading && (
-              <button type="button" onClick={resetAll} className="ml-3 font-semibold text-[#0E7C7B] hover:underline">Clear all filters</button>
-            )}
-          </p>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <label className="relative block sm:w-[250px]">
-              <span className="sr-only">Sort results</span>
-              <span className="pointer-events-none absolute left-4 top-1/2 flex -translate-y-1/2 items-center gap-2 text-[14px] text-[#5F7896]">
-                <ArrowUpDown className="h-4 w-4 text-[#0D1B4C]" strokeWidth={2} /> Sort by
-              </span>
-              <select value={sort} onChange={(e) => setSort(e.target.value as Sort)} className={`${CONTROL} pl-[100px] pr-9 text-[14px] font-semibold ${INK}`}>
-                {sortOptions.map((k) => <option key={k} value={k}>{SORTS[k]}</option>)}
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#0D1B4C]" strokeWidth={2.25} />
-            </label>
-            <ViewToggle view={view} onChange={setView} />
-          </div>
-        </div>
-
-        {/* Results */}
-        {loading ? (
-          <ul className="mt-4 grid grid-cols-1 gap-[26px] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" aria-hidden>
-            {Array.from({ length: 8 }).map((_, i) => (
-              <li key={i} className="h-[420px] animate-pulse rounded-lg border border-[#E8EEF4] bg-white p-[7px]"><div className="aspect-[2.2/1] rounded-md bg-[#EEF2F6]" /></li>
-            ))}
-          </ul>
-        ) : results.length === 0 ? (
-          <div className="mt-4 flex flex-col items-center rounded-lg border border-dashed border-[#C9D8E5] bg-white px-6 py-16 text-center">
-            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[#E6F4F5] text-[#0E7C7B]">
-              <Search className="h-7 w-7" strokeWidth={1.75} aria-hidden />
-            </span>
-            <h2 className={`mt-4 font-montserrat text-[22px] font-bold ${INK}`}>No {kind === 'series' ? 'series' : 'tournaments'} found</h2>
-            <p className="mt-2 max-w-[480px] text-[15px] leading-[22px] text-[#536B84]">
-              {origin
-                ? `Nothing matches within ${radius} miles of ${origin.label}. Try a larger distance or fewer filters.`
-                : state !== 'all'
-                  ? `There are no ${kind === 'series' ? 'series' : 'tournaments'} in ${STATE_NAMES[state]} that match your search yet.`
-                  : 'Try a different keyword, date range, or fewer filters.'}
-            </p>
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-              <button type="button" onClick={resetAll} className="h-[42px] rounded-md bg-[#0E7C7B] px-6 text-[15px] font-semibold text-white transition hover:bg-[#0B6766]">
-                Clear all filters
-              </button>
-              {origin && radius < 500 && (
-                <button
-                  type="button"
-                  onClick={() => setRadius(RADII.find((r) => r > radius) ?? 500)}
-                  className="h-[42px] rounded-md border border-[#1FA3A6] bg-white px-6 text-[15px] font-semibold text-[#0E7C7B] transition hover:bg-[#EEF9F8]"
-                >
-                  Search within {RADII.find((r) => r > radius)} miles
-                </button>
-              )}
+        {searched && (
+          <div ref={resultsRef} className="scroll-mt-24">
+            {/* Results bar */}
+            <div className="mt-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <p className="text-[15px] text-[#5F7896]" aria-live="polite">
+                {loading ? 'Loading…' : <><span className={`font-semibold ${INK}`}>{results.length}</span> {noun} found</>}
+                {filtering && !loading && (
+                  <button type="button" onClick={resetAll} className="ml-3 font-semibold text-[#0E7C7B] hover:underline">Clear all filters</button>
+                )}
+              </p>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <label className="relative block sm:w-[250px]">
+                  <span className="sr-only">Sort results</span>
+                  <span className="pointer-events-none absolute left-4 top-1/2 flex -translate-y-1/2 items-center gap-2 text-[14px] text-[#5F7896]">
+                    <ArrowUpDown className="h-4 w-4 text-[#0D1B4C]" strokeWidth={2} /> Sort by
+                  </span>
+                  <select value={sort} onChange={(e) => setSort(e.target.value as Sort)} className={`${CONTROL} pl-[100px] pr-9 text-[14px] font-semibold ${INK}`}>
+                    {sortOptions.map((k) => <option key={k} value={k}>{SORTS[k]}</option>)}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#0D1B4C]" strokeWidth={2.25} />
+                </label>
+                <ViewToggle view={view} onChange={setView} />
+              </div>
             </div>
-          </div>
-        ) : view === 'map' ? (
-          <div className="mt-4">
-            <ClubsMap
-              clubs={mapped.map((r) => ({
-                id: r.id,
-                name: r.name,
-                place: r.place2.replace(/, United States$/, ''),
-                meta: distById[r.id] !== undefined ? `${fmtRange(r.start, r.end)} · ${Math.round(distById[r.id])} mi` : fmtRange(r.start, r.end),
-                lat: r.lat!,
-                lng: r.lng!,
-              }))}
-              onSelect={(id) => {
-                const r = results.find((x) => x.id === id);
-                if (!r) return;
-                if (r.series) setOpenSeries(r.series);
-                else if (r.href) router.push(r.href);
-              }}
-              noun={kind === 'series' ? 'series' : 'tournament'}
-              nounPlural={kind === 'series' ? 'series' : 'tournaments'}
-              emptyText={`No ${kind === 'series' ? 'series' : 'tournaments'} found.`}
-              cta={kind === 'series' ? 'View series' : 'View tournament'}
-            />
-            {mapped.length < results.length && (
-              <p className="mt-2 text-[13px] text-[#7D8BA0]">{results.length - mapped.length} without a location aren’t shown on the map.</p>
+
+            {/* Results */}
+            {loading ? (
+              <ul className="mt-4 grid grid-cols-1 gap-[26px] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" aria-hidden>
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <li key={i} className="h-[420px] animate-pulse rounded-lg border border-[#E8EEF4] bg-white p-[7px]"><div className="aspect-[2.2/1] rounded-md bg-[#EEF2F6]" /></li>
+                ))}
+              </ul>
+            ) : results.length === 0 ? (
+              <div className="mt-4 flex flex-col items-center rounded-lg border border-dashed border-[#C9D8E5] bg-white px-6 py-16 text-center">
+                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[#E6F4F5] text-[#0E7C7B]">
+                  <Search className="h-7 w-7" strokeWidth={1.75} aria-hidden />
+                </span>
+                <h2 className={`mt-4 font-montserrat text-[22px] font-bold ${INK}`}>No {kind === 'series' ? 'series' : 'tournaments'} found</h2>
+                <p className="mt-2 max-w-[480px] text-[15px] leading-[22px] text-[#536B84]">
+                  {origin
+                    ? `Nothing matches within ${radius} miles of ${origin.label}. Try a larger distance or fewer filters.`
+                    : state !== 'all'
+                      ? `There are no ${kind === 'series' ? 'series' : 'tournaments'} in ${STATE_NAMES[state]} that match your search yet.`
+                      : 'Try a different keyword, date range, or fewer filters.'}
+                </p>
+                <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                  <button type="button" onClick={resetAll} className="h-[42px] rounded-md bg-[#0E7C7B] px-6 text-[15px] font-semibold text-white transition hover:bg-[#0B6766]">
+                    Clear all filters
+                  </button>
+                  {origin && radius < 500 && (
+                    <button
+                      type="button"
+                      onClick={() => setRadius(RADII.find((r) => r > radius) ?? 500)}
+                      className="h-[42px] rounded-md border border-[#1FA3A6] bg-white px-6 text-[15px] font-semibold text-[#0E7C7B] transition hover:bg-[#EEF9F8]"
+                    >
+                      Search within {RADII.find((r) => r > radius)} miles
+                    </button>
+                  )}
+                </div>
+              </div>
+            ) : view === 'map' ? (
+              <div className="mt-4">
+                <ClubsMap
+                  clubs={mapped.map((r) => ({
+                    id: r.id,
+                    name: r.name,
+                    place: r.place2.replace(/, United States$/, ''),
+                    meta: distById[r.id] !== undefined ? `${fmtRange(r.start, r.end)} · ${Math.round(distById[r.id])} mi` : fmtRange(r.start, r.end),
+                    lat: r.lat!,
+                    lng: r.lng!,
+                  }))}
+                  onSelect={(id) => {
+                    const r = results.find((x) => x.id === id);
+                    if (!r) return;
+                    if (r.series) setOpenSeries(r.series);
+                    else if (r.href) router.push(r.href);
+                  }}
+                  noun={kind === 'series' ? 'series' : 'tournament'}
+                  nounPlural={kind === 'series' ? 'series' : 'tournaments'}
+                  emptyText={`No ${kind === 'series' ? 'series' : 'tournaments'} found.`}
+                  cta={kind === 'series' ? 'View series' : 'View tournament'}
+                />
+                {mapped.length < results.length && (
+                  <p className="mt-2 text-[13px] text-[#7D8BA0]">{results.length - mapped.length} without a location aren’t shown on the map.</p>
+                )}
+              </div>
+            ) : view === 'list' ? (
+              <ul className="mt-4 divide-y divide-[#EDF1F5] overflow-hidden rounded-lg border border-[#E8EEF4] bg-white shadow-[0_2px_10px_rgba(10,30,60,0.06)]">
+                {results.map((r) => (
+                  <li key={r.id} className="grid grid-cols-[96px_minmax(0,1fr)] gap-x-4 gap-y-3 p-4 sm:grid-cols-[180px_minmax(0,1fr)] sm:gap-4 lg:grid-cols-[200px_minmax(0,1fr)_minmax(0,300px)_auto] lg:items-center lg:gap-6">
+                    <div className="relative aspect-square overflow-hidden rounded-md bg-[#E9F2F7] sm:aspect-[2.2/1]">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={r.image} alt="" loading="lazy" className="h-full w-full object-cover" />
+                    </div>
+                    <div className="min-w-0">
+                      <StatusChip status={statusById[r.id]} />
+                      <h3 className={`mt-1.5 font-montserrat text-[18px] font-bold leading-tight ${INK}`}>{r.name}</h3>
+                      <PresentedBy r={r} className="mt-1 w-fit text-[14px] font-medium text-[#0E7C7B]" />
+                      <p className="mt-1.5 hidden text-[14px] leading-[20px] text-[#536B84] sm:line-clamp-2">{r.about}</p>
+                    </div>
+                    <p className="col-span-2 line-clamp-2 text-[14px] leading-[20px] text-[#536B84] sm:hidden">{r.about}</p>
+                    <div className="col-span-2 sm:col-span-1 sm:col-start-2 lg:col-start-auto"><Meta r={r} distance={distById[r.id]} size="list" /></div>
+                    <div className="col-span-2 flex flex-col gap-1.5 sm:col-span-1 sm:col-start-2 sm:w-fit lg:col-start-auto lg:items-center">
+                      <OpenButton r={r} onSeries={setOpenSeries} className="flex h-[38px] items-center justify-center gap-2 whitespace-nowrap rounded-md border border-[#1FA3A6] px-5 text-[14px] font-semibold text-[#0E7C7B] transition hover:bg-[#EEF9F8]" />
+                      {r.fee && <span className="flex items-center justify-center gap-1.5 text-[13px] text-[#5F7896]"><Ticket className="h-4 w-4" strokeWidth={1.75} />Entry {r.fee}</span>}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <ul className="mt-4 grid grid-cols-1 gap-[26px] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {results.map((r) => (
+                  <li key={r.id} className="flex flex-col overflow-hidden rounded-lg border border-[#E8EEF4] bg-white p-[7px] shadow-[0_2px_10px_rgba(10,30,60,0.06)]">
+                    <div className="relative aspect-[2.2/1] overflow-hidden rounded-md bg-[#E9F2F7]">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={r.image} alt="" loading="lazy" className="h-full w-full object-cover" />
+                      <StatusChip status={statusById[r.id]} className="absolute left-2.5 top-2.5 shadow-sm" />
+                    </div>
+                    <div className="flex flex-1 flex-col px-[12px] pb-[12px] pt-[14px]">
+                      <h3 className={`font-montserrat text-[19px] font-bold leading-tight ${INK}`}>{r.name}</h3>
+                      <PresentedBy r={r} className="mt-1 w-fit text-[14px] font-medium text-[#0E7C7B]" />
+                      <p className="mt-2.5 line-clamp-3 text-[14px] leading-[20px] text-[#536B84]">{r.about}</p>
+                      <div className="mt-3"><Meta r={r} distance={distById[r.id]} /></div>
+                      <div className="mt-auto pt-[18px]">
+                        {r.fee && <p className="mb-2 flex items-center gap-2 text-[13px] text-[#5F7896]"><Ticket className="h-4 w-4" strokeWidth={1.75} />Entry fee {r.fee}</p>}
+                        <OpenButton r={r} onSeries={setOpenSeries} className="flex h-[38px] w-full items-center justify-center gap-2 rounded-md border border-[#1FA3A6] text-[14px] font-semibold text-[#0E7C7B] transition hover:bg-[#EEF9F8]" />
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
             )}
           </div>
-        ) : view === 'list' ? (
-          <ul className="mt-4 divide-y divide-[#EDF1F5] overflow-hidden rounded-lg border border-[#E8EEF4] bg-white shadow-[0_2px_10px_rgba(10,30,60,0.06)]">
-            {results.map((r) => (
-              <li key={r.id} className="grid grid-cols-[96px_minmax(0,1fr)] gap-x-4 gap-y-3 p-4 sm:grid-cols-[180px_minmax(0,1fr)] sm:gap-4 lg:grid-cols-[200px_minmax(0,1fr)_minmax(0,300px)_auto] lg:items-center lg:gap-6">
-                <div className="relative aspect-square overflow-hidden rounded-md bg-[#E9F2F7] sm:aspect-[2.2/1]">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={r.image} alt="" loading="lazy" className="h-full w-full object-cover" />
-                </div>
-                <div className="min-w-0">
-                  <StatusChip status={statusById[r.id]} />
-                  <h3 className={`mt-1.5 font-montserrat text-[18px] font-bold leading-tight ${INK}`}>{r.name}</h3>
-                  <PresentedBy r={r} className="mt-1 w-fit text-[14px] font-medium text-[#0E7C7B]" />
-                  <p className="mt-1.5 hidden text-[14px] leading-[20px] text-[#536B84] sm:line-clamp-2">{r.about}</p>
-                </div>
-                <p className="col-span-2 line-clamp-2 text-[14px] leading-[20px] text-[#536B84] sm:hidden">{r.about}</p>
-                <div className="col-span-2 sm:col-span-1 sm:col-start-2 lg:col-start-auto"><Meta r={r} distance={distById[r.id]} size="list" /></div>
-                <div className="col-span-2 flex flex-col gap-1.5 sm:col-span-1 sm:col-start-2 sm:w-fit lg:col-start-auto lg:items-center">
-                  <OpenButton r={r} onSeries={setOpenSeries} className="flex h-[38px] items-center justify-center gap-2 whitespace-nowrap rounded-md border border-[#1FA3A6] px-5 text-[14px] font-semibold text-[#0E7C7B] transition hover:bg-[#EEF9F8]" />
-                  {r.fee && <span className="flex items-center justify-center gap-1.5 text-[13px] text-[#5F7896]"><Ticket className="h-4 w-4" strokeWidth={1.75} />Entry {r.fee}</span>}
-                </div>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <ul className="mt-4 grid grid-cols-1 gap-[26px] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {results.map((r) => (
-              <li key={r.id} className="flex flex-col overflow-hidden rounded-lg border border-[#E8EEF4] bg-white p-[7px] shadow-[0_2px_10px_rgba(10,30,60,0.06)]">
-                <div className="relative aspect-[2.2/1] overflow-hidden rounded-md bg-[#E9F2F7]">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={r.image} alt="" loading="lazy" className="h-full w-full object-cover" />
-                  <StatusChip status={statusById[r.id]} className="absolute left-2.5 top-2.5 shadow-sm" />
-                </div>
-                <div className="flex flex-1 flex-col px-[12px] pb-[12px] pt-[14px]">
-                  <h3 className={`font-montserrat text-[19px] font-bold leading-tight ${INK}`}>{r.name}</h3>
-                  <PresentedBy r={r} className="mt-1 w-fit text-[14px] font-medium text-[#0E7C7B]" />
-                  <p className="mt-2.5 line-clamp-3 text-[14px] leading-[20px] text-[#536B84]">{r.about}</p>
-                  <div className="mt-3"><Meta r={r} distance={distById[r.id]} /></div>
-                  <div className="mt-auto pt-[18px]">
-                    {r.fee && <p className="mb-2 flex items-center gap-2 text-[13px] text-[#5F7896]"><Ticket className="h-4 w-4" strokeWidth={1.75} />Entry fee {r.fee}</p>}
-                    <OpenButton r={r} onSeries={setOpenSeries} className="flex h-[38px] w-full items-center justify-center gap-2 rounded-md border border-[#1FA3A6] text-[14px] font-semibold text-[#0E7C7B] transition hover:bg-[#EEF9F8]" />
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
         )}
       </div>
 
