@@ -95,6 +95,13 @@ const MEGA_COLUMNS: MegaColumn[] = [
 /** Nav items that open the mega menu */
 const MEGA_TRIGGERS = new Set(['tournaments', 'calendar', 'sponsors', 'more']);
 
+/** Menu-only items: clicking just opens/closes the mega menu instead of navigating */
+const MENU_ONLY = MEGA_TRIGGERS;
+
+/** Column highlighted (light blue) when the menu is opened from that nav item */
+// 0 Tournaments · 1 Events · 2 Clubs · 3 Support · 4 Advertise with us!
+const MEGA_FOCUS_COLUMN: Record<string, number> = { tournaments: 0, calendar: 1, more: 3, sponsors: 4 };
+
 const MEGA_CLOSE_DELAY = 150; // ms — lets the pointer travel from the nav item into the panel
 
 export function HooxLogo({ onClick }: { onClick: () => void }) {
@@ -212,7 +219,7 @@ export default function Header({ currentUser, onNavigate, onLogout }: HeaderProp
                       onFocus={() => hasMega && openMega(item.view)}
                     >
                       <button
-                        onClick={() => (item.view === 'more' ? setMega(open ? null : 'more') : go(item.view))}
+                        onClick={() => (MENU_ONLY.has(item.view) ? openMega(item.view) : go(item.view))}
                         aria-current={active ? 'page' : undefined}
                         aria-expanded={hasMega ? open : undefined}
                         aria-controls={hasMega ? 'mega-menu' : undefined}
@@ -234,9 +241,12 @@ export default function Header({ currentUser, onNavigate, onLogout }: HeaderProp
                     aria-label="Site menu"
                     className="absolute inset-x-0 top-full border-b border-[#E8EEF4] bg-white shadow-[0_12px_24px_rgba(15,40,80,0.10)]"
                   >
-                    <div className="mx-auto grid max-w-[1440px] grid-cols-5 gap-8 px-5 pb-7 pt-6">
-                      {MEGA_COLUMNS.map((col) => (
-                        <div key={col[0].title} className="space-y-6">
+                    <div className="mx-auto grid max-w-[1440px] grid-cols-5 gap-4 px-1 pb-4 pt-3">
+                      {MEGA_COLUMNS.map((col, ci) => (
+                        <div
+                          key={col[0].title}
+                          className={`space-y-6 rounded-lg p-4 transition-colors ${MEGA_FOCUS_COLUMN[mega] === ci ? 'bg-[#EAF4FB]' : ''}`}
+                        >
                           {col.map((sec) => (
                             <div key={sec.title}>
                               <p className="font-montserrat text-[15px] font-bold text-[#0D1B4C]">{sec.title}</p>
