@@ -17,6 +17,7 @@ import { INK, fmtRange, type Status } from '@/components/listing/ListingUI';
 import { SERIES, SeriesDialog, statusOf, type SeriesItem } from '@/components/pages/SeriesPage';
 import { DEMO as DEMO_TOURNAMENTS, fromTournament, type TItem } from '@/components/pages/TournamentsPage';
 import { fetchTournaments } from '@/lib/storage';
+import FeaturedTournamentHero from '@/components/listing/FeaturedTournamentHero';
 import { toPath } from '@/lib/routes';
 import { Tournament } from '@/types';
 
@@ -214,6 +215,8 @@ export default function CalendarPage() {
   return (
     <div className="font-roboto">
       <div className="mx-auto max-w-[1440px] px-4 pb-12 pt-8 sm:px-6 lg:px-[42px] lg:pt-[34px]">
+        <FeaturedTournamentHero tournaments={tournaments} className="mb-8" />
+
         <h1 className={`font-montserrat text-[34px] font-bold leading-tight sm:text-[46px] ${INK}`}>Tournament Calendar</h1>
 
         <section aria-label={`${monthLabel} calendar`} className="mt-6 rounded-lg border border-[#E8EEF4] bg-white p-3 shadow-[0_2px_10px_rgba(10,30,60,0.06)] sm:p-5">

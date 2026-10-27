@@ -14,7 +14,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Search, MapPin, Fish, Trophy, CalendarDays, ChevronDown, ArrowUpDown, ArrowRight, Flag, ExternalLink, Users, Ticket,
-  LocateFixed, Navigation, X, Loader2, Layers, Star,
+  LocateFixed, Navigation, X, Loader2, Layers,
 } from 'lucide-react';
 import ClubsMap from '@/components/clubs/ClubsMap';
 import {
@@ -22,6 +22,7 @@ import {
   statusFor, fmtRange,
 } from '@/components/listing/ListingUI';
 import DateRangePicker from '@/components/listing/DateRangePicker';
+import FeaturedTournamentHero from '@/components/listing/FeaturedTournamentHero';
 import { SERIES, SeriesDialog, type SeriesItem } from '@/components/pages/SeriesPage';
 import { DEMO as DEMO_TOURNAMENTS, fromTournament, type TItem } from '@/components/pages/TournamentsPage';
 import { fetchTournaments } from '@/lib/storage';
@@ -284,16 +285,6 @@ export default function SearchPage() {
   /* ---------- data ---------- */
   const loading = kind === 'tournaments' && tournaments === null;
 
-  // Featured tournament hero: a featured listing, otherwise the next one coming up
-  const featured = useMemo(() => {
-    if (tournaments === null) return null;
-    const list = tournaments.length ? tournaments.map(fromTournament) : DEMO_TOURNAMENTS;
-    const now = new Date();
-    const pick =
-      list.find((t) => t.featured) ??
-      list.filter((t) => !t.completed && new Date(`${t.end}T23:59:59`) >= now).sort((a, b) => a.start.localeCompare(b.start))[0];
-    return pick ? fromTItem(pick) : null;
-  }, [tournaments]);
   const items = useMemo<Result[]>(() => {
     if (kind === 'series') return SERIES.map(fromSeries);
     const list = tournaments && tournaments.length ? tournaments.map(fromTournament) : DEMO_TOURNAMENTS;
@@ -362,40 +353,7 @@ export default function SearchPage() {
   return (
     <div className="font-roboto">
       <div className="mx-auto max-w-[1440px] px-4 pb-12 pt-8 sm:px-6 lg:px-[42px] lg:pt-[34px]">
-        {/* Featured tournament */}
-        {featured ? (
-          <section aria-labelledby="featured-tournament" className="relative mb-8 overflow-hidden rounded-lg bg-[#0A2A47] shadow-[0_6px_20px_rgba(5,30,60,0.18)]">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={featured.image}
-              alt=""
-              className="absolute inset-0 h-full w-full object-cover opacity-35 md:left-auto md:right-0 md:w-[56%] md:opacity-100 md:[-webkit-mask-image:linear-gradient(90deg,transparent_0%,#000_35%)] md:[mask-image:linear-gradient(90deg,transparent_0%,#000_35%)]"
-            />
-            <div className="relative z-10 flex flex-col gap-6 px-6 py-7 sm:px-10 md:min-h-[292px] md:flex-row md:items-end md:justify-between">
-              <div className="max-w-[640px]">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#1E4F63] px-3 py-1 text-[12px] font-bold uppercase tracking-[0.02em] text-[#3FD6D0]">
-                  <Star className="h-3.5 w-3.5" fill="currentColor" strokeWidth={1.5} /> Featured Tournament
-                </span>
-                <h2 id="featured-tournament" className="mt-4 font-montserrat text-[26px] font-bold leading-tight text-white sm:text-[32px]">{featured.name}</h2>
-                <PresentedBy r={featured} className="mt-1 text-[16px] font-medium text-[#3FD6D0]" />
-                <p className="mt-4 max-w-[560px] text-[16px] leading-[26px] text-white/90">{featured.about}</p>
-                <p className="mt-5 flex flex-wrap items-center gap-x-8 gap-y-2 text-[16px] text-white">
-                  <span className="flex items-center gap-2.5"><CalendarDays className="h-5 w-5" strokeWidth={1.75} />{fmtRange(featured.start, featured.end)}</span>
-                  {featured.prizePool && <span className="flex items-center gap-2.5"><Trophy className="h-5 w-5" strokeWidth={1.75} />{featured.prizePool} prize pool</span>}
-                  <span className="flex items-center gap-2.5"><MapPin className="h-5 w-5" strokeWidth={1.75} />{[featured.place1, featured.place2.replace(/, United States$/, '')].filter(Boolean).join(' · ')}</span>
-                </p>
-              </div>
-              <Link
-                href={featured.href ?? '/tournaments'}
-                className="flex h-[48px] w-fit flex-shrink-0 items-center gap-4 rounded-md bg-[#22B3B5] px-7 text-[17px] font-semibold text-white shadow-[0_4px_12px_rgba(34,179,181,0.35)] transition hover:bg-[#1C9C9E]"
-              >
-                View tournament <ArrowRight className="h-5 w-5" strokeWidth={2} />
-              </Link>
-            </div>
-          </section>
-        ) : tournaments === null ? (
-          <div className="mb-8 h-[292px] animate-pulse rounded-lg bg-[#DCE6EE]" aria-hidden />
-        ) : null}
+        <FeaturedTournamentHero tournaments={tournaments} className="mb-8" />
 
         <header>
           <h1 className={`font-montserrat text-[34px] font-bold leading-tight sm:text-[46px] ${INK}`}>Search Tournaments and Series</h1>
