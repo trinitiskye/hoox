@@ -23,7 +23,7 @@ interface TournamentsPageProps {
 /* Real tournaments from Supabase; demo tournaments when there are none.*/
 /* ------------------------------------------------------------------ */
 
-interface TItem {
+export interface TItem {
   id: string;
   href: string;
   name: string;
@@ -51,7 +51,7 @@ interface TItem {
 const IMAGES = ['/home/coastal-open.jpg', '/home/pine-creek.jpg', '/home/summer-slam.jpg', '/home/mountain-lake.jpg', '/home/bayou-bash.jpg', '/home/fall-classic.jpg'];
 const DEMO_HREF = '/tournaments/lakefront-classic'; // demo cards open the demo event page
 
-const DEMO: TItem[] = [
+export const DEMO: TItem[] = [
   {
     id: 'lakefront-classic', href: DEMO_HREF, featured: true, name: 'Lakefront Classic', sponsor: 'TidalGear', sponsorUrl: 'https://example.com',
     about: 'Three days of competitive bass fishing on Lake Hartwell, open to anglers of all skill levels, with a $150,000 total prize pool.',
@@ -127,7 +127,7 @@ function stateCodeOf(s?: string) {
   return Object.keys(STATE_NAMES).find((k) => STATE_NAMES[k].toLowerCase() === s.trim().toLowerCase());
 }
 
-function fromTournament(t: Tournament, i: number): TItem {
+export function fromTournament(t: Tournament, i: number): TItem {
   const code = stateCodeOf(t.state);
   const center = code ? STATE_CENTER[code] : undefined;
   const fee = t.entryFee || t.registrationFee;

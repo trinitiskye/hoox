@@ -57,7 +57,7 @@ const MEGA_COLUMNS: MegaColumn[] = [
   [{
     title: 'Clubs',
     links: [
-      { href: '/search?type=clubs', label: 'Search Clubs' },
+      { href: '/clubs', label: 'Search Clubs' },
       { href: '/clubs?view=map', label: 'View Club Map' },
       { href: '/clubs', label: 'View Directory' },
       { href: '/clubs/feature', label: 'Feature your Club' },

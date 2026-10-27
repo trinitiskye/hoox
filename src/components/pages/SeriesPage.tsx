@@ -27,7 +27,7 @@ interface Stop {
   place: string;
 }
 
-interface SeriesItem {
+export interface SeriesItem {
   id: string;
   name: string;
   sponsor?: string;
@@ -48,7 +48,7 @@ interface SeriesItem {
   featured?: boolean;
 }
 
-const SERIES: SeriesItem[] = [
+export const SERIES: SeriesItem[] = [
   {
     id: 'hoox-pro-bass', featured: true, name: 'HOOX Pro Bass Series', sponsor: 'TidalGear', sponsorUrl: 'https://example.com',
     city: 'Guntersville', lat: 34.3582, lng: -86.2947, state: 'Alabama', country: 'United States',
@@ -153,7 +153,7 @@ const SORTS: Record<Sort, string> = { season: 'Current Season', start: 'Start Da
 
 /* ------------------------------ helpers ------------------------------ */
 
-function statusOf(s: SeriesItem, today: Date): Status {
+export function statusOf(s: SeriesItem, today: Date): Status {
   if (today < day(s.start)) return 'Upcoming';
   if (today > day(s.end)) return 'Completed';
   return 'In progress';
@@ -186,7 +186,7 @@ const place = (s: SeriesItem) => `${s.city}, ${s.state}, ${s.country}`;
 
 /* ------------------------------ details ----------------------------- */
 
-function SeriesDialog({ s, status, onClose, onNavigate }: { s: SeriesItem; status: Status; onClose: () => void; onNavigate: (v: string) => void }) {
+export function SeriesDialog({ s, status, onClose, onNavigate }: { s: SeriesItem; status: Status; onClose: () => void; onNavigate: (v: string) => void }) {
   const closeRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     closeRef.current?.focus();
