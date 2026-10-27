@@ -144,6 +144,19 @@ export const SERIES: SeriesItem[] = [
       { date: '2027-09-11', name: 'Challenge Final', place: 'Oxnard, CA' },
     ],
   },
+  {
+    // Demo: a short series that runs over three consecutive days
+    id: 'lanier-holiday-shootout', name: 'Lanier Holiday Shootout Series',
+    city: 'Gainesville', lat: 34.2979, lng: -83.8241, state: 'Georgia', country: 'United States',
+    region: 'Georgia', states: ['GA'], styles: ['Bass'],
+    start: '2026-11-27', end: '2026-11-29', image: '/clubs/demo/lakeview-bass-club.jpg',
+    about: 'Three one-day bass tournaments over Thanksgiving weekend on Lake Lanier. Fish one day or all three for the series title.',
+    stops: [
+      { date: '2026-11-27', name: 'Day 1 – Black Friday Open', place: 'Lake Lanier, GA' },
+      { date: '2026-11-28', name: 'Day 2 – Saturday Shootout', place: 'Lake Lanier, GA' },
+      { date: '2026-11-29', name: 'Day 3 – Sunday Final', place: 'Lake Lanier, GA' },
+    ],
+  },
 ];
 
 const STYLES: Style[] = ['Bass', 'Crappie', 'Freshwater', 'Fly Fishing', 'Inshore', 'Kayak', 'Offshore', 'Saltwater'];
