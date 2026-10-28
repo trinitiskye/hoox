@@ -60,27 +60,6 @@ function WinnerCard({ w, now, start }: { w: Winner; now: number | null; start: n
 
   return (
     <article className="flex flex-col overflow-hidden rounded-lg border border-[#E8EEF4] bg-white p-[7px] shadow-[0_2px_10px_rgba(10,30,60,0.06)]">
-      {/* Tournament */}
-      <div className="px-[10px] pb-[12px] pt-[10px] text-center">
-        <h3 className="line-clamp-2 font-montserrat text-[19px] font-bold uppercase leading-tight tracking-[0.01em] text-[#0D1B4C]">{b.name}</h3>
-        <p className="mt-2 flex flex-wrap items-center justify-center gap-x-2 text-[15px] font-medium text-[#3E5675]">
-          <span className="inline-flex items-center gap-1.5"><Users className="h-4 w-4 text-[#0D1B4C]" fill="currentColor" strokeWidth={1.5} />{w.anglers} Anglers</span>
-          <span aria-hidden className="text-[#9AA8B8]">•</span>
-          <span className="inline-flex items-center gap-1.5"><Fish className="h-4 w-4 text-[#0D1B4C]" strokeWidth={2} />{w.fishCaught} Fish Caught</span>
-        </p>
-        <p className="mt-1.5 h-[40px] text-[13px] leading-[20px] text-[#7D8BA0]">
-          {live ? (
-            <span className="inline-flex h-[20px] items-center gap-1.5 font-medium text-[#0E7C7B]">
-              <Clock className="h-3.5 w-3.5" strokeWidth={2.25} />
-              <span suppressHydrationWarning>{now === null ? 'In progress' : timeLeft(start + (w.endsInHours ?? 0) * 3600_000 - now)}</span>
-            </span>
-          ) : (
-            <span>Final results · {w.finalDate}</span>
-          )}
-          <span className="block">{w.timezone}</span>
-        </p>
-      </div>
-
       {/* Winning catch */}
       <div className="relative aspect-[4/3] overflow-hidden rounded-md bg-gradient-to-br from-[#0A2A47] to-[#0E5A6E]">
         {w.photo && imgOk ? (
@@ -119,6 +98,27 @@ function WinnerCard({ w, now, start }: { w: Winner; now: number | null; start: n
             <p className="truncate text-[14px] font-medium text-white/95">{w.species} · Total {top.weight?.toFixed(2)} lb</p>
           </div>
         </div>
+      </div>
+
+      {/* Tournament */}
+      <div className="px-[10px] pb-[2px] pt-[14px] text-center">
+        <h3 className="line-clamp-2 font-montserrat text-[19px] font-bold uppercase leading-tight tracking-[0.01em] text-[#0D1B4C]">{b.name}</h3>
+        <p className="mt-2 flex flex-wrap items-center justify-center gap-x-2 text-[15px] font-medium text-[#3E5675]">
+          <span className="inline-flex items-center gap-1.5"><Users className="h-4 w-4 text-[#0D1B4C]" fill="currentColor" strokeWidth={1.5} />{w.anglers} Anglers</span>
+          <span aria-hidden className="text-[#9AA8B8]">•</span>
+          <span className="inline-flex items-center gap-1.5"><Fish className="h-4 w-4 text-[#0D1B4C]" strokeWidth={2} />{w.fishCaught} Fish Caught</span>
+        </p>
+        <p className="mt-1.5 h-[40px] text-[13px] leading-[20px] text-[#7D8BA0]">
+          {live ? (
+            <span className="inline-flex h-[20px] items-center gap-1.5 font-medium text-[#0E7C7B]">
+              <Clock className="h-3.5 w-3.5" strokeWidth={2.25} />
+              <span suppressHydrationWarning>{now === null ? 'In progress' : timeLeft(start + (w.endsInHours ?? 0) * 3600_000 - now)}</span>
+            </span>
+          ) : (
+            <span>Final results · {w.finalDate}</span>
+          )}
+          <span className="block">{w.timezone}</span>
+        </p>
       </div>
 
       <div className="px-[5px] pb-[5px] pt-[10px]">
