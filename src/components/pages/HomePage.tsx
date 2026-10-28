@@ -10,6 +10,7 @@ import { getActiveHeroSlides, dbHeroSlideToApp, getActiveHomeBanners, dbHomeBann
 import RecommendedSection from '@/components/home/RecommendedSection';
 import HeroCarousel from '@/components/home/HeroCarousel';
 import LeaderboardSection from '@/components/home/LeaderboardSection';
+import WinnersCircle from '@/components/home/WinnersCircle';
 import { mapsSearchUrl, mapsDirectionsUrl, mapsEmbedUrl } from '@/lib/eventDetail';
 
 interface HomePageProps {
@@ -554,6 +555,9 @@ export default function HomePage({ tournaments, onNavigate }: HomePageProps) {
 
         {/* Leaderboards */}
         <LeaderboardSection onNavigate={onNavigate} />
+
+        {/* Winners Circle */}
+        <WinnersCircle onNavigate={onNavigate} />
 
         {/* Upcoming tournaments */}
         <UpcomingSection cards={upcoming} onNavigate={onNavigate} />
