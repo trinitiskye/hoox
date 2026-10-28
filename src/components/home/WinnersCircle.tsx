@@ -82,7 +82,11 @@ function WinnerCard({ w, now, start }: { w: Winner; now: number | null; start: n
           </span>
           {live ? (
             <span className="inline-flex items-center gap-1.5 rounded-full bg-[#2E8C86]/95 px-3 py-[5px] text-[12px] font-semibold text-white shadow-sm">
-              <span className="h-[7px] w-[7px] rounded-full bg-white" /> LIVE
+              <span className="relative flex h-[7px] w-[7px]" aria-hidden>
+                <span className="absolute inline-flex h-full w-full rounded-full bg-white opacity-75 motion-safe:animate-ping" />
+                <span className="relative inline-flex h-[7px] w-[7px] rounded-full bg-white" />
+              </span>
+              LIVE
             </span>
           ) : (
             <span className="inline-flex items-center rounded-full bg-[#7A8794]/85 px-3 py-[5px] text-[12px] font-semibold text-white shadow-sm backdrop-blur-sm">FINAL</span>
