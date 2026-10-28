@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Search, MapPin, Fish, Users, User, CalendarDays, ChevronDown, ArrowUpDown, ArrowRight, Star, X, LayoutGrid, Map as MapIcon,
+  Search, MapPin, Fish, Users, User, ChevronDown, ArrowUpDown, ArrowRight, Star, X, LayoutGrid, Map as MapIcon,
 } from 'lucide-react';
 import ClubsMap from '@/components/clubs/ClubsMap';
 
@@ -156,9 +156,6 @@ export function ClubCard({ c, onOpen, showFeatured = false }: { c: Club; onOpen:
           <li className={`flex items-center gap-3 font-medium ${INK}`}><FishGlyph className="text-[#0D1B4C]" />{c.styles.join(' • ')}</li>
           <li className="flex items-center gap-3 text-[#5F7896]"><User className="h-[17px] w-[17px] flex-shrink-0 text-[#0D1B4C]" fill="currentColor" strokeWidth={1.5} />{c.members.toLocaleString()} members</li>
         </ul>
-        <p className="mt-4 flex flex-wrap items-center gap-x-10 gap-y-1.5 text-[13px] text-[#5F7896]">
-          <span className="flex items-center gap-2"><CalendarDays className="h-4 w-4" strokeWidth={1.75} />{c.schedule}</span>
-        </p>
         <div className="mt-auto pt-[18px]">
           <button
             onClick={onOpen}
