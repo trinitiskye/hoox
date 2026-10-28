@@ -10,6 +10,7 @@ import { getActiveHeroSlides, dbHeroSlideToApp, getActiveHomeBanners, dbHomeBann
 import RecommendedSection from '@/components/home/RecommendedSection';
 import HeroCarousel from '@/components/home/HeroCarousel';
 import WinnersCircle from '@/components/home/WinnersCircle';
+import FeaturedClubs from '@/components/home/FeaturedClubs';
 import { mapsSearchUrl, mapsDirectionsUrl, mapsEmbedUrl } from '@/lib/eventDetail';
 
 interface HomePageProps {
@@ -557,6 +558,9 @@ export default function HomePage({ tournaments, onNavigate }: HomePageProps) {
 
         {/* Upcoming tournaments */}
         <UpcomingSection cards={upcoming} onNavigate={onNavigate} />
+
+        {/* Featured clubs */}
+        <FeaturedClubs onNavigate={onNavigate} />
       </div>
     </div>
   );

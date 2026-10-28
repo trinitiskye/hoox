@@ -18,7 +18,7 @@ interface ClubsPageProps {
 type Level = 'Beginner friendly' | 'All skill levels' | 'Intermediate+';
 type Style = 'Saltwater' | 'Freshwater' | 'Fly Fishing' | 'Bass' | 'Offshore' | 'Kayak' | 'Inshore';
 
-interface Club {
+export interface Club {
   id: string;
   name: string;
   city: string;
@@ -38,7 +38,7 @@ interface Club {
 
 const IMG = '/clubs/demo/';
 
-const CLUBS: Club[] = [
+export const CLUBS: Club[] = [
   {
     id: 'coastal-wave-anglers', lat: 45.8918, lng: -123.9615, name: 'Coastal Wave Anglers', city: 'Oregon Coast', state: 'OR', featured: true,
     species: ['Saltwater', 'Salmon', 'Halibut', 'Rockfish'], styles: ['Saltwater', 'Inshore'], members: 842,
@@ -52,13 +52,13 @@ const CLUBS: Club[] = [
     about: 'Offshore trips out of San Diego chasing tuna and marlin, with experienced captains happy to show newcomers the ropes.',
   },
   {
-    id: 'high-country-fly-fishers', lat: 45.677, lng: -111.0429, name: 'High Country Fly Fishers', city: 'Bozeman', state: 'MT',
+    id: 'high-country-fly-fishers', lat: 45.677, lng: -111.0429, name: 'High Country Fly Fishers', city: 'Bozeman', state: 'MT', featured: true,
     species: ['Trout', 'Grayling', 'Fly Fishing'], styles: ['Freshwater', 'Fly Fishing'], members: 431,
     schedule: 'Weekly outings', level: 'All skill levels', image: `${IMG}high-country-fly-fishers.jpg`,
     about: 'Fly fishing Montana’s rivers and alpine lakes, with casting clinics, fly-tying nights and weekly outings.',
   },
   {
-    id: 'lakeview-bass-club', lat: 30.2672, lng: -97.7431, name: 'Lakeview Bass Club', city: 'Austin', state: 'TX',
+    id: 'lakeview-bass-club', lat: 30.2672, lng: -97.7431, name: 'Lakeview Bass Club', city: 'Austin', state: 'TX', featured: true,
     species: ['Largemouth Bass', 'Sunfish'], styles: ['Freshwater', 'Bass'], members: 298,
     schedule: 'Bi-weekly', level: 'All skill levels', image: `${IMG}lakeview-bass-club.jpg`,
     about: 'Central Texas bass anglers fishing local lakes every other weekend, with club tournaments throughout the season.',
@@ -76,7 +76,7 @@ const CLUBS: Club[] = [
     about: 'Inshore fishing along Florida’s Gulf Coast for tarpon and snook, from the beach, the pier and the backcountry.',
   },
   {
-    id: 'kayak-anglers-collective', lat: 47.6062, lng: -122.3321, name: 'Kayak Anglers Collective', city: 'Seattle', state: 'WA',
+    id: 'kayak-anglers-collective', lat: 47.6062, lng: -122.3321, name: 'Kayak Anglers Collective', city: 'Seattle', state: 'WA', featured: true,
     species: ['Salmon', 'Halibut', 'Kayak'], styles: ['Saltwater', 'Kayak'], members: 276,
     schedule: 'Monthly trips', level: 'Beginner friendly', image: `${IMG}kayak-anglers-collective.jpg`,
     about: 'Paddle-powered fishing on Puget Sound and nearby lakes, with safety sessions and gear swaps for new kayak anglers.',
@@ -134,9 +134,48 @@ function FishGlyph({ className = '' }: { className?: string }) {
   return <Fish className={`h-[18px] w-[18px] flex-shrink-0 ${className}`} strokeWidth={2} />;
 }
 
+/* ------------------------------ card ------------------------------- */
+
+/** Club card — used in the Clubs directory and the home page's Featured Clubs row */
+export function ClubCard({ c, onOpen, showFeatured = false }: { c: Club; onOpen: () => void; showFeatured?: boolean }) {
+  return (
+    <li className="flex flex-col overflow-hidden rounded-lg border border-[#E8EEF4] bg-white p-[7px] shadow-[0_2px_10px_rgba(10,30,60,0.06)]">
+      <div className="relative aspect-[2.85/1] overflow-hidden rounded-md bg-[#E9F2F7]">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={c.image} alt="" loading="lazy" className="h-full w-full object-cover" />
+        {showFeatured && (
+          <span className="absolute left-2.5 top-2.5 inline-flex items-center gap-1.5 rounded-full bg-[#0A2A47]/90 px-2.5 py-[4px] text-[11.5px] font-bold uppercase tracking-[0.03em] text-[#3FD6D0] shadow-sm">
+            <Star className="h-3 w-3" fill="currentColor" strokeWidth={1.5} /> Featured
+          </span>
+        )}
+      </div>
+      <div className="flex flex-1 flex-col px-[12px] pb-[12px] pt-[14px]">
+        <h3 className={`font-montserrat text-[19px] font-bold leading-tight ${INK}`}>{c.name}</h3>
+        <ul className="mt-2 space-y-[6px] text-[14.5px]">
+          <li className="flex items-center gap-3 text-[#5F7896]"><MapPin className="h-[17px] w-[17px] flex-shrink-0 text-[#0D1B4C]" fill="currentColor" stroke="white" strokeWidth={1.5} />{c.city}, {c.state}</li>
+          <li className={`flex items-center gap-3 font-medium ${INK}`}><FishGlyph className="text-[#0D1B4C]" />{c.styles.join(' • ')}</li>
+          <li className="flex items-center gap-3 text-[#5F7896]"><User className="h-[17px] w-[17px] flex-shrink-0 text-[#0D1B4C]" fill="currentColor" strokeWidth={1.5} />{c.members.toLocaleString()} members</li>
+        </ul>
+        <p className="mt-4 flex flex-wrap items-center gap-x-10 gap-y-1.5 text-[13px] text-[#5F7896]">
+          <span className="flex items-center gap-2"><CalendarDays className="h-4 w-4" strokeWidth={1.75} />{c.schedule}</span>
+        </p>
+        <div className="mt-auto pt-[18px]">
+          <button
+            onClick={onOpen}
+            aria-label={`View details for ${c.name}`}
+            className="flex h-[38px] w-full items-center justify-center gap-2 rounded-md border border-[#1FA3A6] text-[14px] font-semibold text-[#0E7C7B] transition hover:bg-[#EEF9F8]"
+          >
+            View details <ArrowRight className="h-4 w-4" strokeWidth={2} />
+          </button>
+        </div>
+      </div>
+    </li>
+  );
+}
+
 /* ------------------------------ details ----------------------------- */
 
-function ClubDialog({ club, onClose, onNavigate }: { club: Club; onClose: () => void; onNavigate: (v: string) => void }) {
+export function ClubDialog({ club, onClose, onNavigate }: { club: Club; onClose: () => void; onNavigate: (v: string) => void }) {
   const closeRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     closeRef.current?.focus();
@@ -374,32 +413,7 @@ export default function ClubsPage({ onNavigate }: ClubsPageProps) {
         ) : (
           <ul className="mt-4 grid grid-cols-1 gap-[26px] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {grid.map((c) => (
-              <li key={c.id} className="flex flex-col overflow-hidden rounded-lg border border-[#E8EEF4] bg-white p-[7px] shadow-[0_2px_10px_rgba(10,30,60,0.06)]">
-                <div className="aspect-[2.85/1] overflow-hidden rounded-md bg-[#E9F2F7]">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={c.image} alt="" loading="lazy" className="h-full w-full object-cover" />
-                </div>
-                <div className="flex flex-1 flex-col px-[12px] pb-[12px] pt-[14px]">
-                  <h3 className={`font-montserrat text-[19px] font-bold leading-tight ${INK}`}>{c.name}</h3>
-                  <ul className="mt-2 space-y-[6px] text-[14.5px]">
-                    <li className="flex items-center gap-3 text-[#5F7896]"><MapPin className="h-[17px] w-[17px] flex-shrink-0 text-[#0D1B4C]" fill="currentColor" stroke="white" strokeWidth={1.5} />{c.city}, {c.state}</li>
-                    <li className={`flex items-center gap-3 font-medium ${INK}`}><FishGlyph className="text-[#0D1B4C]" />{c.styles.join(' • ')}</li>
-                    <li className="flex items-center gap-3 text-[#5F7896]"><User className="h-[17px] w-[17px] flex-shrink-0 text-[#0D1B4C]" fill="currentColor" strokeWidth={1.5} />{c.members.toLocaleString()} members</li>
-                  </ul>
-                  <p className="mt-4 flex flex-wrap items-center gap-x-10 gap-y-1.5 text-[13px] text-[#5F7896]">
-                    <span className="flex items-center gap-2"><CalendarDays className="h-4 w-4" strokeWidth={1.75} />{c.schedule}</span>
-                  </p>
-                  <div className="mt-auto pt-[18px]">
-                    <button
-                      onClick={() => setOpen(c)}
-                      aria-label={`View details for ${c.name}`}
-                      className="flex h-[38px] w-full items-center justify-center gap-2 rounded-md border border-[#1FA3A6] text-[14px] font-semibold text-[#0E7C7B] transition hover:bg-[#EEF9F8]"
-                    >
-                      View details <ArrowRight className="h-4 w-4" strokeWidth={2} />
-                    </button>
-                  </div>
-                </div>
-              </li>
+              <ClubCard key={c.id} c={c} onOpen={() => setOpen(c)} showFeatured={!!c.featured} />
             ))}
           </ul>
         )}
