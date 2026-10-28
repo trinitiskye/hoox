@@ -101,32 +101,33 @@ function WinnerCard({ w, now, start }: { w: Winner; now: number | null; start: n
       </div>
 
       {/* Tournament */}
-      <div className="px-[10px] pb-[2px] pt-[14px] text-center">
+      <div className="px-[10px] pb-[4px] pt-[14px] text-center">
         <h3 className="line-clamp-2 font-montserrat text-[19px] font-bold uppercase leading-tight tracking-[0.01em] text-[#0D1B4C]">{b.name}</h3>
         <p className="mt-2 flex flex-wrap items-center justify-center gap-x-2 text-[15px] font-medium text-[#3E5675]">
           <span className="inline-flex items-center gap-1.5"><Users className="h-4 w-4 text-[#0D1B4C]" fill="currentColor" strokeWidth={1.5} />{w.anglers} Anglers</span>
           <span aria-hidden className="text-[#9AA8B8]">•</span>
           <span className="inline-flex items-center gap-1.5"><Fish className="h-4 w-4 text-[#0D1B4C]" strokeWidth={2} />{w.fishCaught} Fish Caught</span>
         </p>
-        <p className="mt-1.5 h-[40px] text-[13px] leading-[20px] text-[#7D8BA0]">
-          {live ? (
-            <span className="inline-flex h-[20px] items-center gap-1.5 font-medium text-[#0E7C7B]">
-              <Clock className="h-3.5 w-3.5" strokeWidth={2.25} />
-              <span suppressHydrationWarning>{now === null ? 'In progress' : timeLeft(start + (w.endsInHours ?? 0) * 3600_000 - now)}</span>
-            </span>
-          ) : (
-            <span>Final results · {w.finalDate}</span>
-          )}
-          <span className="block">{w.timezone}</span>
-        </p>
       </div>
 
       <div className="px-[5px] pb-[5px] pt-[10px]">
         <Link
           href={href}
-          className="flex h-[38px] w-full items-center justify-center gap-2 rounded-md border border-[#1FA3A6] text-[14px] font-semibold text-[#0E7C7B] transition hover:bg-[#EEF9F8]"
+          className="flex w-full flex-col items-center justify-center rounded-md border border-[#1FA3A6] px-3 py-[7px] text-center text-[#0E7C7B] transition hover:bg-[#EEF9F8]"
         >
-          {live ? 'View live leaderboard' : 'View final results'} <ArrowRight className="h-4 w-4" strokeWidth={2} />
+          <span className="flex items-center gap-2 text-[14px] font-semibold">
+            {live ? 'View live leaderboard' : 'View final results'} <ArrowRight className="h-4 w-4" strokeWidth={2} />
+          </span>
+          {/* Countdown (live) or final date, with time zone */}
+          <span className={`mt-0.5 flex items-center gap-1.5 text-[12.5px] ${live ? 'font-medium text-[#0E7C7B]' : 'text-[#5F7896]'}`}>
+            {live && <Clock className="h-3.5 w-3.5 flex-shrink-0" strokeWidth={2.25} />}
+            <span suppressHydrationWarning>
+              {live
+                ? now === null ? 'In progress' : timeLeft(start + (w.endsInHours ?? 0) * 3600_000 - now)
+                : `Final · ${w.finalDate}`}
+              {' · '}{w.timezone}
+            </span>
+          </span>
         </Link>
       </div>
     </article>
