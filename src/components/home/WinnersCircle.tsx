@@ -5,8 +5,9 @@
 /* Each card: tournament, anglers & fish caught, time left (live) or   */
 /* final date, the winning catch photo with a 1st Place label, and the */
 /* angler with species and total. Demo data comes from the same boards */
-/* as the Leaderboards section; real cards will use the winner's       */
-/* submitted catch photo.                                              */
+/* as the Leaderboards section. Submission photos show the fish on a   */
+/* measuring board with the tournament code written on the angler's    */
+/* hand; until real ones exist, an illustrated placeholder is shown.   */
 /* ------------------------------------------------------------------ */
 
 import { useEffect, useState } from 'react';
@@ -14,26 +15,27 @@ import Link from 'next/link';
 import { ArrowRight, Trophy, Clock, Fish, Users } from 'lucide-react';
 import { BOARDS, Avatar } from '@/components/home/LeaderboardSection';
 import { anglerHref } from '@/lib/anglerLinks';
-
-const unsplash = (id: string) => `https://images.unsplash.com/photo-${id}?w=720&q=70&auto=format&fit=crop`;
+import SubmissionIllustration, { type FishLook } from '@/components/home/SubmissionIllustration';
 
 interface Winner {
   boardId: string;
   species: string;
   anglers: number;
   fishCaught: number;
-  photo: string; // winning catch photo
+  photo?: string; // the winning submission photo (fish on the board, code on the hand)
+  look: FishLook; // illustration style when there's no photo yet
+  code: string; // tournament code written on the angler's hand
+  inches: number; // biggest fish length shown on the board
   endsInHours?: number; // live events: hours left (demo)
   finalDate?: string; // completed events
   timezone: string;
 }
 
-// Free photos (Unsplash License) by Jim Crowley — placeholders for catch photos
 const WINNERS: Winner[] = [
-  { boardId: 'lakefront-classic', species: 'Largemouth Bass', anglers: 156, fishCaught: 412, photo: unsplash('1763047085182-737f6f21385a'), endsInHours: 105.04, timezone: 'Eastern Time' },
-  { boardId: 'riverside-open', species: 'Striped Bass', anglers: 128, fishCaught: 297, photo: unsplash('1763047019742-60edc4233593'), endsInHours: 30.6, timezone: 'Eastern Time' },
-  { boardId: 'mountain-lake-shootout', species: 'Smallmouth Bass', anglers: 94, fishCaught: 238, photo: unsplash('1763047327227-3483a4b28096'), finalDate: 'Jul 14, 2025', timezone: 'Eastern Time' },
-  { boardId: 'bayou-brawl', species: 'Smallmouth Bass', anglers: 172, fishCaught: 466, photo: unsplash('1763047302840-17f4131fa3a9'), finalDate: 'Aug 4, 2025', timezone: 'Central Time' },
+  { boardId: 'lakefront-classic', species: 'Largemouth Bass', anglers: 156, fishCaught: 412, look: 'largemouth', code: 'HX-7Q2', inches: 21.5, endsInHours: 105.04, timezone: 'Eastern Time' },
+  { boardId: 'riverside-open', species: 'Striped Bass', anglers: 128, fishCaught: 297, look: 'striped', code: 'RV-3K8', inches: 26, endsInHours: 30.6, timezone: 'Eastern Time' },
+  { boardId: 'mountain-lake-shootout', species: 'Smallmouth Bass', anglers: 94, fishCaught: 238, look: 'smallmouth', code: 'ML-52W', inches: 19.75, finalDate: 'Jul 14, 2025', timezone: 'Eastern Time' },
+  { boardId: 'bayou-brawl', species: 'Largemouth Bass', anglers: 172, fishCaught: 466, look: 'largemouth', code: 'BB-8H1', inches: 23.25, finalDate: 'Aug 4, 2025', timezone: 'Central Time' },
 ];
 
 function timeLeft(ms: number) {
@@ -66,9 +68,9 @@ function WinnerCard({ w, now, start }: { w: Winner; now: number | null; start: n
           <span aria-hidden className="text-[#9AA8B8]">•</span>
           <span className="inline-flex items-center gap-1.5"><Fish className="h-4 w-4 text-[#0D1B4C]" strokeWidth={2} />{w.fishCaught} Fish Caught</span>
         </p>
-        <p className="mt-1.5 min-h-[40px] text-[13px] leading-[20px] text-[#7D8BA0]">
+        <p className="mt-1.5 h-[40px] text-[13px] leading-[20px] text-[#7D8BA0]">
           {live ? (
-            <span className="inline-flex items-center gap-1.5 font-medium text-[#0E7C7B]">
+            <span className="inline-flex h-[20px] items-center gap-1.5 font-medium text-[#0E7C7B]">
               <Clock className="h-3.5 w-3.5" strokeWidth={2.25} />
               <span suppressHydrationWarning>{now === null ? 'In progress' : timeLeft(start + (w.endsInHours ?? 0) * 3600_000 - now)}</span>
             </span>
@@ -81,15 +83,17 @@ function WinnerCard({ w, now, start }: { w: Winner; now: number | null; start: n
 
       {/* Winning catch */}
       <div className="relative aspect-[4/3] overflow-hidden rounded-md bg-gradient-to-br from-[#0A2A47] to-[#0E5A6E]">
-        {imgOk && (
+        {w.photo && imgOk ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={w.photo}
-            alt={`${top.angler}'s winning ${w.species.toLowerCase()}`}
+            alt={`${top.angler}'s winning ${w.species.toLowerCase()} submission`}
             loading="lazy"
             onError={() => setImgOk(false)}
-            className="absolute inset-0 h-full w-full object-cover object-[center_30%]"
+            className="absolute inset-0 h-full w-full object-cover"
           />
+        ) : (
+          <SubmissionIllustration look={w.look} code={w.code} inches={w.inches} className="absolute inset-0 h-full w-full" />
         )}
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,18,36,0.45)_0%,rgba(4,18,36,0)_28%,rgba(4,18,36,0)_50%,rgba(4,18,36,0.85)_100%)]" />
 
