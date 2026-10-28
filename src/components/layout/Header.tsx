@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { toPath } from '@/lib/routes';
 import { Menu, X, ChevronDown } from 'lucide-react';
 import { User } from '@/types';
+import { MEGA_MENU_AD } from '@/lib/navLinks';
 
 interface HeaderProps {
   currentUser: User | null;
@@ -73,17 +74,6 @@ const MEGA_COLUMNS: MegaColumn[] = [
       ],
     },
   ],
-  [
-    {
-      title: 'Advertise with us!',
-      links: [
-        { href: '/advertise/featured-listings', label: 'Featured Listings' },
-        { href: '/advertise/banners', label: 'Digital Banner Advertising' },
-        { href: '/advertise/affiliates', label: 'Affiliate Programs' },
-        { href: '/partner', label: 'Become a Partner' },
-      ],
-    },
-  ],
 ];
 
 /** Nav items that open the mega menu */
@@ -93,7 +83,7 @@ const MEGA_TRIGGERS = new Set(['tournaments', 'events', 'clubs', 'support', 'adv
 const MENU_ONLY = MEGA_TRIGGERS;
 
 /** Column highlighted (light blue) when the menu is opened from that nav item */
-// 0 Tournaments · 1 Events · 2 Clubs · 3 Support · 4 Advertise with us!
+// 0 Tournaments · 1 Events · 2 Clubs · 3 Support · 4 advertiser banner spot
 const MEGA_FOCUS_COLUMN: Record<string, number> = { tournaments: 0, events: 1, clubs: 2, support: 3, advertise: 4 };
 
 const MEGA_CLOSE_DELAY = 150; // ms — lets the pointer travel from the nav item into the panel
@@ -212,7 +202,7 @@ export default function Header({ currentUser, onNavigate, onLogout }: HeaderProp
                     aria-label="Site menu"
                     className="absolute inset-x-0 top-full border-b border-[#E8EEF4] bg-white shadow-[0_12px_24px_rgba(15,40,80,0.10)]"
                   >
-                    <div className="mx-auto grid max-w-[1440px] grid-cols-5 gap-4 px-1 pb-4 pt-3">
+                    <div className="mx-auto grid max-w-[1440px] grid-cols-[repeat(4,minmax(0,1fr))_282px] gap-4 px-1 pb-4 pt-3">
                       {MEGA_COLUMNS.map((col, ci) => (
                         <div
                           key={col[0].title}
@@ -238,6 +228,33 @@ export default function Header({ currentUser, onNavigate, onLogout }: HeaderProp
                           ))}
                         </div>
                       ))}
+
+                      {/* Paid advertiser banner — 250 × 250 */}
+                      <div className={`rounded-lg p-4 transition-colors ${MEGA_FOCUS_COLUMN[mega] === 4 ? 'bg-[#EAF4FB]' : ''}`}>
+                        {MEGA_MENU_AD ? (
+                          <a
+                            href={MEGA_MENU_AD.href}
+                            target="_blank"
+                            rel="noopener noreferrer sponsored"
+                            onClick={() => setMega(null)}
+                            className="block h-[250px] w-[250px] overflow-hidden rounded-md"
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={MEGA_MENU_AD.image} alt={MEGA_MENU_AD.alt} width={250} height={250} className="h-full w-full object-cover" />
+                          </a>
+                        ) : (
+                          <Link
+                            href="/advertise/banners"
+                            onClick={() => setMega(null)}
+                            className="flex h-[250px] w-[250px] flex-col items-center justify-center rounded-md border-2 border-dashed border-[#B9CCDC] bg-[#F5F8FA] px-6 text-center transition hover:border-hoox-ui hover:bg-[#EEF7F8]"
+                          >
+                            <span className="font-montserrat text-[18px] font-bold text-[#0D1B4C]">Your ad here</span>
+                            <span className="mt-1 text-[13px] text-[#7A8BA3]">250 × 250 banner</span>
+                            <span className="mt-4 text-[14px] font-semibold text-[#0E7C7B]">Advertise with us →</span>
+                          </Link>
+                        )}
+                        <p className="mt-1.5 text-[11px] uppercase tracking-[0.06em] text-[#9AA8B8]">Sponsored</p>
+                      </div>
                     </div>
                   </div>
                 )}
