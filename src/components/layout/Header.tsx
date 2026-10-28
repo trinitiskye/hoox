@@ -37,12 +37,12 @@ const MEGA_COLUMNS: MegaColumn[] = [
   [{
     title: 'Tournaments',
     links: [
-      { href: '/search?type=tournaments', label: 'Search' },
       { href: '/tournaments', label: 'Tournaments' },
       { href: '/series', label: 'Series' },
+      { href: '/leaderboards', label: 'Leaderboards' },
+      { href: '/search?type=tournaments', label: 'Search' },
       { href: '/calendar', label: 'Calendar' },
       { href: '/tournaments/submit', label: 'Submit a Listing' },
-      { href: '/tournaments/feature', label: 'Feature a Listing' },
     ],
   }],
   [{

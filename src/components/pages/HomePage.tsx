@@ -9,7 +9,6 @@ import { Tournament, Submission, User, SearchParams, HeroSlide, HomeBanner } fro
 import { getActiveHeroSlides, dbHeroSlideToApp, getActiveHomeBanners, dbHomeBannerToApp } from '@/lib/supabase';
 import RecommendedSection from '@/components/home/RecommendedSection';
 import HeroCarousel from '@/components/home/HeroCarousel';
-import LeaderboardSection from '@/components/home/LeaderboardSection';
 import WinnersCircle from '@/components/home/WinnersCircle';
 import { mapsSearchUrl, mapsDirectionsUrl, mapsEmbedUrl } from '@/lib/eventDetail';
 
@@ -552,9 +551,6 @@ export default function HomePage({ tournaments, onNavigate }: HomePageProps) {
 
         {/* We recommend (sponsor banners) */}
         <RecommendedSection banners={banners} onNavigate={onNavigate} />
-
-        {/* Leaderboards */}
-        <LeaderboardSection onNavigate={onNavigate} />
 
         {/* Winners Circle */}
         <WinnersCircle onNavigate={onNavigate} />

@@ -289,7 +289,8 @@ function CompactBoardCard({ b, highlight, onStats }: { b: Board; highlight: stri
 
 /* ------------------------------ section ----------------------------- */
 
-export default function LeaderboardSection({ onNavigate }: { onNavigate: (view: string) => void }) {
+/** `standalone` = on the /leaderboards page, where the page title replaces the section heading */
+export default function LeaderboardSection({ onNavigate, standalone = false }: { onNavigate: (view: string) => void; standalone?: boolean }) {
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
   const [sort, setSort] = useState<Sort>('oldest');
@@ -323,9 +324,14 @@ export default function LeaderboardSection({ onNavigate }: { onNavigate: (view: 
   ];
 
   return (
-    <section id="leaderboards" aria-labelledby="leaderboard-heading" className="scroll-mt-24 rounded-lg bg-white px-3 sm:px-[12px] pt-[12px] pb-[12px] shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
-      {/* Heading — same type as Upcoming Tournaments */}
-      <div className="flex flex-wrap items-center justify-between gap-2 px-2 pb-[13px]">
+    <section
+      id="leaderboards"
+      aria-labelledby={standalone ? undefined : 'leaderboard-heading'}
+      aria-label={standalone ? 'Leaderboards' : undefined}
+      className={`scroll-mt-24 rounded-lg bg-white px-3 sm:px-[12px] pb-[12px] shadow-[0_2px_10px_rgba(10,30,60,0.05)] ${standalone ? 'pt-[16px]' : 'pt-[12px]'}`}
+    >
+      {/* Heading — same type as Upcoming Tournaments (hidden on the Leaderboards page) */}
+      {!standalone && <div className="flex flex-wrap items-center justify-between gap-2 px-2 pb-[13px]">
         <div>
           <h2 id="leaderboard-heading" className="text-[28px] font-bold leading-tight text-hoox-ink">Leaderboards</h2>
         </div>
@@ -335,7 +341,7 @@ export default function LeaderboardSection({ onNavigate }: { onNavigate: (view: 
         >
           View all results <ArrowRight className="h-5 w-5" strokeWidth={2} />
         </button>
-      </div>
+      </div>}
 
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-x-6 gap-y-3 px-1 pb-[13px]">

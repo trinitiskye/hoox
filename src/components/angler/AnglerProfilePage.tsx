@@ -277,7 +277,7 @@ export default function AnglerProfilePage({ a }: { a: AnglerProfile }) {
       <div className="mx-auto max-w-[1440px] px-4 md:px-[21px] pt-[12px] pb-8">
         {/* Breadcrumb */}
         <nav aria-label="Breadcrumb" className="mb-[10px] flex items-center gap-2 text-[13px]">
-          <Link href="/#leaderboards" className="font-medium text-[#335478] hover:underline">Anglers</Link>
+          <Link href="/leaderboards" className="font-medium text-[#335478] hover:underline">Anglers</Link>
           <ChevronRight className="h-3.5 w-3.5 text-[#5F728D]" strokeWidth={2} />
           <span className="text-[#5F728D]" aria-current="page">{a.name}</span>
         </nav>
