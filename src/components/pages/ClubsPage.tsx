@@ -211,9 +211,8 @@ export function ClubDialog({ club, onClose, onNavigate }: { club: Club; onClose:
           <h2 id="club-dialog-title" className={`font-montserrat text-[24px] font-bold ${INK}`}>{club.name}</h2>
           <p className="mt-1 flex items-center gap-2 text-[15px] text-[#5F7896]"><MapPin className="h-4 w-4" strokeWidth={2} />{club.city}, {STATE_NAMES[club.state] ?? club.state}</p>
           <p className="mt-4 text-[15px] leading-[22px] text-[#3E5675]">{club.about}</p>
-          <dl className="mt-5 grid grid-cols-2 gap-4 rounded-md bg-[#F2F7FA] p-4 text-[14px]">
+          <dl className="mt-5 grid grid-cols-2 gap-4 rounded-md bg-[#F2F7FA] p-4 text-[14px] sm:grid-cols-3">
             <div><dt className="text-[#5F7896]">Members</dt><dd className={`font-semibold ${INK}`}>{club.members.toLocaleString()}</dd></div>
-            <div><dt className="text-[#5F7896]">Meets</dt><dd className={`font-semibold ${INK}`}>{club.schedule}</dd></div>
             <div><dt className="text-[#5F7896]">Skill level</dt><dd className={`font-semibold ${INK}`}>{club.level}</dd></div>
             <div><dt className="text-[#5F7896]">Fishing style</dt><dd className={`font-semibold ${INK}`}>{club.styles.join(', ')}</dd></div>
           </dl>
