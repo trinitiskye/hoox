@@ -22,7 +22,6 @@ const PRIMARY_NAV = [
   { view: 'events', label: 'Events' },
   { view: 'clubs', label: 'Clubs' },
   { view: 'support', label: 'Support' },
-  { view: 'advertise', label: 'Advertise with us' },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -77,14 +76,14 @@ const MEGA_COLUMNS: MegaColumn[] = [
 ];
 
 /** Nav items that open the mega menu */
-const MEGA_TRIGGERS = new Set(['tournaments', 'events', 'clubs', 'support', 'advertise']);
+const MEGA_TRIGGERS = new Set(['tournaments', 'events', 'clubs', 'support']);
 
 /** Menu-only items: clicking just opens/closes the mega menu instead of navigating */
 const MENU_ONLY = MEGA_TRIGGERS;
 
 /** Column highlighted (light blue) when the menu is opened from that nav item */
-// 0 Tournaments · 1 Events · 2 Clubs · 3 Support · 4 advertiser banner spot
-const MEGA_FOCUS_COLUMN: Record<string, number> = { tournaments: 0, events: 1, clubs: 2, support: 3, advertise: 4 };
+// 0 Tournaments · 1 Events · 2 Clubs · 3 Support (4 = advertiser banner spot, never highlighted)
+const MEGA_FOCUS_COLUMN: Record<string, number> = { tournaments: 0, events: 1, clubs: 2, support: 3 };
 
 const MEGA_CLOSE_DELAY = 150; // ms — lets the pointer travel from the nav item into the panel
 
