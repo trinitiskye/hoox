@@ -231,17 +231,31 @@ export default function Header({ currentUser, onNavigate, onLogout }: HeaderProp
 
                       {/* Paid advertiser banner — 250 × 250 */}
                       <div className={`rounded-lg p-4 transition-colors ${MEGA_FOCUS_COLUMN[mega] === 4 ? 'bg-[#EAF4FB]' : ''}`}>
+                        <p className="mb-1.5 text-[11px] uppercase tracking-[0.06em] text-[#9AA8B8]">Sponsored</p>
                         {MEGA_MENU_AD ? (
-                          <a
-                            href={MEGA_MENU_AD.href}
-                            target="_blank"
-                            rel="noopener noreferrer sponsored"
-                            onClick={() => setMega(null)}
-                            className="block h-[250px] w-[250px] overflow-hidden rounded-md"
-                          >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={MEGA_MENU_AD.image} alt={MEGA_MENU_AD.alt} width={250} height={250} className="h-full w-full object-cover" />
-                          </a>
+                          <>
+                            <a
+                              href={MEGA_MENU_AD.href}
+                              target="_blank"
+                              rel="noopener noreferrer sponsored"
+                              onClick={() => setMega(null)}
+                              className="block h-[250px] w-[250px] overflow-hidden rounded-md"
+                            >
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={MEGA_MENU_AD.image} alt={MEGA_MENU_AD.alt} width={250} height={250} className="h-full w-full object-cover" />
+                              <span className="sr-only">(opens in a new tab)</span>
+                            </a>
+                            <a
+                              href={MEGA_MENU_AD.href}
+                              target="_blank"
+                              rel="noopener noreferrer sponsored"
+                              onClick={() => setMega(null)}
+                              className="mt-2 block w-[250px] break-all text-[12.5px] font-medium leading-[17px] text-hoox-link hover:text-hoox-brand hover:underline"
+                            >
+                              {MEGA_MENU_AD.label}
+                              <span className="sr-only"> (opens in a new tab)</span>
+                            </a>
+                          </>
                         ) : (
                           <Link
                             href="/advertise/banners"
@@ -253,7 +267,6 @@ export default function Header({ currentUser, onNavigate, onLogout }: HeaderProp
                             <span className="mt-4 text-[14px] font-semibold text-[#0E7C7B]">Advertise with us →</span>
                           </Link>
                         )}
-                        <p className="mt-1.5 text-[11px] uppercase tracking-[0.06em] text-[#9AA8B8]">Sponsored</p>
                       </div>
                     </div>
                   </div>

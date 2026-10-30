@@ -11,12 +11,16 @@ export const ADVERTISE_LINKS: NavLink[] = [
 ];
 
 /**
- * Paid advertiser banner in the mega menu (250 × 250 px).
- * Set `image` (and `href`) when an advertiser books the spot; while it's
- * null the menu shows an "Advertise here" placeholder that links to the
- * banner advertising page.
+ * Paid advertiser banner in the mega menu (250 × 250 px; supply artwork at
+ * 500 × 500 for sharp screens). `label` is the web address shown under the
+ * banner. Set to null to show the "Advertise here" placeholder instead.
  */
-export const MEGA_MENU_AD: { image: string; href: string; alt: string } | null = null;
+export const MEGA_MENU_AD: { image: string; href: string; alt: string; label: string } | null = {
+  image: '/ads/sierra-etch-250x250.png',
+  href: 'https://www.sierraetchlaserartandengraving.com',
+  alt: 'Sierra Etch — Laser Art & Engraving, Northern California',
+  label: 'www.sierraetchlaserartandengraving.com',
+};
 
 /**
  * App store links for the "Download the app" page. While null, the store
