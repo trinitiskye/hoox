@@ -10,7 +10,7 @@ export default function Page() {
   const { login } = useAuth();
   const navigate = (view: string) => router.push(toPath(view));
   return (
-    <PublicLayout>
+    <PublicLayout bgClassName="bg-[#F1F6FA]">
       <RegisterDirectorPage
         onNavigate={navigate}
         onLogin={(user) => { login(user); router.replace('/'); }}
