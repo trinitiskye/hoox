@@ -17,3 +17,11 @@ export const ADVERTISE_LINKS: NavLink[] = [
  * banner advertising page.
  */
 export const MEGA_MENU_AD: { image: string; href: string; alt: string } | null = null;
+
+/**
+ * App store links for the "Download the app" page. While null, the store
+ * buttons show "Coming soon" — paste the store URLs here once the iOS and
+ * Android apps are published.
+ */
+export const APP_STORE_URL: string | null = null; // e.g. https://apps.apple.com/app/hoox/id0000000000
+export const PLAY_STORE_URL: string | null = null; // e.g. https://play.google.com/store/apps/details?id=app.hoox

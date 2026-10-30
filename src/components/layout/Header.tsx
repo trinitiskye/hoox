@@ -18,6 +18,7 @@ interface HeaderProps {
 // and match its columns, in the same order.
 const PRIMARY_NAV = [
   { view: 'register', label: 'Get Hoox!' },
+  { view: 'download', label: 'Download the app' },
   { view: 'tournaments', label: 'Tournaments' },
   { view: 'events', label: 'Events' },
   { view: 'clubs', label: 'Clubs' },
@@ -309,6 +310,12 @@ export default function Header({ currentUser, onNavigate, onLogout }: HeaderProp
               className="w-full text-left px-3 py-2.5 text-[15px] font-semibold text-hoox-link hover:bg-hoox-light hover:text-hoox-brand rounded-lg"
             >
               Get Hoox!
+            </button>
+            <button
+              onClick={() => go('download')}
+              className="w-full text-left px-3 py-2.5 text-[15px] font-semibold text-hoox-link hover:bg-hoox-light hover:text-hoox-brand rounded-lg"
+            >
+              Download the app
             </button>
             {/* Same groups as the desktop mega menu */}
             {MEGA_COLUMNS.flat().map((sec) => (

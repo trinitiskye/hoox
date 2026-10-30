@@ -17,6 +17,7 @@ export const ROUTES: Record<string, string> = {
   'calendar':           '/calendar',
   'sponsors':           '/partner',
   'features':           '/features',
+  'download':           '/download',
   'admin-dashboard':    '/admin',
   'admin':              '/admin',
   '/admin':             '/admin',
