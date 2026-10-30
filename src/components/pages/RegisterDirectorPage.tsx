@@ -5,6 +5,7 @@ import { Eye, EyeOff, ArrowRight, ClipboardList, Layers, CreditCard, ShieldCheck
 import { registerDirector } from '@/lib/auth';
 import { User } from '@/types';
 import AddressSelector, { AddressValue } from '@/components/ui/AddressSelector';
+import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
 
 interface RegisterDirectorPageProps {
   onNavigate: (view: string) => void;
@@ -30,6 +31,7 @@ export default function RegisterDirectorPage({ onNavigate, onLogin }: RegisterDi
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [googleError, setGoogleError] = useState('');
   const [form, setForm] = useState({
     name: '', organization: '', email: '', phone: '', website: '', password: '', confirmPassword: '',
   });
@@ -128,6 +130,19 @@ export default function RegisterDirectorPage({ onNavigate, onLogin }: RegisterDi
 
         {/* Form */}
         <section aria-label="Director registration form" className="rounded-lg border border-[#E8EEF4] bg-white p-5 shadow-[0_2px_10px_rgba(10,30,60,0.06)] sm:p-8">
+          {/* Sign up with Google */}
+          <div className="mb-6">
+            <GoogleSignInButton mode="signup" role="director" onUser={(u) => onLogin(u)} onError={setGoogleError} />
+            {googleError ? (
+              <p role="alert" className="mt-2 text-center text-[13px] text-[#B42318]">{googleError}</p>
+            ) : (
+              <p className="mt-2 text-center text-[13px] text-[#7A8BA3]">Quickest way to sign up. You can add your address and phone later.</p>
+            )}
+            <div className="mt-6 flex items-center gap-3 text-[13px] font-medium text-[#7A8BA3]" aria-hidden>
+              <span className="h-px flex-1 bg-[#E3EAF1]" /> or sign up with email <span className="h-px flex-1 bg-[#E3EAF1]" />
+            </div>
+          </div>
+
           <form
             noValidate
             onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}

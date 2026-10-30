@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Fish, Eye, EyeOff, X } from 'lucide-react';
 import { loginUser } from '@/lib/auth';
 import { User } from '@/types';
+import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
 
 interface LoginPageProps {
   onNavigate: (view: string) => void;
@@ -81,6 +82,18 @@ export default function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
           </div>
           <h1 className="text-2xl font-bold text-gray-900 text-center mb-1">Welcome back</h1>
           <p className="text-gray-500 text-sm text-center mb-7">Sign in to your HOOX account</p>
+
+          {/* Sign in with Google (accounts created with Google have no password) */}
+          <div className="mb-6">
+            <GoogleSignInButton
+              mode="signin"
+              onUser={(u) => { onLogin(u); onNavigate(u.role === 'admin' ? 'admin-dashboard' : 'home'); }}
+              onError={(m) => setError(m)}
+            />
+            <div className="mt-5 flex items-center gap-3 text-xs text-gray-400" aria-hidden>
+              <span className="h-px flex-1 bg-gray-200" /> or sign in with email <span className="h-px flex-1 bg-gray-200" />
+            </div>
+          </div>
 
           <div className="mb-4">
             <label className="block text-sm font-semibold text-gray-700 mb-1.5">Email Address</label>
