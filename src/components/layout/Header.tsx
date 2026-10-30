@@ -250,7 +250,7 @@ export default function Header({ currentUser, onNavigate, onLogout }: HeaderProp
                               target="_blank"
                               rel="noopener noreferrer sponsored"
                               onClick={() => setMega(null)}
-                              className="mt-2 block w-[250px] break-all text-[12.5px] font-medium leading-[17px] text-hoox-link hover:text-hoox-brand hover:underline"
+                              className="mt-2 block w-[250px] break-all text-center text-[12.5px] font-medium leading-[17px] text-hoox-link hover:text-hoox-brand hover:underline"
                             >
                               {MEGA_MENU_AD.label}
                               <span className="sr-only"> (opens in a new tab)</span>
