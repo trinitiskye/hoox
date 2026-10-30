@@ -16,7 +16,7 @@ export const ADVERTISE_LINKS: NavLink[] = [
  * banner. Set to null to show the "Advertise here" placeholder instead.
  */
 export const MEGA_MENU_AD: { image: string; href: string; alt: string; label: string } | null = {
-  image: '/ads/sierra-etch-250x250.png',
+  image: '/ads/sierra-etch-250x250.png?v=2', // bump v when the artwork changes so browsers fetch the new file
   href: 'https://www.sierraetchlaserartandengraving.com',
   alt: 'Sierra Etch — Laser Art & Engraving, Northern California',
   label: 'www.sierraetchlaserartandengraving.com',
