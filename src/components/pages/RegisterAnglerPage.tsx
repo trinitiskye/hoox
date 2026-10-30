@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, ArrowRight, Fish, Search, Ticket, Camera, Trophy } from 'lucide-react';
 import { registerAngler } from '@/lib/auth';
 import { User } from '@/types';
 import AddressSelector, { AddressValue } from '@/components/ui/AddressSelector';
@@ -9,6 +9,20 @@ import AddressSelector, { AddressValue } from '@/components/ui/AddressSelector';
 interface RegisterAnglerPageProps {
   onNavigate: (view: string) => void;
   onLogin: (user: User) => void;
+}
+
+/** Numbered form section (divider above every section after the first) */
+function Section({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
+  const id = `ang-section-${n}`;
+  return (
+    <fieldset aria-labelledby={id} className={n > 1 ? 'border-t border-[#EDF1F5] pt-6' : ''}>
+      <h2 id={id} className="flex items-center gap-3 font-montserrat text-[18px] font-bold text-[#0D1B4C]">
+        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#0E7C7B] text-[13px] text-white">{n}</span>
+        {title}
+      </h2>
+      <div className="mt-4">{children}</div>
+    </fieldset>
+  );
 }
 
 export default function RegisterAnglerPage({ onNavigate, onLogin }: RegisterAnglerPageProps) {
@@ -23,7 +37,7 @@ export default function RegisterAnglerPage({ onNavigate, onLogin }: RegisterAngl
     address: '', country: 'US', state: '', city: '', zip: '',
   });
 
-  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
+  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm(f => ({ ...f, [k]: e.target.value }));
 
   const handleSubmit = async () => {
@@ -38,76 +52,137 @@ export default function RegisterAnglerPage({ onNavigate, onLogin }: RegisterAngl
     if (user) { onLogin(user); onNavigate('home'); }
   };
 
-  return (
-    <div className="bg-white flex-grow flex items-center justify-center px-4 py-12">
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 w-full max-w-md">
-        <h1 className="text-2xl font-bold text-gray-900 text-center mb-1">Create Angler Account</h1>
-        <p className="text-gray-500 text-sm text-center mb-6">Join tournaments and track your catches</p>
-        <hr className="mb-6 border-gray-100" />
+  // Brand form styles (shared with AddressSelector)
+  const inputClass =
+    'h-[48px] w-full rounded-md border border-[#D9E3EC] bg-white px-4 text-[15px] text-[#1F2D3D] placeholder:text-[#7D8BA0] shadow-[0_1px_3px_rgba(10,30,60,0.04)] focus:border-hoox-ui focus:outline-none focus:ring-2 focus:ring-hoox-ui/40';
+  const labelClass = 'mb-1.5 block text-[14px] font-medium text-[#0D1B4C]';
 
-        <h2 className="font-bold text-gray-900 mb-4">Profile Information</h2>
-        <div className="space-y-4 mb-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Name</label>
-            <input value={form.name} onChange={set('name')} placeholder="David Chen"
-              className="w-full px-4 py-3 bg-gray-100 rounded-xl border-0 text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white transition" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Organization</label>
-            <input value={form.organization} onChange={set('organization')} placeholder="N/A"
-              className="w-full px-4 py-3 bg-gray-100 rounded-xl border-0 text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white transition" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
-            <input type="email" value={form.email} onChange={set('email')} placeholder="david.chen@example.com"
-              className="w-full px-4 py-3 bg-gray-100 rounded-xl border-0 text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white transition" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Phone Number</label>
-            <input value={form.phone} onChange={set('phone')} placeholder="(555) 123-4567"
-              className="w-full px-4 py-3 bg-gray-100 rounded-xl border-0 text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white transition" />
-          </div>
-        </div>
-
-        <h2 className="font-bold text-gray-900 mb-4">Address</h2>
-        <div className="mb-6">
-          <AddressSelector value={address} onChange={setAddress} required />
-        </div>
-
-        <h2 className="font-bold text-gray-900 mb-4">Password</h2>
-        <div className="space-y-4 mb-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
-            <div className="relative">
-              <input type={showPassword ? 'text' : 'password'} value={form.password} onChange={set('password')} placeholder="Create a password"
-                className="w-full px-4 py-3 bg-gray-100 rounded-xl border-0 text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white transition pr-10" />
-              <button type="button" onClick={() => setShowPassword(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Confirm Password</label>
-            <div className="relative">
-              <input type={showConfirm ? 'text' : 'password'} value={form.confirmPassword} onChange={set('confirmPassword')} placeholder="Confirm your password"
-                className="w-full px-4 py-3 bg-gray-100 rounded-xl border-0 text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white transition pr-10" />
-              <button type="button" onClick={() => setShowConfirm(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-                {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">{error}</div>}
-
-        <button onClick={handleSubmit} disabled={loading}
-          className="w-full py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition disabled:opacity-50 mb-3">
-          {loading ? 'Creating Account...' : 'Create Account'}
+  // Plain render function (not a component) so inputs keep focus while typing
+  const passwordField = (k: 'password' | 'confirmPassword', label: string, placeholder: string, show: boolean, toggle: () => void) => (
+    <div>
+      <label htmlFor={`ang-${k}`} className={labelClass}>{label} <span className="text-[#B42318]">*</span></label>
+      <div className="relative">
+        <input
+          id={`ang-${k}`}
+          type={show ? 'text' : 'password'}
+          value={form[k]}
+          onChange={set(k)}
+          placeholder={placeholder}
+          autoComplete="new-password"
+          className={`${inputClass} pr-11`}
+        />
+        <button type="button" onClick={toggle} aria-label={show ? 'Hide password' : 'Show password'} className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 text-[#5F7896] hover:text-[#0D1B4C]">
+          {show ? <EyeOff className="h-[18px] w-[18px]" /> : <Eye className="h-[18px] w-[18px]" />}
         </button>
-        <p className="text-center text-sm text-gray-500">
-          Already have an account?{' '}
-          <button onClick={() => onNavigate('login')} className="text-blue-600 font-medium hover:underline">Login</button>
-        </p>
+      </div>
+    </div>
+  );
+
+  const PROFILE_FIELDS: { key: 'name' | 'organization' | 'email' | 'phone'; label: string; placeholder: string; type?: string; required?: boolean; optional?: boolean; auto?: string }[] = [
+    { key: 'name', label: 'Full name', placeholder: 'David Chen', required: true, auto: 'name' },
+    { key: 'organization', label: 'Club / team', placeholder: 'Lakeview Bass Club', optional: true, auto: 'organization' },
+    { key: 'email', label: 'Email', placeholder: 'david.chen@example.com', type: 'email', required: true, auto: 'email' },
+    { key: 'phone', label: 'Phone number', placeholder: '(555) 123-4567', type: 'tel', auto: 'tel' },
+  ];
+
+  const BENEFITS = [
+    { icon: Search, title: 'Find tournaments & series', text: 'Search by location, species and date, or see what’s near you.' },
+    { icon: Ticket, title: 'Quick registration', text: 'Enter solo or as a team and pay your entry online.' },
+    { icon: Camera, title: 'Submit catches', text: 'Photo on the board with the tournament code on your hand.' },
+    { icon: Trophy, title: 'Live standings & results', text: 'Follow the leaderboard and build your angler profile.' },
+  ];
+
+  return (
+    <div className="font-roboto">
+      <div className="mx-auto grid max-w-[1440px] grid-cols-1 items-start gap-6 px-4 pb-12 pt-8 sm:px-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:px-[42px] lg:pt-[34px]">
+        {/* Why HOOX for anglers */}
+        <aside className="relative overflow-hidden rounded-lg bg-gradient-to-br from-[#0A2A47] via-[#0B3552] to-[#0E5A6E] px-6 py-8 text-white shadow-[0_6px_20px_rgba(5,30,60,0.18)] sm:px-8 lg:sticky lg:top-[100px]">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#1E4F63] px-3 py-1 text-[12px] font-bold uppercase tracking-[0.03em] text-[#3FD6D0]">
+            <Fish className="h-3.5 w-3.5" strokeWidth={2.25} /> For Anglers
+          </span>
+          <h1 className="mt-4 font-montserrat text-[30px] font-bold leading-[1.15] sm:text-[36px]">Create your angler account</h1>
+          <p className="mt-3 text-[16px] leading-[25px] text-white/90">
+            Join tournaments, submit your catches and track your results, all in one place.
+          </p>
+          <ul className="mt-6 space-y-4">
+            {BENEFITS.map((b) => (
+              <li key={b.title} className="flex items-start gap-3.5">
+                <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-white/10 text-[#3FD6D0]">
+                  <b.icon className="h-5 w-5" strokeWidth={2} />
+                </span>
+                <span>
+                  <span className="block text-[15px] font-semibold">{b.title}</span>
+                  <span className="block text-[14px] leading-[20px] text-white/80">{b.text}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-8 border-t border-white/15 pt-5 text-[14px] text-white/80">
+            Running a tournament?{' '}
+            <button type="button" onClick={() => onNavigate('register-director')} className="font-semibold text-[#3FD6D0] hover:underline">
+              Create a director account
+            </button>
+          </p>
+        </aside>
+
+        {/* Form */}
+        <section aria-label="Angler registration form" className="rounded-lg border border-[#E8EEF4] bg-white p-5 shadow-[0_2px_10px_rgba(10,30,60,0.06)] sm:p-8">
+          <form
+            noValidate
+            onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}
+            className="space-y-6"
+          >
+            <Section n={1} title="Profile information">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {PROFILE_FIELDS.map((f) => (
+                  <div key={f.key}>
+                    <label htmlFor={`ang-${f.key}`} className={labelClass}>
+                      {f.label} {f.required ? <span className="text-[#B42318]">*</span> : f.optional && <span className="font-normal text-[#7A8BA3]">(optional)</span>}
+                    </label>
+                    <input
+                      id={`ang-${f.key}`}
+                      type={f.type || 'text'}
+                      value={form[f.key]}
+                      onChange={set(f.key)}
+                      placeholder={f.placeholder}
+                      autoComplete={f.auto}
+                      className={inputClass}
+                    />
+                  </div>
+                ))}
+              </div>
+            </Section>
+
+            <Section n={2} title="Address">
+              <AddressSelector value={address} onChange={setAddress} inputClass={inputClass} labelClass={labelClass} required />
+            </Section>
+
+            <Section n={3} title="Password">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {passwordField('password', 'Password', 'At least 6 characters', showPassword, () => setShowPassword((v) => !v))}
+                {passwordField('confirmPassword', 'Confirm password', 'Re-enter your password', showConfirm, () => setShowConfirm((v) => !v))}
+              </div>
+            </Section>
+
+            {error && (
+              <div role="alert" className="rounded-md border border-[#F5C2BD] bg-[#FEF3F2] px-4 py-3 text-[14px] text-[#B42318]">{error}</div>
+            )}
+
+            <div className="border-t border-[#EDF1F5] pt-6">
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex h-[50px] w-full items-center justify-center gap-3 rounded-md bg-[#0E7C7B] text-[16px] font-semibold text-white shadow-[0_4px_12px_rgba(14,124,123,0.25)] transition hover:bg-[#0B6766] disabled:opacity-60"
+              >
+                {loading ? 'Creating account…' : <>Create angler account <ArrowRight className="h-5 w-5" strokeWidth={2} /></>}
+              </button>
+              <p className="mt-4 text-center text-[14px] text-[#536B84]">
+                Already have an account?{' '}
+                <button type="button" onClick={() => onNavigate('login')} className="font-semibold text-[#0E7C7B] hover:underline">Log in</button>
+              </p>
+            </div>
+          </form>
+        </section>
       </div>
     </div>
   );
