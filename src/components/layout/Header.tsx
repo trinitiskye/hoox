@@ -239,10 +239,11 @@ export default function Header({ currentUser, onNavigate, onLogout }: HeaderProp
                               target="_blank"
                               rel="noopener noreferrer sponsored"
                               onClick={() => setMega(null)}
-                              className="block h-[250px] w-[250px] overflow-hidden rounded-md"
+                              className="flex h-[250px] w-[250px] items-center justify-center overflow-hidden rounded-md bg-white"
                             >
                               {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img src={MEGA_MENU_AD.image} alt={MEGA_MENU_AD.alt} width={250} height={250} className="h-full w-full object-cover" />
+                              {/* Fit any banner shape inside 250 × 250 without cropping or stretching */}
+                              <img src={MEGA_MENU_AD.image} alt={MEGA_MENU_AD.alt} className="max-h-full max-w-full object-contain" />
                               <span className="sr-only">(opens in a new tab)</span>
                             </a>
                             <a
