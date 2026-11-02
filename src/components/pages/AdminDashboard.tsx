@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import {
-  Users, Trophy, BarChart3, Image, Settings, LogOut, Globe,
+  Users, Trophy, BarChart3, Image, Settings,
   Fish, Shield, DollarSign, Calendar, FileEdit, Heart,
   ChevronDown, TrendingUp, Scale, Megaphone, FlaskConical,
   Eye, EyeOff, Pencil, Trash2, Pause, Play, ShieldOff, ShieldCheck,
@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { User, Tournament, Series, Submission } from '@/types';
 import { fetchUsers, fetchTournaments, fetchSeries, fetchSubmissions } from '@/lib/storage';
-import { clearSession, createAllDemoAccounts, changePassword, type DemoAccountResult } from '@/lib/auth';
+import { createAllDemoAccounts, changePassword, type DemoAccountResult } from '@/lib/auth';
 import AddressSelector from '@/components/ui/AddressSelector';
 import { Toast, useToast } from '@/components/ui/Toast';
 import HeroSlidesManager from '@/components/admin/HeroSlidesManager';
@@ -49,15 +49,9 @@ const PATH_TO_TAB: Record<string, string> = Object.fromEntries(
   Object.entries(TAB_TO_PATH).map(([k, v]) => [v, k])
 );
 
-const NAV_TABS = [
-  'Dashboard', 'Users', 'Clubs', 'Series',
-  'Tournaments', 'Events', 'Catch Submissions',
-  'Advertising', 'Monetization', 'CMS', 'Settings'
-];
-
-export default function AdminDashboard({ currentUser, onNavigate, onNavigateReplace, onLogout, initialTab, usersSubView, usersSelectedId, usersFilter }: AdminDashboardProps) {
+export default function AdminDashboard({ currentUser, onNavigate, initialTab, usersSubView, usersSelectedId, usersFilter }: AdminDashboardProps) {
   const [activeTab, setActiveTab] = useState(initialTab || 'Dashboard');
-  const [usersTabKey, setUsersTabKey] = useState(0);
+  const [usersTabKey] = useState(0);
   const [users, setUsers] = useState<User[]>([]);
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [series, setSeries] = useState<Series[]>([]);
@@ -80,74 +74,15 @@ export default function AdminDashboard({ currentUser, onNavigate, onNavigateRepl
   const anglers = users.filter(u => u.role === 'angler');
   const partners = users.filter(u => u.role === 'sponsor');
 
-  const handleLogout = () => { clearSession(); onLogout(); };
-
   return (
-    <div className="min-h-screen bg-white flex flex-col">
-      {/* Admin Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-screen-xl mx-auto px-4 md:px-6">
-          <div className="flex items-center justify-between h-14">
-            {/* Logo + View Website */}
-            <div className="flex items-center gap-4">
-              <button onClick={() => onNavigate('home')} className="flex items-center">
-                <img src="/hoox_logo.png" alt="HOOX" className="h-14 w-auto" />
-              </button>
-              <button onClick={() => onNavigate('home')} className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition">
-                <Globe className="w-3.5 h-3.5" /> View Website
-              </button>
-            </div>
-
-            {/* User info + logout */}
-            <div className="flex items-center gap-3">
-              <div className="hidden sm:flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold">
-                  {currentUser.name.charAt(0)}
-                </div>
-                <div className="text-right">
-                  <div className="text-sm font-semibold text-gray-900">{currentUser.name}</div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs text-gray-500">HOOX Tournament App</span>
-                    <span className="px-1.5 py-0.5 bg-red-500 text-white text-xs font-bold rounded">System Admin</span>
-                  </div>
-                </div>
-              </div>
-              <button onClick={handleLogout} className="flex items-center gap-1.5 px-3 py-1.5 text-gray-600 hover:text-gray-900 text-sm transition">
-                <LogOut className="w-4 h-4" /> Logout
-              </button>
-            </div>
-          </div>
-
-          {/* Nav tabs */}
-          <div className="flex overflow-x-auto scrollbar-hide -mb-px gap-1">
-            {NAV_TABS.map(tab => (
-              <button
-                key={tab}
-                onClick={() => {
-                  setActiveTab(tab);
-                  if (tab === 'Users') setUsersTabKey(k => k + 1);
-                  onNavigateReplace(TAB_TO_PATH[tab]);
-                }}
-                className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition ${
-                  activeTab === tab
-                    ? 'border-teal-500 text-teal-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
-        </div>
-      </header>
-
+    <div className="flex flex-col">
       {/* Main Content */}
-      <main className="flex-grow max-w-screen-xl mx-auto w-full px-4 md:px-6 py-8">
+      <div className="max-w-[1440px] mx-auto w-full px-4 md:px-5 py-8">
         {activeTab === 'Dashboard' && (
           <DashboardTab
             users={users} tournaments={tournaments} series={series} submissions={submissions}
             directors={directors} judges={judges} anglers={anglers} partners={partners}
-            loading={loading} onTabChange={setActiveTab}
+            loading={loading} onTabChange={(t: string) => { setActiveTab(t); if (TAB_TO_PATH[t]) onNavigate(TAB_TO_PATH[t]); }}
           />
         )}
         {activeTab === 'Users' && <UsersTab key={usersTabKey} users={users} onRefresh={() => { fetchUsers().then(setUsers); }} currentUser={currentUser} onNavigate={onNavigate} subViewProp={usersSubView} selectedUserId={usersSelectedId} initialFilter={usersFilter} />}
@@ -167,7 +102,7 @@ export default function AdminDashboard({ currentUser, onNavigate, onNavigateRepl
          activeTab !== 'Monetization' && activeTab !== 'CMS' && activeTab !== 'Settings' && (
           <ComingSoonTab tab={activeTab} />
         )}
-      </main>
+      </div>
     </div>
   );
 }

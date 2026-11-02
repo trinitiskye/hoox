@@ -7,6 +7,7 @@ import { toPath } from '@/lib/routes';
 import { Menu, X, ChevronDown } from 'lucide-react';
 import { User } from '@/types';
 import { MEGA_MENU_AD } from '@/lib/navLinks';
+import AdminNav from './AdminNav';
 
 interface HeaderProps {
   currentUser: User | null;
@@ -374,6 +375,9 @@ export default function Header({ currentUser, onNavigate, onLogout }: HeaderProp
           </div>
         )}
       </div>
+
+      {/* Second tier: admin back-end navigation */}
+      {currentUser?.role === 'admin' && <AdminNav />}
     </header>
   );
 }
