@@ -103,10 +103,10 @@ function BannerEditor({
 
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-black/50 p-4 sm:p-8" role="dialog" aria-modal="true" aria-labelledby="banner-editor-title">
-      <div className="w-full max-w-2xl rounded-xl bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
-          <h3 id="banner-editor-title" className="text-lg font-semibold text-gray-900">{editingId ? 'Edit Banner' : 'Add Banner'}</h3>
-          <button onClick={onClose} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600" aria-label="Close">
+      <div className="w-full max-w-2xl rounded-lg bg-white shadow-2xl">
+        <div className="flex items-center justify-between border-b border-[#EEF3F8] px-6 py-4">
+          <h3 id="banner-editor-title" className="text-lg font-semibold text-[#0D1B4C]">{editingId ? 'Edit Banner' : 'Add Banner'}</h3>
+          <button onClick={onClose} className="rounded-lg p-1.5 text-[#8A9AB0] hover:bg-[#EEF3F8] hover:text-[#4A5B76]" aria-label="Close">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -114,7 +114,7 @@ function BannerEditor({
         <div className="space-y-4 px-6 py-5">
           {/* Preview at the size it appears on the home page */}
           <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-start">
-            <div className="aspect-[5/2] w-full max-w-[260px] overflow-hidden rounded-md border border-gray-200 bg-[#F7F9FB]">
+            <div className="aspect-[5/2] w-full max-w-[260px] overflow-hidden rounded-md border border-[#E8EEF4] bg-[#F7F9FB]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={form.imageUrl || BANNER_PLACEHOLDER_IMAGE} alt="" onError={(ev) => { if (!ev.currentTarget.src.endsWith(BANNER_PLACEHOLDER_IMAGE)) ev.currentTarget.src = BANNER_PLACEHOLDER_IMAGE; }} className="h-full w-full object-contain" />
             </div>
@@ -125,7 +125,7 @@ function BannerEditor({
                 const f = e.dataTransfer.files?.[0];
                 if (f) upload(f);
               }}
-              className="flex-1 w-full rounded-lg border-2 border-dashed border-gray-200 p-4 text-center"
+              className="flex-1 w-full rounded-lg border-2 border-dashed border-[#E8EEF4] p-4 text-center"
             >
               <input
                 ref={fileRef}
@@ -142,13 +142,13 @@ function BannerEditor({
                 type="button"
                 onClick={() => fileRef.current?.click()}
                 disabled={uploading}
-                className="inline-flex items-center gap-2 rounded-lg bg-gray-900 px-3.5 py-2 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-60"
+                className="inline-flex items-center gap-2 rounded-lg bg-[#0E7C7B] px-3.5 py-2 text-sm font-medium text-white hover:bg-[#0B6564] disabled:opacity-60"
               >
                 {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
                 {uploading ? 'Uploading…' : form.imageUrl ? 'Replace image' : 'Upload banner'}
               </button>
-              <p className="mt-2 text-xs text-gray-500">or drag an image here · {RECOMMENDED} · JPG, PNG, WebP, GIF · max 2 MB</p>
-              <p className="mt-1 text-xs text-gray-500">Optional — without an image, the “Advertise with us!” placeholder is shown.</p>
+              <p className="mt-2 text-xs text-[#5F6F86]">or drag an image here · {RECOMMENDED} · JPG, PNG, WebP, GIF · max 2 MB</p>
+              <p className="mt-1 text-xs text-[#5F6F86]">Optional — without an image, the “Advertise with us!” placeholder is shown.</p>
               {form.imageUrl && (
                 <button type="button" onClick={() => set('imageUrl', '')} className="mt-2 text-xs font-medium text-red-600 hover:underline">
                   Remove image (use placeholder)
@@ -158,43 +158,43 @@ function BannerEditor({
           </div>
 
           <label className="block">
-            <span className="mb-1 flex items-center gap-1.5 text-xs font-medium text-gray-600"><Link2 className="h-3.5 w-3.5" /> Or paste an image URL</span>
+            <span className="mb-1 flex items-center gap-1.5 text-xs font-medium text-[#4A5B76]"><Link2 className="h-3.5 w-3.5" /> Or paste an image URL</span>
             <input
               type="url"
               value={form.imageUrl}
               onChange={(e) => set('imageUrl', e.target.value)}
               placeholder="https://…"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="w-full rounded-lg border border-[#D3DEE8] px-3 py-2 text-sm focus:border-[#0E7C7B] focus:outline-none focus:ring-2 focus:ring-[#22B3B5]/20"
             />
           </label>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <label className="block">
-              <span className="mb-1 block text-sm font-medium text-gray-700">Advertiser name <span className="text-red-500">*</span></span>
+              <span className="mb-1 block text-sm font-medium text-[#2E3F5C]">Advertiser name <span className="text-red-500">*</span></span>
               <input
                 value={form.title}
                 onChange={(e) => set('title', e.target.value)}
                 maxLength={120}
                 placeholder="e.g. Eco Fishing Shop"
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full rounded-lg border border-[#D3DEE8] px-3 py-2 text-sm focus:border-[#0E7C7B] focus:outline-none focus:ring-2 focus:ring-[#22B3B5]/20"
               />
-              <span className="mt-1 block text-xs text-gray-500">Also used as the image description for screen readers.</span>
+              <span className="mt-1 block text-xs text-[#5F6F86]">Also used as the image description for screen readers.</span>
             </label>
             <label className="block">
-              <span className="mb-1 block text-sm font-medium text-gray-700">Click-through link <span className="text-red-500">*</span></span>
+              <span className="mb-1 block text-sm font-medium text-[#2E3F5C]">Click-through link <span className="text-red-500">*</span></span>
               <input
                 value={form.linkUrl}
                 onChange={(e) => set('linkUrl', e.target.value)}
                 placeholder="https://advertiser.com"
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full rounded-lg border border-[#D3DEE8] px-3 py-2 text-sm focus:border-[#0E7C7B] focus:outline-none focus:ring-2 focus:ring-[#22B3B5]/20"
               />
-              <span className="mt-1 block text-xs text-gray-500">Opens in a new browser tab.</span>
+              <span className="mt-1 block text-xs text-[#5F6F86]">Opens in a new browser tab.</span>
             </label>
           </div>
 
           <div className="flex flex-wrap gap-x-6 gap-y-2">
-            <label className="flex items-center gap-2 text-sm text-gray-700">
-              <input type="checkbox" checked={form.isActive} onChange={(e) => set('isActive', e.target.checked)} className="h-4 w-4 rounded border-gray-300" />
+            <label className="flex items-center gap-2 text-sm text-[#2E3F5C]">
+              <input type="checkbox" checked={form.isActive} onChange={(e) => set('isActive', e.target.checked)} className="h-4 w-4 rounded border-[#D3DEE8]" />
               Show on the home page
             </label>
           </div>
@@ -206,12 +206,12 @@ function BannerEditor({
           )}
         </div>
 
-        <div className="flex justify-end gap-2 border-t border-gray-100 px-6 py-4">
-          <button onClick={onClose} className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
+        <div className="flex justify-end gap-2 border-t border-[#EEF3F8] px-6 py-4">
+          <button onClick={onClose} className="rounded-lg border border-[#D3DEE8] px-4 py-2 text-sm font-medium text-[#2E3F5C] hover:bg-[#F5F8FB]">Cancel</button>
           <button
             onClick={save}
             disabled={saving || uploading}
-            className="inline-flex items-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-700 disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-lg bg-[#0E7C7B] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0B6564] disabled:opacity-60"
           >
             {saving && <Loader2 className="h-4 w-4 animate-spin" />}
             {editingId ? 'Save changes' : 'Add banner'}
@@ -309,22 +309,22 @@ export default function HomeBannersManager() {
   const activeCount = banners.filter((b) => b.isActive).length;
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5 mb-6">
+    <div className="bg-white border border-[#E8EEF4] rounded-lg p-5 mb-6 shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
       <div className="flex items-start justify-between gap-3 mb-4 flex-wrap">
         <div>
-          <h3 className="font-semibold text-gray-900">Home Page Banners — “We recommend”</h3>
-          <p className="text-gray-500 text-sm">
+          <h3 className="font-montserrat font-semibold text-[#0D1B4C]">Home Page Banners — “We recommend”</h3>
+          <p className="text-[#5F6F86] text-sm">
             Sponsor banners shown in a single row above Upcoming Tournaments (up to 6; the first 6 live banners in this order are used). Recommended size {RECOMMENDED}. The section is hidden when no banners are showing.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <a href="/" target="_blank" rel="noopener" className="flex items-center gap-1.5 px-3 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition">
+          <a href="/" target="_blank" rel="noopener" className="flex items-center gap-1.5 px-3 py-2 border border-[#D3DEE8] text-[#2E3F5C] rounded-lg text-sm font-medium hover:bg-[#F5F8FB] transition">
             <ExternalLink className="w-3.5 h-3.5" /> View home page
           </a>
           <button
             onClick={() => setEditor({ id: null, form: EMPTY_FORM })}
             disabled={!!loadError}
-            className="flex items-center gap-2 px-3 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-700 transition disabled:opacity-50"
+            className="flex items-center gap-2 px-3 py-2 bg-[#0E7C7B] text-white rounded-lg text-sm font-medium hover:bg-[#0B6564] transition disabled:opacity-50"
           >
             <Plus className="w-3.5 h-3.5" /> Add Banner
           </button>
@@ -332,42 +332,42 @@ export default function HomeBannersManager() {
       </div>
 
       {loading ? (
-        <div className="py-12 text-center text-gray-400 text-sm"><Loader2 className="mx-auto mb-2 h-5 w-5 animate-spin" />Loading banners…</div>
+        <div className="py-12 text-center text-[#8A9AB0] text-sm"><Loader2 className="mx-auto mb-2 h-5 w-5 animate-spin" />Loading banners…</div>
       ) : loadError ? (
         <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
           <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" /> {loadError}
         </div>
       ) : banners.length === 0 ? (
-        <div className="border-2 border-dashed border-gray-200 rounded-xl py-12 text-center text-gray-400">
+        <div className="border-2 border-dashed border-[#E8EEF4] rounded-lg py-12 text-center text-[#8A9AB0]">
           <ImageIcon className="w-8 h-8 mx-auto mb-2 opacity-30" />
           <p className="text-sm">No banners yet. Add one to show the “We recommend” section on the home page.</p>
         </div>
       ) : (
         <>
-          <p className="mb-3 text-xs text-gray-500">
+          <p className="mb-3 text-xs text-[#5F6F86]">
             {activeCount} of {banners.length} banner{banners.length === 1 ? '' : 's'} showing on the home page
             {activeCount > 6 && ` · only the first 6 live banners are shown — hide or reorder to choose which`}
             {activeCount > 0 && activeCount < 6 && ` · add ${6 - activeCount} more to fill the row`}
           </p>
-          <ol className="divide-y divide-gray-100 rounded-lg border border-gray-200">
+          <ol className="divide-y divide-[#EEF3F8] rounded-lg border border-[#E8EEF4]">
             {banners.map((b, i) => (
-              <li key={b.id} className={`flex flex-col gap-3 p-3 sm:flex-row sm:items-center ${b.isActive ? '' : 'bg-gray-50'}`}>
+              <li key={b.id} className={`flex flex-col gap-3 p-3 sm:flex-row sm:items-center ${b.isActive ? '' : 'bg-[#F5F8FB]'}`}>
                 <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <span className="w-5 text-center text-xs font-semibold text-gray-400">{i + 1}</span>
+                  <span className="w-5 text-center text-xs font-semibold text-[#8A9AB0]">{i + 1}</span>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={b.imageUrl || BANNER_PLACEHOLDER_IMAGE} alt="" onError={(ev) => { if (!ev.currentTarget.src.endsWith(BANNER_PLACEHOLDER_IMAGE)) ev.currentTarget.src = BANNER_PLACEHOLDER_IMAGE; }} className={`h-[48px] w-[120px] flex-shrink-0 rounded-md object-contain bg-[#F7F9FB] border border-gray-200 ${b.isActive ? '' : 'opacity-50'}`} />
+                  <img src={b.imageUrl || BANNER_PLACEHOLDER_IMAGE} alt="" onError={(ev) => { if (!ev.currentTarget.src.endsWith(BANNER_PLACEHOLDER_IMAGE)) ev.currentTarget.src = BANNER_PLACEHOLDER_IMAGE; }} className={`h-[48px] w-[120px] flex-shrink-0 rounded-md object-contain bg-[#F7F9FB] border border-[#E8EEF4] ${b.isActive ? '' : 'opacity-50'}`} />
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-medium text-gray-900 truncate">{b.title}</span>
+                      <span className="font-medium text-[#0D1B4C] truncate">{b.title}</span>
                       {b.isActive
                         ? <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">Live</span>
-                        : <span className="px-2 py-0.5 bg-gray-200 text-gray-600 text-xs rounded-full">Hidden</span>}
+                        : <span className="px-2 py-0.5 bg-[#E1E9F1] text-[#4A5B76] text-xs rounded-full">Hidden</span>}
                     </div>
                     {b.linkUrl ? (
-                      <div className="mt-0.5 text-xs text-gray-500 truncate">
+                      <div className="mt-0.5 text-xs text-[#5F6F86] truncate">
                         Links to{' '}
-                        <a href={b.linkUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{b.linkUrl}</a>
-                        <span className="text-gray-400"> · new tab</span>
+                        <a href={b.linkUrl} target="_blank" rel="noopener noreferrer" className="text-[#0E7C7B] hover:underline">{b.linkUrl}</a>
+                        <span className="text-[#8A9AB0]"> · new tab</span>
                       </div>
                     ) : (
                       <div className="mt-0.5 text-xs text-amber-600">No link yet — edit to add one</div>
@@ -376,28 +376,28 @@ export default function HomeBannersManager() {
                 </div>
 
                 <div className="flex items-center gap-1.5 flex-shrink-0 pl-8 sm:pl-0">
-                  <button onClick={() => move(i, i - 1)} disabled={busy || i === 0} aria-label="Move up" className="p-1.5 text-gray-500 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-30"><ArrowUp className="w-3.5 h-3.5" /></button>
-                  <button onClick={() => move(i, i + 1)} disabled={busy || i === banners.length - 1} aria-label="Move down" className="p-1.5 text-gray-500 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-30"><ArrowDown className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => move(i, i - 1)} disabled={busy || i === 0} aria-label="Move up" className="p-1.5 text-[#5F6F86] border border-[#E8EEF4] rounded-lg hover:bg-[#F5F8FB] disabled:opacity-30"><ArrowUp className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => move(i, i + 1)} disabled={busy || i === banners.length - 1} aria-label="Move down" className="p-1.5 text-[#5F6F86] border border-[#E8EEF4] rounded-lg hover:bg-[#F5F8FB] disabled:opacity-30"><ArrowDown className="w-3.5 h-3.5" /></button>
                   <button
                     onClick={() => setEditor({
                       id: b.id,
                       form: { title: b.title, imageUrl: b.imageUrl || '', linkUrl: b.linkUrl || '', openInNewTab: true, isActive: b.isActive },
                     })}
-                    className="flex items-center gap-1 px-2.5 py-1.5 text-gray-600 text-xs border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+                    className="flex items-center gap-1 px-2.5 py-1.5 text-[#4A5B76] text-xs border border-[#E8EEF4] rounded-lg hover:bg-[#F5F8FB] transition"
                   >
                     <Pencil className="w-3 h-3" /> Edit
                   </button>
                   <button
                     onClick={() => toggleActive(b)}
                     disabled={busy}
-                    className={`flex items-center gap-1 px-2.5 py-1.5 text-xs border rounded-lg transition disabled:opacity-50 ${b.isActive ? 'text-gray-600 border-gray-200 hover:bg-gray-50' : 'text-green-700 border-green-200 hover:bg-green-50'}`}
+                    className={`flex items-center gap-1 px-2.5 py-1.5 text-xs border rounded-lg transition disabled:opacity-50 ${b.isActive ? 'text-[#4A5B76] border-[#E8EEF4] hover:bg-[#F5F8FB]' : 'text-green-700 border-green-200 hover:bg-green-50'}`}
                   >
                     {b.isActive ? <><EyeOff className="w-3 h-3" /> Hide</> : <><Eye className="w-3 h-3" /> Show</>}
                   </button>
                   {confirmDelete === b.id ? (
                     <span className="flex items-center gap-1">
                       <button onClick={() => doDelete(b.id)} disabled={busy} className="px-2.5 py-1.5 bg-red-600 text-white text-xs rounded-lg hover:bg-red-700 disabled:opacity-50">Delete</button>
-                      <button onClick={() => setConfirmDelete(null)} className="px-2 py-1.5 text-gray-500 text-xs rounded-lg hover:bg-gray-100">Cancel</button>
+                      <button onClick={() => setConfirmDelete(null)} className="px-2 py-1.5 text-[#5F6F86] text-xs rounded-lg hover:bg-[#EEF3F8]">Cancel</button>
                     </span>
                   ) : (
                     <button onClick={() => setConfirmDelete(b.id)} aria-label={`Delete ${b.title}`} className="p-1.5 text-red-400 hover:bg-red-50 rounded-lg transition"><Trash2 className="w-3.5 h-3.5" /></button>

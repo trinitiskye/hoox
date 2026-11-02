@@ -23,5 +23,5 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   // Same branded shell as the public site: header (+ admin tier), content, footer
-  return <PublicLayout bgClassName="bg-white">{children}</PublicLayout>;
+  return <PublicLayout bgClassName="bg-[#F1F6FA]">{children}</PublicLayout>;
 }

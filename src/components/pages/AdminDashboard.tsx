@@ -75,7 +75,7 @@ export default function AdminDashboard({ currentUser, onNavigate, initialTab, us
   const partners = users.filter(u => u.role === 'sponsor');
 
   return (
-    <div className="flex flex-col">
+    <div className="font-roboto flex flex-col text-[#0D1B4C]">
       {/* Main Content */}
       <div className="max-w-[1440px] mx-auto w-full px-4 md:px-5 py-8">
         {activeTab === 'Dashboard' && (
@@ -123,31 +123,31 @@ function DashboardTab({ users, tournaments, series, submissions, directors, judg
   };
   return (
     <div>
-      <h1 className="text-3xl font-bold text-gray-900 mb-1">Hoox Command Center</h1>
-      <p className="text-gray-500 mb-8">Manage users, tournaments, and platform settings</p>
+      <h1 className="font-montserrat text-3xl font-bold text-[#0D1B4C] mb-1">Hoox Command Center</h1>
+      <p className="text-[#5F6F86] mb-8">Manage users, tournaments, and platform settings</p>
 
       {loading ? (
         <div className="flex items-center justify-center py-16">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#0E7C7B]" />
         </div>
       ) : (
         <>
           {/* Demo Accounts Setup */}
-          <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-5 mb-6">
+          <div className="bg-[#EEF8F8] border border-[#BFE6E6] rounded-lg p-5 mb-6">
             <div className="flex items-start justify-between gap-4 flex-wrap">
               <div>
-                <h3 className="font-bold text-indigo-900 flex items-center gap-2 mb-1">
+                <h3 className="font-montserrat font-bold text-[#0D1B4C] flex items-center gap-2 mb-1">
                   <FlaskConical className="w-4 h-4" /> Demo Account Setup
                 </h3>
-                <p className="text-indigo-700 text-sm mb-1">Create all test accounts with password <code className="bg-indigo-100 px-1.5 py-0.5 rounded font-mono text-xs">demo123</code></p>
-                <div className="flex flex-wrap gap-2 text-xs text-indigo-600 mt-2">
+                <p className="text-[#0B6564] text-sm mb-1">Create all test accounts with password <code className="bg-[#E3F4F4] px-1.5 py-0.5 rounded font-mono text-xs">demo123</code></p>
+                <div className="flex flex-wrap gap-2 text-xs text-[#0E7C7B] mt-2">
                   {[
                     { label: 'Director', email: 'tournamentdirector@hoox.app' },
                     { label: 'Angler', email: 'angler@hoox.app' },
                     { label: 'Judge', email: 'judge@hoox.app' },
                     { label: 'Partner', email: 'partner@hoox.app' },
                   ].map(a => (
-                    <span key={a.email} className="bg-indigo-100 px-2 py-1 rounded-full">
+                    <span key={a.email} className="bg-[#E3F4F4] px-2 py-1 rounded-full">
                       <span className="font-semibold">{a.label}:</span> {a.email}
                     </span>
                   ))}
@@ -156,7 +156,7 @@ function DashboardTab({ users, tournaments, series, submissions, directors, judg
               <button
                 onClick={handleSeedDemoAccounts}
                 disabled={seeding}
-                className="px-5 py-2.5 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition disabled:opacity-50 whitespace-nowrap flex-shrink-0"
+                className="px-5 py-2.5 bg-[#0E7C7B] text-white font-semibold rounded-lg hover:bg-[#0B6564] transition disabled:opacity-50 whitespace-nowrap flex-shrink-0"
               >
                 {seeding ? 'Creating...' : 'Create Demo Accounts'}
               </button>
@@ -180,18 +180,18 @@ function DashboardTab({ users, tournaments, series, submissions, directors, judg
           {/* Top Stats */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {[
-              { label: 'Total Users', value: users.length, sub: 'All platform users', icon: Users, color: 'text-gray-600' },
-              { label: 'Total Series', value: series.length, sub: 'Tournament series', icon: TrendingUp, color: 'text-gray-600' },
-              { label: 'Total Tournaments', value: tournaments.length, sub: 'All tournaments', icon: Trophy, color: 'text-gray-600' },
-              { label: 'Total Ads', value: 5, sub: 'All advertisements', icon: Image, color: 'text-gray-600' },
+              { label: 'Total Users', value: users.length, sub: 'All platform users', icon: Users, color: 'text-[#4A5B76]' },
+              { label: 'Total Series', value: series.length, sub: 'Tournament series', icon: TrendingUp, color: 'text-[#4A5B76]' },
+              { label: 'Total Tournaments', value: tournaments.length, sub: 'All tournaments', icon: Trophy, color: 'text-[#4A5B76]' },
+              { label: 'Total Ads', value: 5, sub: 'All advertisements', icon: Image, color: 'text-[#4A5B76]' },
             ].map(s => (
-              <div key={s.label} className="bg-white border border-gray-200 rounded-xl p-5">
+              <div key={s.label} className="bg-white border border-[#E8EEF4] rounded-lg p-5 shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm font-medium text-gray-600">{s.label}</span>
+                  <span className="text-sm font-medium text-[#4A5B76]">{s.label}</span>
                   <s.icon className={`w-5 h-5 ${s.color} opacity-50`} />
                 </div>
-                <div className="text-3xl font-bold text-gray-900 mb-1">{s.value}</div>
-                <div className="text-xs text-gray-400">{s.sub}</div>
+                <div className="text-3xl font-bold text-[#0D1B4C] mb-1">{s.value}</div>
+                <div className="text-xs text-[#8A9AB0]">{s.sub}</div>
               </div>
             ))}
           </div>
@@ -199,12 +199,12 @@ function DashboardTab({ users, tournaments, series, submissions, directors, judg
           {/* Role Stats */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             {[
-              { label: 'Tournament Directors', value: directors.length, sub: 'Total directors', color: 'text-blue-600 bg-blue-50 border-blue-100', icon: Trophy },
+              { label: 'Tournament Directors', value: directors.length, sub: 'Total directors', color: 'text-[#0E7C7B] bg-[#EEF8F8] border-[#D6EFEF]', icon: Trophy },
               { label: 'Judges', value: judges.length, sub: 'Total judges', color: 'text-purple-600 bg-purple-50 border-purple-100', icon: Scale },
               { label: 'Anglers', value: anglers.length, sub: 'Registered anglers', color: 'text-green-600 bg-green-50 border-green-100', icon: Fish },
               { label: 'Partners', value: partners.length, sub: 'Active partners', color: 'text-orange-600 bg-orange-50 border-orange-100', icon: Heart },
             ].map(s => (
-              <div key={s.label} className={`border rounded-xl p-5 ${s.color}`}>
+              <div key={s.label} className={`border rounded-lg p-5 ${s.color}`}>
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-sm font-semibold">{s.label}</span>
                   <s.icon className="w-5 h-5 opacity-50" />
@@ -216,33 +216,33 @@ function DashboardTab({ users, tournaments, series, submissions, directors, judg
           </div>
 
           {/* Administrative Tools */}
-          <h2 className="text-xl font-bold text-gray-900 mb-5">Administrative Tools</h2>
+          <h2 className="font-montserrat text-xl font-bold text-[#0D1B4C] mb-5">Administrative Tools</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             {[
               { icon: Megaphone, color: 'bg-pink-100 text-pink-600', title: 'Advertising', desc: 'Upload and manage banner ads for public-facing pages', btn: 'Manage Ads', tab: 'Advertising' },
               { icon: FileEdit, color: 'bg-purple-100 text-purple-600', title: 'CMS', desc: 'Manage website content, pages, and media assets', btn: 'Manage Content', tab: 'CMS' },
               { icon: DollarSign, color: 'bg-green-100 text-green-600', title: 'Monetization', desc: 'Manage pricing, subscriptions, revenue, and payment processing', btn: 'Manage Monetization', tab: 'Monetization' },
             ].map(t => (
-              <div key={t.title} className="bg-white border border-gray-200 rounded-xl p-6">
+              <div key={t.title} className="bg-white border border-[#E8EEF4] rounded-lg p-6 shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-4 ${t.color}`}>
                   <t.icon className="w-5 h-5" />
                 </div>
-                <h3 className="font-bold text-gray-900 mb-2">{t.title}</h3>
-                <p className="text-gray-500 text-sm mb-4">{t.desc}</p>
-                <button onClick={() => onTabChange(t.tab)} className="w-full py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
+                <h3 className="font-montserrat font-bold text-[#0D1B4C] mb-2">{t.title}</h3>
+                <p className="text-[#5F6F86] text-sm mb-4">{t.desc}</p>
+                <button onClick={() => onTabChange(t.tab)} className="w-full py-2 border border-[#E8EEF4] rounded-lg text-sm font-medium text-[#2E3F5C] hover:bg-[#F5F8FB] transition">
                   {t.btn}
                 </button>
               </div>
             ))}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <div className="bg-white border border-gray-200 rounded-xl p-6">
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center mb-4 bg-blue-100 text-blue-600">
+            <div className="bg-white border border-[#E8EEF4] rounded-lg p-6 shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center mb-4 bg-[#E3F4F4] text-[#0E7C7B]">
                 <Calendar className="w-5 h-5" />
               </div>
-              <h3 className="font-bold text-gray-900 mb-2">Events Management</h3>
-              <p className="text-gray-500 text-sm mb-4">Manage expos, boat shows, and other fishing events</p>
-              <button onClick={() => onTabChange('Events')} className="w-full py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
+              <h3 className="font-montserrat font-bold text-[#0D1B4C] mb-2">Events Management</h3>
+              <p className="text-[#5F6F86] text-sm mb-4">Manage expos, boat shows, and other fishing events</p>
+              <button onClick={() => onTabChange('Events')} className="w-full py-2 border border-[#E8EEF4] rounded-lg text-sm font-medium text-[#2E3F5C] hover:bg-[#F5F8FB] transition">
                 Manage Events
               </button>
             </div>
@@ -251,18 +251,18 @@ function DashboardTab({ users, tournaments, series, submissions, directors, judg
           {/* Management Tools */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { icon: Users, color: 'bg-blue-100 text-blue-600', title: 'User Management', desc: 'Manage user accounts, roles, and permissions across the platform', btn: 'Manage Users', tab: 'Users' },
+              { icon: Users, color: 'bg-[#E3F4F4] text-[#0E7C7B]', title: 'User Management', desc: 'Manage user accounts, roles, and permissions across the platform', btn: 'Manage Users', tab: 'Users' },
               { icon: Heart, color: 'bg-orange-100 text-orange-600', title: 'Partner Management', desc: 'Review partner applications and manage partnership agreements', btn: 'Manage Partners', tab: 'Partners' },
               { icon: TrendingUp, color: 'bg-purple-100 text-purple-600', title: 'Series Management', desc: 'Manage tournament series, standings, and seasonal configurations', btn: 'Manage Series', tab: 'Series' },
-              { icon: Trophy, color: 'bg-teal-100 text-teal-600', title: 'Tournament Management', desc: 'Oversee all tournaments, review settings, and monitor activity', btn: 'Manage Tournaments', tab: 'Tournaments' },
+              { icon: Trophy, color: 'bg-teal-100 text-[#0E7C7B]', title: 'Tournament Management', desc: 'Oversee all tournaments, review settings, and monitor activity', btn: 'Manage Tournaments', tab: 'Tournaments' },
             ].map(t => (
-              <div key={t.title} className="bg-white border border-gray-200 rounded-xl p-6">
+              <div key={t.title} className="bg-white border border-[#E8EEF4] rounded-lg p-6 shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-4 ${t.color}`}>
                   <t.icon className="w-5 h-5" />
                 </div>
-                <h3 className="font-bold text-gray-900 mb-2">{t.title}</h3>
-                <p className="text-gray-500 text-sm mb-4">{t.desc}</p>
-                <button onClick={() => onTabChange(t.tab)} className="w-full py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
+                <h3 className="font-montserrat font-bold text-[#0D1B4C] mb-2">{t.title}</h3>
+                <p className="text-[#5F6F86] text-sm mb-4">{t.desc}</p>
+                <button onClick={() => onTabChange(t.tab)} className="w-full py-2 border border-[#E8EEF4] rounded-lg text-sm font-medium text-[#2E3F5C] hover:bg-[#F5F8FB] transition">
                   {t.btn}
                 </button>
               </div>
@@ -386,19 +386,19 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
 
   const roleBadge = (role: string) => ({
     admin:    'bg-red-100 text-red-700',
-    director: 'bg-blue-100 text-blue-700',
+    director: 'bg-[#E3F4F4] text-[#0B6564]',
     judge:    'bg-purple-100 text-purple-700',
     angler:   'bg-green-100 text-green-700',
     sponsor:  'bg-orange-100 text-orange-700',
-  }[role] || 'bg-gray-100 text-gray-600');
+  }[role] || 'bg-[#EEF3F8] text-[#4A5B76]');
 
   const statusBadge = (status: string) => ({
     active:   'bg-green-100 text-green-700',
     pending:  'bg-yellow-100 text-yellow-700',
     paused:   'bg-orange-100 text-orange-700',
     banned:   'bg-red-100 text-red-700',
-    inactive: 'bg-gray-100 text-gray-500',
-  }[status] || 'bg-gray-100 text-gray-600');
+    inactive: 'bg-[#EEF3F8] text-[#5F6F86]',
+  }[status] || 'bg-[#EEF3F8] text-[#4A5B76]');
 
   const doAction = async (userId: string, action: 'approve' | 'pause' | 'unpause' | 'ban' | 'unban') => {
     setActionLoading(userId + action);
@@ -517,22 +517,22 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
         <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <Trash2 className="w-7 h-7 text-red-600" />
         </div>
-        <h2 className="text-xl font-bold text-gray-900 text-center mb-2">Delete Account?</h2>
-        <p className="text-gray-500 text-sm text-center mb-2">
+        <h2 className="font-montserrat text-xl font-bold text-[#0D1B4C] text-center mb-2">Delete Account?</h2>
+        <p className="text-[#5F6F86] text-sm text-center mb-2">
           You are about to permanently delete the account for:
         </p>
-        <p className="text-center font-semibold text-gray-800 mb-4">{deleteTarget.name} ({deleteTarget.email})</p>
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+        <p className="text-center font-semibold text-[#0D1B4C] mb-4">{deleteTarget.name} ({deleteTarget.email})</p>
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
           <p className="text-red-700 text-sm font-semibold mb-1">⚠️ This action is irreversible</p>
           <p className="text-red-600 text-sm">Once deleted, this account cannot be recovered. The user will receive an "Account not found" error if they attempt to log in.</p>
         </div>
         <div className="flex gap-3">
           <button onClick={() => setDeleteTarget(null)}
-            className="flex-1 py-3 border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition">
+            className="flex-1 py-3 border border-[#E8EEF4] text-[#2E3F5C] font-semibold rounded-lg hover:bg-[#F5F8FB] transition">
             Cancel
           </button>
           <button onClick={() => doDelete(deleteTarget.id)}
-            className="flex-1 py-3 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition">
+            className="flex-1 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition">
             Yes, Delete
           </button>
         </div>
@@ -550,34 +550,34 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
         {/* Breadcrumb */}
         {isSelf(u.id) ? (
           <nav className="flex items-center gap-1 text-sm mb-6">
-            <span className="text-gray-500">My Profile</span>
+            <span className="text-[#5F6F86]">My Profile</span>
           </nav>
         ) : (
           <nav className="flex items-center gap-1 text-sm mb-6">
-            <button onClick={() => onNavigate('/admin/users')} className="text-blue-600 hover:underline">Users</button>
-            <span className="text-gray-300 mx-1">›</span>
-            <button onClick={() => onNavigate('/admin/users/list')} className="text-blue-600 hover:underline">User Management</button>
-            <span className="text-gray-300 mx-1">›</span>
-            <span className="text-gray-500">{u.name}</span>
+            <button onClick={() => onNavigate('/admin/users')} className="text-[#0E7C7B] hover:underline">Users</button>
+            <span className="text-[#B9C6D4] mx-1">›</span>
+            <button onClick={() => onNavigate('/admin/users/list')} className="text-[#0E7C7B] hover:underline">User Management</button>
+            <span className="text-[#B9C6D4] mx-1">›</span>
+            <span className="text-[#5F6F86]">{u.name}</span>
           </nav>
         )}
 
         {/* Header */}
         <div className="flex items-start justify-between mb-2 flex-wrap gap-3">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">{u.name}</h2>
+            <h2 className="font-montserrat text-2xl font-bold text-[#0D1B4C]">{u.name}</h2>
             <div className="flex items-center gap-2 mt-1">
               <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${roleBadge(u.role)}`}>
                 {u.role === 'sponsor' ? 'partner' : u.role}
               </span>
-              <span className="text-gray-400 text-sm">{u.email}</span>
+              <span className="text-[#8A9AB0] text-sm">{u.email}</span>
               <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${statusBadge(u.status || 'active')}`}>
                 {u.status || 'active'}
               </span>
             </div>
           </div>
           <div className="flex gap-2 flex-wrap">
-            <button onClick={() => openEdit(u)} className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition">
+            <button onClick={() => openEdit(u)} className="flex items-center gap-1.5 px-4 py-2 bg-[#0E7C7B] text-white rounded-lg text-sm font-medium hover:bg-[#0B6564] transition">
               <Pencil className="w-3.5 h-3.5" /> Edit
             </button>
             {/* No pausing, banning or deleting your own account */}
@@ -606,15 +606,15 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
         </div>
 
         {/* Two tabs */}
-        <div className="flex border-b border-gray-200 mb-6">
+        <div className="flex border-b border-[#E8EEF4] mb-6">
           {(['profile', 'account'] as const).map(tab => {
             const labels = { profile: 'Profile', account: 'Account Info' };
             return (
               <button key={tab} onClick={() => setViewTab(tab)}
                 className={`px-5 py-3 text-sm font-medium border-b-2 transition -mb-px ${
                   viewTab === tab
-                    ? 'border-blue-600 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                    ? 'border-[#0E7C7B] text-[#0E7C7B]'
+                    : 'border-transparent text-[#5F6F86] hover:text-[#2E3F5C]'
                 }`}>
                 {labels[tab]}
               </button>
@@ -624,19 +624,19 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
 
         {/* ── Profile Tab ── */}
         {viewTab === 'profile' && (
-          <div className="bg-white border border-gray-200 rounded-xl p-6 max-w-2xl">
-            <h3 className="font-semibold text-gray-800 mb-5 pb-3 border-b border-gray-100">
+          <div className="bg-white border border-[#E8EEF4] rounded-lg p-6 max-w-2xl shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
+            <h3 className="font-montserrat font-semibold text-[#0D1B4C] mb-5 pb-3 border-b border-[#EEF3F8]">
               {u.role === 'sponsor' ? 'Partner' :
                u.role === 'director' ? 'Tournament Director' :
                u.role.charAt(0).toUpperCase() + u.role.slice(1)} Profile
             </h3>
 
             {u.role === 'judge' && (
-              <div className="divide-y divide-gray-100">
+              <div className="divide-y divide-[#EEF3F8]">
                 {/* Avatar */}
                 {u.profileAvatar && (
                   <div className="flex items-center justify-between py-3">
-                    <span className="text-sm text-gray-500 w-40 flex-shrink-0">Avatar</span>
+                    <span className="text-sm text-[#5F6F86] w-40 flex-shrink-0">Avatar</span>
                     <img src={u.profileAvatar} alt="Avatar" className="w-10 h-10 rounded-full object-cover" />
                   </div>
                 )}
@@ -653,21 +653,21 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
                   { label: 'Website',        value: u.profileWebsite || '—' },
                 ].map(f => (
                   <div key={f.label} className="flex items-center justify-between py-3">
-                    <span className="text-sm text-gray-500 w-40 flex-shrink-0">{f.label}</span>
-                    <span className="text-sm font-medium text-gray-900 text-right">{f.value}</span>
+                    <span className="text-sm text-[#5F6F86] w-40 flex-shrink-0">{f.label}</span>
+                    <span className="text-sm font-medium text-[#0D1B4C] text-right">{f.value}</span>
                   </div>
                 ))}
 
                 {/* Club Affiliations */}
                 <div className="py-4">
-                  <span className="text-sm text-gray-500 block mb-2">Club Affiliation(s)</span>
+                  <span className="text-sm text-[#5F6F86] block mb-2">Club Affiliation(s)</span>
                   {(u.profileClubAffiliations || []).length === 0
-                    ? <span className="text-sm text-gray-400">None</span>
+                    ? <span className="text-sm text-[#8A9AB0]">None</span>
                     : <div className="flex flex-wrap gap-2">
                         {(u.profileClubAffiliations || []).map((c, i) => (
-                          <div key={i} className="flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm">
+                          <div key={i} className="flex items-center gap-1.5 px-3 py-1 bg-[#EEF8F8] text-[#0B6564] rounded-full text-sm">
                             <span>{c.name}</span>
-                            {c.website && <a href={c.website} target="_blank" rel="noreferrer" className="text-blue-400 hover:text-blue-600 text-xs underline ml-1">{c.website}</a>}
+                            {c.website && <a href={c.website} target="_blank" rel="noreferrer" className="text-[#22B3B5] hover:text-[#0E7C7B] text-xs underline ml-1">{c.website}</a>}
                           </div>
                         ))}
                       </div>
@@ -676,9 +676,9 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
 
                 {/* Sponsors */}
                 <div className="py-4">
-                  <span className="text-sm text-gray-500 block mb-2">Sponsor(s)</span>
+                  <span className="text-sm text-[#5F6F86] block mb-2">Sponsor(s)</span>
                   {(u.profileSponsors || []).length === 0
-                    ? <span className="text-sm text-gray-400">None</span>
+                    ? <span className="text-sm text-[#8A9AB0]">None</span>
                     : <div className="flex flex-wrap gap-2">
                         {(u.profileSponsors || []).map((s, i) => (
                           <div key={i} className="flex items-center gap-1.5 px-3 py-1 bg-orange-50 text-orange-700 rounded-full text-sm">
@@ -693,12 +693,12 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
             )}
 
             {u.role !== 'judge' && (
-              <div className="flex flex-col items-center justify-center py-10 text-center text-gray-400">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                  <Users className="w-8 h-8 text-gray-300" />
+              <div className="flex flex-col items-center justify-center py-10 text-center text-[#8A9AB0]">
+                <div className="w-16 h-16 bg-[#EEF3F8] rounded-full flex items-center justify-center mb-4">
+                  <Users className="w-8 h-8 text-[#B9C6D4]" />
                 </div>
-                <p className="text-sm font-medium text-gray-500">Profile information coming soon</p>
-                <p className="text-xs text-gray-400 mt-1">Role-specific profile details will appear here</p>
+                <p className="text-sm font-medium text-[#5F6F86]">Profile information coming soon</p>
+                <p className="text-xs text-[#8A9AB0] mt-1">Role-specific profile details will appear here</p>
               </div>
             )}
           </div>
@@ -706,9 +706,9 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
 
         {/* ── Account Info Tab ── */}
         {viewTab === 'account' && (
-          <div className="bg-white border border-gray-200 rounded-xl p-6 max-w-2xl">
-            <h3 className="font-semibold text-gray-800 mb-5 pb-3 border-b border-gray-100">Account Information</h3>
-            <div className="space-y-0 divide-y divide-gray-100">
+          <div className="bg-white border border-[#E8EEF4] rounded-lg p-6 max-w-2xl shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
+            <h3 className="font-montserrat font-semibold text-[#0D1B4C] mb-5 pb-3 border-b border-[#EEF3F8]">Account Information</h3>
+            <div className="space-y-0 divide-y divide-[#EEF3F8]">
               {[
                 { label: 'Full Name',     value: u.name },
                 { label: 'Email',         value: u.email },
@@ -725,10 +725,10 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
                 { label: 'Member Since',  value: new Date(u.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) },
               ].map(f => (
                 <div key={f.label} className="flex items-center justify-between py-3">
-                  <span className="text-sm text-gray-500 w-36 flex-shrink-0">{f.label}</span>
+                  <span className="text-sm text-[#5F6F86] w-36 flex-shrink-0">{f.label}</span>
                   {f.badge
                     ? <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${f.badge}`}>{f.value}</span>
-                    : <span className="text-sm font-medium text-gray-900 text-right">{f.value}</span>
+                    : <span className="text-sm font-medium text-[#0D1B4C] text-right">{f.value}</span>
                   }
                 </div>
               ))}
@@ -745,12 +745,12 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
     const isOwnAccount = selectedUser.id === currentUser.id;
     const field = (key: keyof User, label: string, type = 'text') => (
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">{label}</label>
+        <label className="block text-sm font-medium text-[#2E3F5C] mb-1.5">{label}</label>
         <input
           type={type}
           value={(editForm[key] as string) || ''}
           onChange={e => setEditForm(f => ({ ...f, [key]: e.target.value }))}
-          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-2.5 border border-[#D3DEE8] rounded-lg text-sm focus:ring-2 focus:ring-[#22B3B5] focus:border-transparent"
         />
       </div>
     );
@@ -758,12 +758,12 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
     const roleBadgeColor = (role: string): string => {
       const map: Record<string, string> = {
         admin:    'bg-red-100 text-red-700',
-        director: 'bg-blue-100 text-blue-700',
+        director: 'bg-[#E3F4F4] text-[#0B6564]',
         judge:    'bg-purple-100 text-purple-700',
         angler:   'bg-green-100 text-green-700',
         sponsor:  'bg-orange-100 text-orange-700',
       };
-      return map[role] || 'bg-gray-100 text-gray-600';
+      return map[role] || 'bg-[#EEF3F8] text-[#4A5B76]';
     };
 
     return (
@@ -774,27 +774,27 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1 text-sm mb-6">
           {isSelf(selectedUser.id) ? (
-            <button onClick={() => onNavigate('/admin/profile')} className="text-blue-600 hover:underline">My Profile</button>
+            <button onClick={() => onNavigate('/admin/profile')} className="text-[#0E7C7B] hover:underline">My Profile</button>
           ) : (<>
-          <button onClick={() => onNavigate('/admin/users')} className="text-blue-600 hover:underline">Users</button>
-          <span className="text-gray-300 mx-1">›</span>
-          <button onClick={() => onNavigate('/admin/users/list')} className="text-blue-600 hover:underline">User Management</button>
-          <span className="text-gray-300 mx-1">›</span>
-          <button onClick={() => onNavigate(viewPath(selectedUser?.id))} className="text-blue-600 hover:underline">{selectedUser.name}</button>
+          <button onClick={() => onNavigate('/admin/users')} className="text-[#0E7C7B] hover:underline">Users</button>
+          <span className="text-[#B9C6D4] mx-1">›</span>
+          <button onClick={() => onNavigate('/admin/users/list')} className="text-[#0E7C7B] hover:underline">User Management</button>
+          <span className="text-[#B9C6D4] mx-1">›</span>
+          <button onClick={() => onNavigate(viewPath(selectedUser?.id))} className="text-[#0E7C7B] hover:underline">{selectedUser.name}</button>
           </>)}
-          <span className="text-gray-300 mx-1">›</span>
-          <span className="text-gray-500">Edit</span>
+          <span className="text-[#B9C6D4] mx-1">›</span>
+          <span className="text-[#5F6F86]">Edit</span>
         </nav>
 
         {/* Header */}
         <div className="flex items-center justify-between mb-2 flex-wrap gap-3">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">{selectedUser.name}</h2>
+            <h2 className="font-montserrat text-2xl font-bold text-[#0D1B4C]">{selectedUser.name}</h2>
             <div className="flex items-center gap-2 mt-1">
               <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${roleBadgeColor(selectedUser.role)}`}>
                 {selectedUser.role === 'sponsor' ? 'partner' : selectedUser.role}
               </span>
-              <span className="text-gray-400 text-sm">{selectedUser.email}</span>
+              <span className="text-[#8A9AB0] text-sm">{selectedUser.email}</span>
             </div>
           </div>
           {!isSelf(selectedUser.id) && (
@@ -805,15 +805,15 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
         </div>
 
         {/* Three tabs */}
-        <div className="flex border-b border-gray-200 mb-6">
+        <div className="flex border-b border-[#E8EEF4] mb-6">
           {(['profile', 'account', 'security'] as const).map(tab => {
             const labels = { profile: 'Profile', account: 'Account Info', security: 'Security Settings' };
             return (
               <button key={tab} onClick={() => setEditTab(tab)}
                 className={`px-5 py-3 text-sm font-medium border-b-2 transition -mb-px ${
                   editTab === tab
-                    ? 'border-blue-600 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                    ? 'border-[#0E7C7B] text-[#0E7C7B]'
+                    : 'border-transparent text-[#5F6F86] hover:text-[#2E3F5C]'
                 }`}>
                 {labels[tab]}
               </button>
@@ -823,8 +823,8 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
 
         {/* ── Profile Tab ── */}
         {editTab === 'profile' && (
-          <div className="bg-white border border-gray-200 rounded-xl p-6 max-w-2xl">
-            <h3 className="font-semibold text-gray-800 mb-5 pb-3 border-b border-gray-100">
+          <div className="bg-white border border-[#E8EEF4] rounded-lg p-6 max-w-2xl shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
+            <h3 className="font-montserrat font-semibold text-[#0D1B4C] mb-5 pb-3 border-b border-[#EEF3F8]">
               {selectedUser.role === 'sponsor' ? 'Partner' :
                selectedUser.role === 'director' ? 'Tournament Director' :
                selectedUser.role.charAt(0).toUpperCase() + selectedUser.role.slice(1)} Profile
@@ -833,8 +833,8 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
             {selectedUser.role === 'judge' && (() => {
               const jp = judgeProfile;
               const setJp = (key: string, val: any) => setJudgeProfile(p => ({ ...p, [key]: val }));
-              const inputCls = "w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent";
-              const labelCls = "block text-sm font-medium text-gray-700 mb-1.5";
+              const inputCls = "w-full px-4 py-2.5 border border-[#D3DEE8] rounded-lg text-sm focus:ring-2 focus:ring-[#22B3B5] focus:border-transparent";
+              const labelCls = "block text-sm font-medium text-[#2E3F5C] mb-1.5";
               return (
                 <div className="space-y-5">
 
@@ -845,9 +845,9 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
                       <input type="text" value={jp.avatar} placeholder="Upload image"
                         onChange={e => setJp('avatar', e.target.value)}
                         className={`${inputCls} flex-grow`} />
-                      <button className="px-4 py-2.5 border border-gray-300 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition whitespace-nowrap">Browse</button>
+                      <button className="px-4 py-2.5 border border-[#D3DEE8] rounded-lg text-sm text-[#4A5B76] hover:bg-[#F5F8FB] transition whitespace-nowrap">Browse</button>
                     </div>
-                    <p className="text-xs text-gray-400 mt-1">Recommended: Square image, at least 200×200px</p>
+                    <p className="text-xs text-[#8A9AB0] mt-1">Recommended: Square image, at least 200×200px</p>
                   </div>
 
                   {/* Display Name */}
@@ -922,14 +922,14 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
 
                   {/* Club Affiliations */}
                   <div>
-                    <p className="text-sm font-semibold text-gray-800 mb-0.5">Club Affiliation(s)</p>
-                    <p className="text-xs text-gray-400 mb-3">Add one or more club affiliations</p>
+                    <p className="text-sm font-semibold text-[#0D1B4C] mb-0.5">Club Affiliation(s)</p>
+                    <p className="text-xs text-[#8A9AB0] mb-3">Add one or more club affiliations</p>
                     <div className="flex flex-wrap gap-2 mb-3">
                       {jp.clubAffiliations.map((c, i) => (
-                        <span key={i} className="flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm">
+                        <span key={i} className="flex items-center gap-1.5 px-3 py-1 bg-[#EEF8F8] text-[#0B6564] rounded-full text-sm">
                           {c.name}
                           <button onClick={() => setJp('clubAffiliations', jp.clubAffiliations.filter((_: any, j: number) => j !== i))}
-                            className="text-blue-400 hover:text-blue-700 ml-1">×</button>
+                            className="text-[#22B3B5] hover:text-[#0B6564] ml-1">×</button>
                         </span>
                       ))}
                     </div>
@@ -945,17 +945,17 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
                           setJp('clubAffiliations', [...jp.clubAffiliations, { name: jp.newClub.name.trim(), website: jp.newClub.website.trim() }]);
                           setJp('newClub', { name: '', website: '' });
                         }
-                      }} className="flex items-center gap-1 px-3 py-2.5 text-sm text-gray-600 hover:text-blue-600 whitespace-nowrap">
+                      }} className="flex items-center gap-1 px-3 py-2.5 text-sm text-[#4A5B76] hover:text-[#0E7C7B] whitespace-nowrap">
                         <span className="text-lg leading-none">+</span> Add
                       </button>
                     </div>
-                    <p className="text-xs text-gray-400 mt-1">Website must include full url: www.website.com</p>
+                    <p className="text-xs text-[#8A9AB0] mt-1">Website must include full url: www.website.com</p>
                   </div>
 
                   {/* Sponsors */}
                   <div>
-                    <p className="text-sm font-semibold text-gray-800 mb-0.5">Sponsor(s)</p>
-                    <p className="text-xs text-gray-400 mb-3">Add one or more sponsors</p>
+                    <p className="text-sm font-semibold text-[#0D1B4C] mb-0.5">Sponsor(s)</p>
+                    <p className="text-xs text-[#8A9AB0] mb-3">Add one or more sponsors</p>
                     <div className="flex flex-wrap gap-2 mb-3">
                       {jp.sponsors.map((s: any, i: number) => (
                         <span key={i} className="flex items-center gap-1.5 px-3 py-1 bg-orange-50 text-orange-700 rounded-full text-sm">
@@ -977,17 +977,17 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
                           setJp('sponsors', [...jp.sponsors, { name: jp.newSponsor.name.trim(), website: jp.newSponsor.website.trim() }]);
                           setJp('newSponsor', { name: '', website: '' });
                         }
-                      }} className="flex items-center gap-1 px-3 py-2.5 text-sm text-gray-600 hover:text-orange-600 whitespace-nowrap">
+                      }} className="flex items-center gap-1 px-3 py-2.5 text-sm text-[#4A5B76] hover:text-orange-600 whitespace-nowrap">
                         <span className="text-lg leading-none">+</span> Add
                       </button>
                     </div>
-                    <p className="text-xs text-gray-400 mt-1">Website must include full url: www.website.com</p>
+                    <p className="text-xs text-[#8A9AB0] mt-1">Website must include full url: www.website.com</p>
                   </div>
 
                   {/* Save */}
-                  <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                  <div className="flex justify-end gap-3 pt-4 border-t border-[#EEF3F8]">
                     <button onClick={() => onNavigate(viewPath(selectedUser.id))}
-                      className="px-5 py-2.5 border border-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition text-sm">
+                      className="px-5 py-2.5 border border-[#E8EEF4] text-[#2E3F5C] font-medium rounded-lg hover:bg-[#F5F8FB] transition text-sm">
                       Cancel
                     </button>
                     <button onClick={async () => {
@@ -1015,7 +1015,7 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
                         }),
                       });
                       toastSuccess('Judge profile saved successfully.');
-                    }} className="px-5 py-2.5 bg-gray-900 text-white font-semibold rounded-lg hover:bg-gray-700 transition text-sm">
+                    }} className="px-5 py-2.5 bg-[#0E7C7B] text-white font-semibold rounded-lg hover:bg-[#0B6564] transition text-sm">
                       Update
                     </button>
                   </div>
@@ -1024,11 +1024,11 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
             })()}
 
             {selectedUser.role !== 'judge' && (
-              <div className="flex items-center gap-4 py-8 text-center justify-center text-gray-400">
+              <div className="flex items-center gap-4 py-8 text-center justify-center text-[#8A9AB0]">
                 <div>
                   <div className="text-4xl mb-3">👤</div>
-                  <p className="text-sm font-medium text-gray-500">Profile fields coming soon</p>
-                  <p className="text-xs text-gray-400 mt-1">Role-specific profile information will appear here</p>
+                  <p className="text-sm font-medium text-[#5F6F86]">Profile fields coming soon</p>
+                  <p className="text-xs text-[#8A9AB0] mt-1">Role-specific profile information will appear here</p>
                 </div>
               </div>
             )}
@@ -1037,19 +1037,19 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
 
         {/* ── Account Info Tab ── */}
         {editTab === 'account' && (
-          <div className="bg-white border border-gray-200 rounded-xl p-6 max-w-2xl">
-            <h3 className="font-semibold text-gray-800 mb-4 pb-3 border-b border-gray-100">User Information</h3>
+          <div className="bg-white border border-[#E8EEF4] rounded-lg p-6 max-w-2xl shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
+            <h3 className="font-montserrat font-semibold text-[#0D1B4C] mb-4 pb-3 border-b border-[#EEF3F8]">User Information</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               {field('name', 'Full Name')}
               {field('email', 'Email Address', 'email')}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Role</label>
+                <label className="block text-sm font-medium text-[#2E3F5C] mb-1.5">Role</label>
                 <select
                   value={editForm.role || ''}
                   onChange={e => setEditForm(f => ({ ...f, role: e.target.value as any }))}
                   disabled={isSelf(selectedUser.id)}
                   title={isSelf(selectedUser.id) ? 'You can’t change your own role' : undefined}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
+                  className="w-full px-4 py-2.5 border border-[#D3DEE8] rounded-lg text-sm focus:ring-2 focus:ring-[#22B3B5] disabled:bg-[#F5F8FB] disabled:text-[#5F6F86]"
                 >
                   <option value="angler">Angler</option>
                   <option value="director">Director</option>
@@ -1059,13 +1059,13 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Status</label>
+                <label className="block text-sm font-medium text-[#2E3F5C] mb-1.5">Status</label>
                 <select
                   value={editForm.status || 'active'}
                   onChange={e => setEditForm(f => ({ ...f, status: e.target.value as any }))}
                   disabled={isSelf(selectedUser.id)}
                   title={isSelf(selectedUser.id) ? 'You can’t change your own status' : undefined}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
+                  className="w-full px-4 py-2.5 border border-[#D3DEE8] rounded-lg text-sm focus:ring-2 focus:ring-[#22B3B5] disabled:bg-[#F5F8FB] disabled:text-[#5F6F86]"
                 >
                   <option value="active">Active</option>
                   <option value="pending">Pending</option>
@@ -1086,8 +1086,8 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
                     zip: editForm.zip || '',
                   }}
                   onChange={v => setEditForm(f => ({ ...f, address: v.address, country: v.country, state: v.state, city: v.city, zip: v.zip }))}
-                  inputClass="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  labelClass="block text-sm font-medium text-gray-700 mb-1.5"
+                  inputClass="w-full px-4 py-2.5 border border-[#D3DEE8] rounded-lg text-sm focus:ring-2 focus:ring-[#22B3B5] focus:border-transparent"
+                  labelClass="block text-sm font-medium text-[#2E3F5C] mb-1.5"
                 />
               </div>
               {field('website', 'Website')}
@@ -1098,10 +1098,10 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
               </div>
             )}
             <div className="flex gap-3">
-              <button onClick={() => onNavigate(viewPath(selectedUser?.id))} className="px-5 py-2.5 border border-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition text-sm">
+              <button onClick={() => onNavigate(viewPath(selectedUser?.id))} className="px-5 py-2.5 border border-[#E8EEF4] text-[#2E3F5C] font-medium rounded-lg hover:bg-[#F5F8FB] transition text-sm">
                 Cancel
               </button>
-              <button onClick={saveEdit} disabled={editSaving} className="px-5 py-2.5 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition disabled:opacity-50 text-sm">
+              <button onClick={saveEdit} disabled={editSaving} className="px-5 py-2.5 bg-[#0E7C7B] text-white font-semibold rounded-lg hover:bg-[#0B6564] transition disabled:opacity-50 text-sm">
                 {editSaving ? 'Saving...' : 'Save Changes'}
               </button>
             </div>
@@ -1110,9 +1110,9 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
 
         {/* ── Security Settings Tab ── */}
         {editTab === 'security' && (
-          <div className="bg-white border border-gray-200 rounded-xl p-6 max-w-lg">
-            <h3 className="font-semibold text-gray-800 mb-1 pb-3 border-b border-gray-100">Change Password</h3>
-            <p className="text-gray-500 text-sm mb-5 mt-3">
+          <div className="bg-white border border-[#E8EEF4] rounded-lg p-6 max-w-lg shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
+            <h3 className="font-montserrat font-semibold text-[#0D1B4C] mb-1 pb-3 border-b border-[#EEF3F8]">Change Password</h3>
+            <p className="text-[#5F6F86] text-sm mb-5 mt-3">
               {isOwnAccount
                 ? 'Changing your own password requires your current password.'
                 : `Set a new password for ${selectedUser.name}. They will receive an email notification.`
@@ -1121,34 +1121,34 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
             <div className="space-y-4">
               {isOwnAccount && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Current Password *</label>
+                  <label className="block text-sm font-medium text-[#2E3F5C] mb-1.5">Current Password *</label>
                   <div className="relative">
                     <input
                       type={showPwCurrent ? 'text' : 'password'}
                       value={pwForm.current}
                       onChange={e => setPwForm(f => ({ ...f, current: e.target.value }))}
                       placeholder="Enter your current password"
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10"
+                      className="w-full px-4 py-2.5 border border-[#D3DEE8] rounded-lg text-sm focus:ring-2 focus:ring-[#22B3B5] focus:border-transparent pr-10"
                     />
                     <button type="button" onClick={() => setShowPwCurrent(s => !s)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8A9AB0] hover:text-[#4A5B76]">
                       {showPwCurrent ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                 </div>
               )}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">New Password *</label>
+                <label className="block text-sm font-medium text-[#2E3F5C] mb-1.5">New Password *</label>
                 <div className="relative">
                   <input
                     type={showPwNew ? 'text' : 'password'}
                     value={pwForm.newPw}
                     onChange={e => setPwForm(f => ({ ...f, newPw: e.target.value }))}
                     placeholder="Min. 6 characters"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10"
+                    className="w-full px-4 py-2.5 border border-[#D3DEE8] rounded-lg text-sm focus:ring-2 focus:ring-[#22B3B5] focus:border-transparent pr-10"
                   />
                   <button type="button" onClick={() => setShowPwNew(s => !s)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8A9AB0] hover:text-[#4A5B76]">
                     {showPwNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
@@ -1159,30 +1159,30 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
                         <div key={i} className={`h-1 w-8 rounded-full ${
                           pwForm.newPw.length >= i * 3
                             ? i <= 1 ? 'bg-red-400' : i <= 2 ? 'bg-orange-400' : i <= 3 ? 'bg-yellow-400' : 'bg-green-500'
-                            : 'bg-gray-200'
+                            : 'bg-[#E1E9F1]'
                         }`} />
                       ))}
                     </div>
-                    <span className="text-xs text-gray-400">
+                    <span className="text-xs text-[#8A9AB0]">
                       {pwForm.newPw.length < 4 ? 'Too short' : pwForm.newPw.length < 7 ? 'Weak' : pwForm.newPw.length < 10 ? 'Fair' : 'Strong'}
                     </span>
                   </div>
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Confirm New Password *</label>
+                <label className="block text-sm font-medium text-[#2E3F5C] mb-1.5">Confirm New Password *</label>
                 <div className="relative">
                   <input
                     type={showPwConfirm ? 'text' : 'password'}
                     value={pwForm.confirm}
                     onChange={e => setPwForm(f => ({ ...f, confirm: e.target.value }))}
                     placeholder="Re-enter new password"
-                    className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10 ${
-                      pwForm.confirm && pwForm.newPw !== pwForm.confirm ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                    className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-[#22B3B5] focus:border-transparent pr-10 ${
+                      pwForm.confirm && pwForm.newPw !== pwForm.confirm ? 'border-red-300 bg-red-50' : 'border-[#D3DEE8]'
                     }`}
                   />
                   <button type="button" onClick={() => setShowPwConfirm(s => !s)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8A9AB0] hover:text-[#4A5B76]">
                     {showPwConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
@@ -1191,15 +1191,15 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
                 )}
               </div>
             </div>
-            <div className="mt-6 pt-4 border-t border-gray-100">
+            <div className="mt-6 pt-4 border-t border-[#EEF3F8]">
               <button
                 onClick={changePasswordForUser}
                 disabled={pwSaving || !pwForm.newPw || !pwForm.confirm || pwForm.newPw !== pwForm.confirm}
-                className="w-full py-2.5 bg-gray-900 text-white font-semibold rounded-lg hover:bg-gray-700 transition disabled:opacity-40 text-sm"
+                className="w-full py-2.5 bg-[#0E7C7B] text-white font-semibold rounded-lg hover:bg-[#0B6564] transition disabled:opacity-40 text-sm"
               >
                 {pwSaving ? 'Updating Password...' : 'Update Password'}
               </button>
-              <p className="text-xs text-gray-400 text-center mt-3">
+              <p className="text-xs text-[#8A9AB0] text-center mt-3">
                 {isOwnAccount
                   ? 'A confirmation email will be sent to your address.'
                   : `A notification email will be sent to ${selectedUser.email}.`
@@ -1234,9 +1234,9 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
     ];
 
     const toolCards = [
-      { icon: Users,      color: 'bg-blue-100 text-blue-600',   title: 'User Directory',       desc: 'View and manage all user accounts',                  btn: 'View All Users',      primary: true,  action: () => onNavigate('/admin/users/list') },
+      { icon: Users,      color: 'bg-[#E3F4F4] text-[#0E7C7B]',   title: 'User Directory',       desc: 'View and manage all user accounts',                  btn: 'View All Users',      primary: true,  action: () => onNavigate('/admin/users/list') },
       { icon: Shield,     color: 'bg-purple-100 text-purple-600', title: 'Role Management',    desc: 'Assign and modify user roles and permissions',        btn: 'Manage Roles',        primary: false, action: () => {} },
-      { icon: Megaphone,  color: 'bg-teal-100 text-teal-600',   title: 'User Communication',   desc: 'Send notifications and announcements to users',       btn: 'Send Notification',   primary: false, action: () => {} },
+      { icon: Megaphone,  color: 'bg-teal-100 text-[#0E7C7B]',   title: 'User Communication',   desc: 'Send notifications and announcements to users',       btn: 'Send Notification',   primary: false, action: () => {} },
       { icon: Activity,   color: 'bg-green-100 text-green-600', title: 'User Activity',        desc: 'Monitor user activity and engagement',                btn: 'View Activity',       primary: false, action: () => {} },
     ];
 
@@ -1245,8 +1245,8 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
         {/* Header */}
         <div className="flex items-start justify-between mb-6 flex-wrap gap-3">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">User Management</h2>
-            <p className="text-gray-500 text-sm mt-0.5">Manage user accounts, roles, and permissions across the platform</p>
+            <h2 className="font-montserrat text-2xl font-bold text-[#0D1B4C]">User Management</h2>
+            <p className="text-[#5F6F86] text-sm mt-0.5">Manage user accounts, roles, and permissions across the platform</p>
           </div>
           <div className="flex gap-2 flex-wrap">
             {[
@@ -1256,7 +1256,7 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
               { label: 'Add an Angler',             filter: 'angler' },
             ].map(b => (
               <button key={b.label} onClick={() => onNavigate('/admin/users/list')}
-                className="px-4 py-2.5 bg-gray-900 text-white rounded-lg text-sm font-semibold hover:bg-gray-700 transition whitespace-nowrap">
+                className="px-4 py-2.5 bg-[#0E7C7B] text-white rounded-lg text-sm font-semibold hover:bg-[#0B6564] transition whitespace-nowrap">
                 {b.label}
               </button>
             ))}
@@ -1271,13 +1271,13 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
             { label: 'New This Month',  value: newThisMonth.length,  sub: 'New registrations',         icon: UserCheck, onClick: () => onNavigate('/admin/users/list?filter=new') },
           ].map(s => (
             <button key={s.label} onClick={s.onClick}
-              className="bg-white border border-gray-200 rounded-xl p-5 text-left hover:border-blue-300 hover:shadow-sm transition group">
+              className="bg-white border border-[#E8EEF4] rounded-lg p-5 text-left hover:border-[#22B3B5] hover:shadow-sm transition group">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-sm text-gray-500">{s.label}</span>
-                <s.icon className="w-5 h-5 text-gray-300 group-hover:text-blue-400 transition" />
+                <span className="text-sm text-[#5F6F86]">{s.label}</span>
+                <s.icon className="w-5 h-5 text-[#B9C6D4] group-hover:text-[#22B3B5] transition" />
               </div>
-              <div className="text-3xl font-bold text-gray-900 mb-1 group-hover:text-blue-600 transition">{s.value}</div>
-              <div className="text-xs text-gray-400">{s.sub}</div>
+              <div className="text-3xl font-bold text-[#0D1B4C] mb-1 group-hover:text-[#0E7C7B] transition">{s.value}</div>
+              <div className="text-xs text-[#8A9AB0]">{s.sub}</div>
             </button>
           ))}
         </div>
@@ -1286,13 +1286,13 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
           {roleCards.map(r => (
             <button key={r.label} onClick={() => onNavigate(`/admin/users/list?filter=${r.filter}`)}
-              className="bg-white border border-gray-200 rounded-xl p-4 text-left hover:border-blue-300 hover:shadow-sm transition group">
+              className="bg-white border border-[#E8EEF4] rounded-lg p-4 text-left hover:border-[#22B3B5] hover:shadow-sm transition group">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-xs text-gray-500">{r.label}</span>
-                <r.icon className="w-4 h-4 text-gray-300 group-hover:text-blue-400 transition" />
+                <span className="text-xs text-[#5F6F86]">{r.label}</span>
+                <r.icon className="w-4 h-4 text-[#B9C6D4] group-hover:text-[#22B3B5] transition" />
               </div>
-              <div className="text-2xl font-bold text-gray-900 mb-1">{r.value}</div>
-              <div className="text-xs text-gray-400">{r.sub}</div>
+              <div className="text-2xl font-bold text-[#0D1B4C] mb-1">{r.value}</div>
+              <div className="text-xs text-[#8A9AB0]">{r.sub}</div>
             </button>
           ))}
         </div>
@@ -1300,19 +1300,19 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
         {/* Tool cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {toolCards.map(t => (
-            <div key={t.title} className="bg-white border border-gray-200 rounded-xl p-5">
+            <div key={t.title} className="bg-white border border-[#E8EEF4] rounded-lg p-5 shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
               <div className="flex items-center gap-2 mb-2">
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${t.color}`}>
                   <t.icon className="w-4 h-4" />
                 </div>
-                <h3 className="font-semibold text-gray-900 text-sm">{t.title}</h3>
+                <h3 className="font-montserrat font-semibold text-[#0D1B4C] text-sm">{t.title}</h3>
               </div>
-              <p className="text-gray-500 text-sm mb-5 leading-relaxed">{t.desc}</p>
+              <p className="text-[#5F6F86] text-sm mb-5 leading-relaxed">{t.desc}</p>
               <button onClick={t.action}
                 className={`w-full py-2.5 rounded-lg text-sm font-semibold transition ${
                   t.primary
-                    ? 'bg-gray-900 text-white hover:bg-gray-700'
-                    : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
+                    ? 'bg-[#0E7C7B] text-white hover:bg-[#0B6564]'
+                    : 'border border-[#D3DEE8] text-[#2E3F5C] hover:bg-[#F5F8FB]'
                 }`}>
                 {t.btn}
               </button>
@@ -1329,15 +1329,15 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
       <DeleteModal />
       {/* Breadcrumb */}
       <nav className="flex items-center gap-1 text-sm mb-5">
-        <button onClick={() => onNavigate('/admin/users')} className="text-blue-600 hover:underline">Users</button>
-        <span className="text-gray-300 mx-1">›</span>
-        <span className="text-gray-700 font-medium">User Management</span>
+        <button onClick={() => onNavigate('/admin/users')} className="text-[#0E7C7B] hover:underline">Users</button>
+        <span className="text-[#B9C6D4] mx-1">›</span>
+        <span className="text-[#2E3F5C] font-medium">User Management</span>
       </nav>
 
       {/* Pending Judge Approvals */}
       {pendingJudges.length > 0 && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-5 mb-6">
-          <h3 className="font-bold text-yellow-900 mb-1 flex items-center gap-2">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-5 mb-6">
+          <h3 className="font-montserrat font-bold text-yellow-900 mb-1 flex items-center gap-2">
             ⏳ Pending Judge Approvals ({pendingJudges.length})
           </h3>
           <p className="text-yellow-700 text-sm mb-4">These judges are waiting for approval to be connected to their tournament director.</p>
@@ -1345,9 +1345,9 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
             {pendingJudges.map(j => (
               <div key={j.id} className="bg-white border border-yellow-200 rounded-lg p-4 flex items-center justify-between gap-4">
                 <div>
-                  <div className="font-medium text-gray-900">{j.name}</div>
-                  <div className="text-sm text-gray-500">{j.email}</div>
-                  <div className="text-xs text-gray-400 mt-0.5">Director: {j.message || '—'}</div>
+                  <div className="font-medium text-[#0D1B4C]">{j.name}</div>
+                  <div className="text-sm text-[#5F6F86]">{j.email}</div>
+                  <div className="text-xs text-[#8A9AB0] mt-0.5">Director: {j.message || '—'}</div>
                 </div>
                 <button onClick={() => doAction(j.id, 'approve')} disabled={!!actionLoading}
                   className="px-4 py-2 bg-green-600 text-white text-sm font-semibold rounded-lg hover:bg-green-700 transition disabled:opacity-50 whitespace-nowrap">
@@ -1360,14 +1360,14 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
       )}
 
       <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
-        <h2 className="text-2xl font-bold text-gray-900">User Management</h2>
-        <span className="text-sm text-gray-500">{filtered.length} of {users.length} users</span>
+        <h2 className="font-montserrat text-2xl font-bold text-[#0D1B4C]">User Management</h2>
+        <span className="text-sm text-[#5F6F86]">{filtered.length} of {users.length} users</span>
       </div>
 
       <div className="flex gap-3 mb-5 flex-wrap">
         <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name or email..."
-          className="flex-1 min-w-48 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500" />
-        <select value={roleFilter} onChange={e => setRoleFilter(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm">
+          className="flex-1 min-w-48 px-4 py-2 border border-[#D3DEE8] rounded-lg text-sm focus:ring-2 focus:ring-[#22B3B5]" />
+        <select value={roleFilter} onChange={e => setRoleFilter(e.target.value)} className="px-3 py-2 border border-[#D3DEE8] rounded-lg text-sm">
           <option value="all">All Users</option>
           <option value="active">Active Users</option>
           <option value="new">New This Month</option>
@@ -1379,39 +1379,39 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
         </select>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-xl overflow-x-auto">
+      <div className="bg-white border border-[#E8EEF4] rounded-lg overflow-x-auto shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
         <table className="w-full text-sm min-w-[700px]">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="bg-[#F5F8FB] border-b border-[#E8EEF4]">
             <tr>
               {['Name', 'Email', 'Role', 'Status', 'Joined', 'Actions'].map(h => (
-                <th key={h} className={`px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase ${h === 'Actions' ? 'text-center' : ''}`}>{h}</th>
+                <th key={h} className={`px-4 py-3 text-left text-xs font-semibold text-[#5F6F86] uppercase ${h === 'Actions' ? 'text-center' : ''}`}>{h}</th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-[#EEF3F8]">
             {filtered.length === 0 ? (
-              <tr><td colSpan={6} className="px-4 py-10 text-center text-gray-400">No users found</td></tr>
+              <tr><td colSpan={6} className="px-4 py-10 text-center text-[#8A9AB0]">No users found</td></tr>
             ) : filtered.map(u => (
-              <tr key={u.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">{u.name}</td>
-                <td className="px-4 py-3 text-gray-600">{u.email}</td>
+              <tr key={u.id} className="hover:bg-[#F5F8FB]">
+                <td className="px-4 py-3 font-medium text-[#0D1B4C] whitespace-nowrap">{u.name}</td>
+                <td className="px-4 py-3 text-[#4A5B76]">{u.email}</td>
                 <td className="px-4 py-3">
                   <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${roleBadge(u.role)}`}>{u.role === 'sponsor' ? 'partner' : u.role}</span>
                 </td>
                 <td className="px-4 py-3">
                   <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${statusBadge(u.status || 'active')}`}>{u.status || 'active'}</span>
                 </td>
-                <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{new Date(u.createdAt).toLocaleDateString()}</td>
+                <td className="px-4 py-3 text-[#5F6F86] whitespace-nowrap">{new Date(u.createdAt).toLocaleDateString()}</td>
                 <td className="px-4 py-3">
                   <div className="flex items-center justify-center gap-1">
                     {/* View */}
                     <button onClick={() => openView(u)} title="View user"
-                      className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition" >
+                      className="p-1.5 text-[#0E7C7B] hover:bg-[#EEF8F8] rounded-lg transition" >
                       <Eye className="w-4 h-4" />
                     </button>
                     {/* Edit */}
                     <button onClick={() => openEdit(u)} title="Edit user"
-                      className="p-1.5 text-gray-500 hover:bg-gray-100 rounded-lg transition">
+                      className="p-1.5 text-[#5F6F86] hover:bg-[#EEF3F8] rounded-lg transition">
                       <Pencil className="w-4 h-4" />
                     </button>
                     {/* Pause / Unpause */}
@@ -1458,10 +1458,10 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
 function TournamentsTab({ tournaments }: { tournaments: Tournament[] }) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const stats = [
-    { label: 'Total Tournaments', value: tournaments.length, sub: 'All tournaments', icon: Trophy, color: 'text-gray-400' },
-    { label: 'Upcoming', value: tournaments.filter(t => t.status === 'upcoming').length, sub: 'Not yet started', icon: Clock, color: 'text-blue-400' },
+    { label: 'Total Tournaments', value: tournaments.length, sub: 'All tournaments', icon: Trophy, color: 'text-[#8A9AB0]' },
+    { label: 'Upcoming', value: tournaments.filter(t => t.status === 'upcoming').length, sub: 'Not yet started', icon: Clock, color: 'text-[#22B3B5]' },
     { label: 'Active', value: tournaments.filter(t => t.status === 'active').length, sub: 'In progress', icon: Activity, color: 'text-green-400' },
-    { label: 'Completed', value: tournaments.filter(t => t.status === 'completed').length, sub: 'Finished tournaments', icon: CheckCircle, color: 'text-gray-400' },
+    { label: 'Completed', value: tournaments.filter(t => t.status === 'completed').length, sub: 'Finished tournaments', icon: CheckCircle, color: 'text-[#8A9AB0]' },
   ];
 
   const getDaysInMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
@@ -1475,14 +1475,14 @@ function TournamentsTab({ tournaments }: { tournaments: Tournament[] }) {
     <div>
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Tournament Management</h2>
-          <p className="text-gray-500 text-sm mt-0.5">Oversee all tournaments, review settings, and monitor activity</p>
+          <h2 className="font-montserrat text-2xl font-bold text-[#0D1B4C]">Tournament Management</h2>
+          <p className="text-[#5F6F86] text-sm mt-0.5">Oversee all tournaments, review settings, and monitor activity</p>
         </div>
         <div className="flex gap-2">
-          <button className="flex items-center gap-2 px-4 py-2.5 bg-gray-900 text-white rounded-lg text-sm font-semibold hover:bg-gray-700 transition">
+          <button className="flex items-center gap-2 px-4 py-2.5 bg-[#0E7C7B] text-white rounded-lg text-sm font-semibold hover:bg-[#0B6564] transition">
             <Plus className="w-4 h-4" /> Add a Tournament
           </button>
-          <button className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition">
+          <button className="flex items-center gap-2 px-4 py-2.5 border border-[#D3DEE8] text-[#2E3F5C] rounded-lg text-sm font-medium hover:bg-[#F5F8FB] transition">
             <UserCheck className="w-4 h-4" /> Register Angler
           </button>
         </div>
@@ -1491,13 +1491,13 @@ function TournamentsTab({ tournaments }: { tournaments: Tournament[] }) {
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {stats.map(s => (
-          <div key={s.label} className="bg-white border border-gray-200 rounded-xl p-5">
+          <div key={s.label} className="bg-white border border-[#E8EEF4] rounded-lg p-5 shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-sm text-gray-500">{s.label}</span>
+              <span className="text-sm text-[#5F6F86]">{s.label}</span>
               <s.icon className={`w-5 h-5 ${s.color}`} />
             </div>
-            <div className="text-3xl font-bold text-gray-900 mb-1">{s.value}</div>
-            <div className="text-xs text-gray-400">{s.sub}</div>
+            <div className="text-3xl font-bold text-[#0D1B4C] mb-1">{s.value}</div>
+            <div className="text-xs text-[#8A9AB0]">{s.sub}</div>
           </div>
         ))}
       </div>
@@ -1505,19 +1505,19 @@ function TournamentsTab({ tournaments }: { tournaments: Tournament[] }) {
       {/* Calendar + List */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Calendar */}
-        <div className="bg-white border border-gray-200 rounded-xl p-5">
+        <div className="bg-white border border-[#E8EEF4] rounded-lg p-5 shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
           <div className="flex items-center justify-between mb-4">
-            <button onClick={() => setCurrentMonth(m => new Date(m.getFullYear(), m.getMonth()-1))} className="p-1.5 hover:bg-gray-100 rounded-lg transition">
+            <button onClick={() => setCurrentMonth(m => new Date(m.getFullYear(), m.getMonth()-1))} className="p-1.5 hover:bg-[#EEF3F8] rounded-lg transition">
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <span className="font-semibold text-gray-900">{monthName}</span>
-            <button onClick={() => setCurrentMonth(m => new Date(m.getFullYear(), m.getMonth()+1))} className="p-1.5 hover:bg-gray-100 rounded-lg transition">
+            <span className="font-semibold text-[#0D1B4C]">{monthName}</span>
+            <button onClick={() => setCurrentMonth(m => new Date(m.getFullYear(), m.getMonth()+1))} className="p-1.5 hover:bg-[#EEF3F8] rounded-lg transition">
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
           <div className="grid grid-cols-7 gap-1 mb-2">
             {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => (
-              <div key={d} className="text-center text-xs font-medium text-gray-400 py-1">{d}</div>
+              <div key={d} className="text-center text-xs font-medium text-[#8A9AB0] py-1">{d}</div>
             ))}
           </div>
           <div className="grid grid-cols-7 gap-1">
@@ -1526,7 +1526,7 @@ function TournamentsTab({ tournaments }: { tournaments: Tournament[] }) {
               const day = i + 1;
               const isToday = today.getDate() === day && today.getMonth() === currentMonth.getMonth() && today.getFullYear() === currentMonth.getFullYear();
               return (
-                <div key={day} className={`text-center text-sm py-1.5 rounded-lg cursor-pointer transition ${isToday ? 'bg-blue-600 text-white font-bold' : 'text-gray-700 hover:bg-gray-100'}`}>
+                <div key={day} className={`text-center text-sm py-1.5 rounded-lg cursor-pointer transition ${isToday ? 'bg-[#0E7C7B] text-white font-bold' : 'text-[#2E3F5C] hover:bg-[#EEF3F8]'}`}>
                   {day}
                 </div>
               );
@@ -1535,34 +1535,34 @@ function TournamentsTab({ tournaments }: { tournaments: Tournament[] }) {
         </div>
 
         {/* Tournament List */}
-        <div className="bg-white border border-gray-200 rounded-xl p-5">
-          <h3 className="font-semibold text-gray-900 mb-4">Tournaments ({tournaments.length})</h3>
+        <div className="bg-white border border-[#E8EEF4] rounded-lg p-5 shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
+          <h3 className="font-montserrat font-semibold text-[#0D1B4C] mb-4">Tournaments ({tournaments.length})</h3>
           {tournaments.length === 0 ? (
-            <div className="text-center py-12 text-gray-400">
+            <div className="text-center py-12 text-[#8A9AB0]">
               <Trophy className="w-10 h-10 mx-auto mb-3 opacity-30" />
               <p className="text-sm">No tournaments yet</p>
             </div>
           ) : (
             <div className="space-y-3">
               {tournaments.map(t => (
-                <div key={t.id} className="border border-gray-100 rounded-xl p-4 hover:border-gray-200 transition">
+                <div key={t.id} className="border border-[#EEF3F8] rounded-lg p-4 hover:border-[#E8EEF4] transition">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <div className="font-semibold text-gray-900 mb-1">{t.name}</div>
-                      <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
+                      <div className="font-semibold text-[#0D1B4C] mb-1">{t.name}</div>
+                      <div className="flex items-center gap-1 text-xs text-[#5F6F86] mb-1">
                         <Calendar className="w-3 h-3" /> {t.startDate}
                       </div>
-                      <div className="flex items-center gap-1 text-xs text-gray-500 mb-2">
+                      <div className="flex items-center gap-1 text-xs text-[#5F6F86] mb-2">
                         <MapPin className="w-3 h-3" /> {t.city}, {t.state}
                       </div>
-                      {t.createdBy && <div className="flex items-center gap-1 text-xs text-gray-400"><Users className="w-3 h-3" /> {t.createdBy}</div>}
+                      {t.createdBy && <div className="flex items-center gap-1 text-xs text-[#8A9AB0]"><Users className="w-3 h-3" /> {t.createdBy}</div>}
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${t.status === 'active' ? 'bg-green-100 text-green-700' : t.status === 'completed' ? 'bg-gray-100 text-gray-600' : 'bg-blue-100 text-blue-700'}`}>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${t.status === 'active' ? 'bg-green-100 text-green-700' : t.status === 'completed' ? 'bg-[#EEF3F8] text-[#4A5B76]' : 'bg-[#E3F4F4] text-[#0B6564]'}`}>
                         {t.status || 'upcoming'}
                       </span>
-                      <button className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"><Edit2 className="w-3.5 h-3.5" /></button>
-                      <button className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"><Trash2 className="w-3.5 h-3.5" /></button>
+                      <button className="p-1.5 text-[#8A9AB0] hover:text-[#0E7C7B] hover:bg-[#EEF8F8] rounded-lg transition"><Edit2 className="w-3.5 h-3.5" /></button>
+                      <button className="p-1.5 text-[#8A9AB0] hover:text-red-500 hover:bg-red-50 rounded-lg transition"><Trash2 className="w-3.5 h-3.5" /></button>
                     </div>
                   </div>
                 </div>
@@ -1589,7 +1589,7 @@ function SubmissionsTab({ submissions }: { submissions: Submission[] }) {
 
   const SortIcon = ({ field }: { field: string }) => (
     <span className="ml-1 inline-flex flex-col" onClick={() => toggleSort(field)}>
-      <ChevronRight className={`w-3 h-3 -rotate-90 ${sortField === field && sortDir === 'asc' ? 'text-blue-500' : 'text-gray-300'}`} />
+      <ChevronRight className={`w-3 h-3 -rotate-90 ${sortField === field && sortDir === 'asc' ? 'text-[#0E7C7B]' : 'text-[#B9C6D4]'}`} />
     </span>
   );
 
@@ -1597,58 +1597,58 @@ function SubmissionsTab({ submissions }: { submissions: Submission[] }) {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Catch Submissions</h2>
-          <p className="text-gray-500 text-sm mt-0.5">View all tournaments and submit catches</p>
+          <h2 className="font-montserrat text-2xl font-bold text-[#0D1B4C]">Catch Submissions</h2>
+          <p className="text-[#5F6F86] text-sm mt-0.5">View all tournaments and submit catches</p>
         </div>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-xl overflow-x-auto">
+      <div className="bg-white border border-[#E8EEF4] rounded-lg overflow-x-auto shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
         <table className="w-full text-sm min-w-[700px]">
-          <thead className="border-b border-gray-200">
+          <thead className="border-b border-[#E8EEF4]">
             <tr>
-              <th className="px-5 py-3.5 text-left text-sm font-semibold text-blue-600 cursor-pointer" onClick={() => toggleSort('tournament')}>
+              <th className="px-5 py-3.5 text-left text-sm font-semibold text-[#0E7C7B] cursor-pointer" onClick={() => toggleSort('tournament')}>
                 Tournament <SortIcon field="tournament" />
               </th>
-              <th className="px-5 py-3.5 text-left text-sm font-semibold text-blue-600 cursor-pointer" onClick={() => toggleSort('regCutoff')}>
+              <th className="px-5 py-3.5 text-left text-sm font-semibold text-[#0E7C7B] cursor-pointer" onClick={() => toggleSort('regCutoff')}>
                 Reg Cutoff <SortIcon field="regCutoff" />
               </th>
-              <th className="px-5 py-3.5 text-left text-sm font-semibold text-blue-600 cursor-pointer" onClick={() => toggleSort('start')}>
-                Start <span className="ml-1 text-blue-400">↑</span>
+              <th className="px-5 py-3.5 text-left text-sm font-semibold text-[#0E7C7B] cursor-pointer" onClick={() => toggleSort('start')}>
+                Start <span className="ml-1 text-[#22B3B5]">↑</span>
               </th>
-              <th className="px-5 py-3.5 text-left text-sm font-semibold text-blue-600 cursor-pointer" onClick={() => toggleSort('end')}>
+              <th className="px-5 py-3.5 text-left text-sm font-semibold text-[#0E7C7B] cursor-pointer" onClick={() => toggleSort('end')}>
                 End <SortIcon field="end" />
               </th>
-              <th className="px-5 py-3.5 text-left text-sm font-semibold text-blue-600 cursor-pointer" onClick={() => toggleSort('lotw')}>
+              <th className="px-5 py-3.5 text-left text-sm font-semibold text-[#0E7C7B] cursor-pointer" onClick={() => toggleSort('lotw')}>
                 LOTW <SortIcon field="lotw" />
               </th>
-              <th className="px-5 py-3.5 text-right text-sm font-semibold text-blue-600">Actions</th>
+              <th className="px-5 py-3.5 text-right text-sm font-semibold text-[#0E7C7B]">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-[#EEF3F8]">
             {submissions.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-5 py-16 text-center">
-                  <Fish className="w-10 h-10 mx-auto mb-3 text-gray-200" />
-                  <p className="text-gray-400 text-sm">No catch submissions yet</p>
+                  <Fish className="w-10 h-10 mx-auto mb-3 text-[#D3DEE8]" />
+                  <p className="text-[#8A9AB0] text-sm">No catch submissions yet</p>
                 </td>
               </tr>
             ) : submissions.map(s => (
-              <tr key={s.id} className="hover:bg-gray-50">
+              <tr key={s.id} className="hover:bg-[#F5F8FB]">
                 <td className="px-5 py-4">
-                  <div className="font-semibold text-gray-900">{s.tournamentId}</div>
-                  <div className="text-xs text-gray-500 mt-0.5">{s.angler}</div>
+                  <div className="font-semibold text-[#0D1B4C]">{s.tournamentId}</div>
+                  <div className="text-xs text-[#5F6F86] mt-0.5">{s.angler}</div>
                   <div className="flex gap-1.5 mt-1.5">
-                    <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">{s.status}</span>
+                    <span className="px-2 py-0.5 bg-[#EEF3F8] text-[#4A5B76] text-xs rounded-full">{s.status}</span>
                   </div>
                 </td>
-                <td className="px-5 py-4 text-sm text-gray-600">—</td>
-                <td className="px-5 py-4 text-sm text-gray-600">{new Date(s.submittedAt).toLocaleDateString()}</td>
-                <td className="px-5 py-4 text-sm text-gray-600">—</td>
-                <td className="px-5 py-4 text-sm text-gray-500">N/A</td>
+                <td className="px-5 py-4 text-sm text-[#4A5B76]">—</td>
+                <td className="px-5 py-4 text-sm text-[#4A5B76]">{new Date(s.submittedAt).toLocaleDateString()}</td>
+                <td className="px-5 py-4 text-sm text-[#4A5B76]">—</td>
+                <td className="px-5 py-4 text-sm text-[#5F6F86]">N/A</td>
                 <td className="px-5 py-4 text-right">
                   <div className="flex items-center justify-end gap-2">
-                    <button className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition"><Eye className="w-4 h-4" /></button>
-                    <button className="p-1.5 text-blue-400 hover:bg-blue-50 rounded-lg transition"><Fish className="w-4 h-4" /></button>
+                    <button className="p-1.5 text-[#0E7C7B] hover:bg-[#EEF8F8] rounded-lg transition"><Eye className="w-4 h-4" /></button>
+                    <button className="p-1.5 text-[#22B3B5] hover:bg-[#EEF8F8] rounded-lg transition"><Fish className="w-4 h-4" /></button>
                   </div>
                 </td>
               </tr>
@@ -1666,30 +1666,30 @@ function SubmissionsTab({ submissions }: { submissions: Submission[] }) {
 function PartnersTab({ partners }: { partners: User[] }) {
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Partner Management</h2>
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+      <h2 className="font-montserrat text-2xl font-bold text-[#0D1B4C] mb-6">Partner Management</h2>
+      <div className="bg-white border border-[#E8EEF4] rounded-lg overflow-hidden shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="bg-[#F5F8FB] border-b border-[#E8EEF4]">
             <tr>
               {['Name', 'Organization', 'Email', 'Status', 'Joined'].map(h => (
-                <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">{h}</th>
+                <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-[#5F6F86] uppercase">{h}</th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-[#EEF3F8]">
             {partners.length === 0 ? (
-              <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-400">No partners yet</td></tr>
+              <tr><td colSpan={5} className="px-4 py-8 text-center text-[#8A9AB0]">No partners yet</td></tr>
             ) : partners.map(p => (
-              <tr key={p.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 font-medium text-gray-900">{p.name}</td>
-                <td className="px-4 py-3 text-gray-600">{p.organization || '—'}</td>
-                <td className="px-4 py-3 text-gray-600">{p.email}</td>
+              <tr key={p.id} className="hover:bg-[#F5F8FB]">
+                <td className="px-4 py-3 font-medium text-[#0D1B4C]">{p.name}</td>
+                <td className="px-4 py-3 text-[#4A5B76]">{p.organization || '—'}</td>
+                <td className="px-4 py-3 text-[#4A5B76]">{p.email}</td>
                 <td className="px-4 py-3">
                   <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${p.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
                     {p.status || 'pending'}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-gray-500">{new Date(p.createdAt).toLocaleDateString()}</td>
+                <td className="px-4 py-3 text-[#5F6F86]">{new Date(p.createdAt).toLocaleDateString()}</td>
               </tr>
             ))}
           </tbody>
@@ -1726,73 +1726,73 @@ function ClubsTab() {
     <div>
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Clubs Management</h2>
-          <p className="text-gray-500 text-sm mt-0.5">Manage fishing clubs and organizations</p>
+          <h2 className="font-montserrat text-2xl font-bold text-[#0D1B4C]">Clubs Management</h2>
+          <p className="text-[#5F6F86] text-sm mt-0.5">Manage fishing clubs and organizations</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition">
+        <button className="flex items-center gap-2 px-4 py-2.5 bg-[#0E7C7B] text-white rounded-lg text-sm font-semibold hover:bg-[#0B6564] transition">
           <Plus className="w-4 h-4" /> Add Club
         </button>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="bg-white border border-gray-200 rounded-xl p-5">
-          <div className="text-3xl font-bold text-gray-900 mb-1">{clubs.length}</div>
-          <div className="text-sm text-gray-500">Total Clubs</div>
+        <div className="bg-white border border-[#E8EEF4] rounded-lg p-5 shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
+          <div className="text-3xl font-bold text-[#0D1B4C] mb-1">{clubs.length}</div>
+          <div className="text-sm text-[#5F6F86]">Total Clubs</div>
         </div>
-        <div className="bg-white border border-gray-200 rounded-xl p-5">
-          <div className="text-3xl font-bold text-blue-600 mb-1">28</div>
-          <div className="text-sm text-gray-500">States Represented</div>
+        <div className="bg-white border border-[#E8EEF4] rounded-lg p-5 shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
+          <div className="text-3xl font-bold text-[#0E7C7B] mb-1">28</div>
+          <div className="text-sm text-[#5F6F86]">States Represented</div>
         </div>
-        <div className="bg-white border border-gray-200 rounded-xl p-5">
-          <div className="text-3xl font-bold text-gray-900 mb-1">0</div>
-          <div className="text-sm text-gray-500">Total Members</div>
+        <div className="bg-white border border-[#E8EEF4] rounded-lg p-5 shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
+          <div className="text-3xl font-bold text-[#0D1B4C] mb-1">0</div>
+          <div className="text-sm text-[#5F6F86]">Total Members</div>
         </div>
       </div>
 
       {/* Search */}
       <div className="flex gap-3 mb-4">
         <div className="relative flex-1 max-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8A9AB0]" />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search clubs..."
-            className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500" />
+            className="w-full pl-9 pr-4 py-2 border border-[#D3DEE8] rounded-lg text-sm focus:ring-2 focus:ring-[#22B3B5]" />
         </div>
-        <button className="flex items-center gap-1.5 px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition">
+        <button className="flex items-center gap-1.5 px-3 py-2 border border-[#D3DEE8] rounded-lg text-sm text-[#4A5B76] hover:bg-[#F5F8FB] transition">
           <Filter className="w-4 h-4" /> Filter
         </button>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-xl overflow-x-auto">
+      <div className="bg-white border border-[#E8EEF4] rounded-lg overflow-x-auto shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
         <table className="w-full text-sm">
-          <thead className="border-b border-gray-200">
+          <thead className="border-b border-[#E8EEF4]">
             <tr>
               {['Club Name', 'City', 'State', 'Country', 'Club Director', 'Website', 'Actions'].map(h => (
-                <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
+                <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-[#5F6F86] uppercase tracking-wide">{h}</th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-[#EEF3F8]">
             {filtered.map((c, i) => (
-              <tr key={i} className="hover:bg-gray-50">
-                <td className="px-4 py-3 font-medium text-blue-600 hover:underline cursor-pointer">{c.name}</td>
-                <td className="px-4 py-3 text-gray-600">{c.city}</td>
-                <td className="px-4 py-3 text-gray-600">{c.state}</td>
-                <td className="px-4 py-3 text-gray-600">{c.country}</td>
-                <td className="px-4 py-3 text-gray-500">{c.director}</td>
+              <tr key={i} className="hover:bg-[#F5F8FB]">
+                <td className="px-4 py-3 font-medium text-[#0E7C7B] hover:underline cursor-pointer">{c.name}</td>
+                <td className="px-4 py-3 text-[#4A5B76]">{c.city}</td>
+                <td className="px-4 py-3 text-[#4A5B76]">{c.state}</td>
+                <td className="px-4 py-3 text-[#4A5B76]">{c.country}</td>
+                <td className="px-4 py-3 text-[#5F6F86]">{c.director}</td>
                 <td className="px-4 py-3">
-                  {c.website && <span className="text-blue-600 text-xs hover:underline cursor-pointer">{c.website}</span>}
+                  {c.website && <span className="text-[#0E7C7B] text-xs hover:underline cursor-pointer">{c.website}</span>}
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex gap-1.5">
-                    <button className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"><Pencil className="w-3.5 h-3.5" /></button>
-                    <button className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"><Trash2 className="w-3.5 h-3.5" /></button>
+                    <button className="p-1.5 text-[#8A9AB0] hover:text-[#0E7C7B] hover:bg-[#EEF8F8] rounded-lg transition"><Pencil className="w-3.5 h-3.5" /></button>
+                    <button className="p-1.5 text-[#8A9AB0] hover:text-red-500 hover:bg-red-50 rounded-lg transition"><Trash2 className="w-3.5 h-3.5" /></button>
                   </div>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-        <div className="px-4 py-3 border-t border-gray-100 text-xs text-gray-400">
+        <div className="px-4 py-3 border-t border-[#EEF3F8] text-xs text-[#8A9AB0]">
           Showing {filtered.length} of {clubs.length} clubs
         </div>
       </div>
@@ -1818,52 +1818,52 @@ function SeriesTab({ series }: { series: Series[] }) {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Series Management</h2>
-          <p className="text-gray-500 text-sm mt-0.5">Manage tournament series, standings, and seasonal configurations</p>
+          <h2 className="font-montserrat text-2xl font-bold text-[#0D1B4C]">Series Management</h2>
+          <p className="text-[#5F6F86] text-sm mt-0.5">Manage tournament series, standings, and seasonal configurations</p>
         </div>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {stats.map(s => (
-          <div key={s.label} className="bg-white border border-gray-200 rounded-xl p-5">
+          <div key={s.label} className="bg-white border border-[#E8EEF4] rounded-lg p-5 shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-sm text-gray-500">{s.label}</span>
-              <s.icon className="w-5 h-5 text-gray-300" />
+              <span className="text-sm text-[#5F6F86]">{s.label}</span>
+              <s.icon className="w-5 h-5 text-[#B9C6D4]" />
             </div>
-            <div className="text-3xl font-bold text-gray-900 mb-1">{s.value}</div>
-            <div className="text-xs text-gray-400">{s.sub}</div>
+            <div className="text-3xl font-bold text-[#0D1B4C] mb-1">{s.value}</div>
+            <div className="text-xs text-[#8A9AB0]">{s.sub}</div>
           </div>
         ))}
       </div>
 
       {/* Series Table */}
-      <div className="bg-white border border-gray-200 rounded-xl mb-6">
-        <div className="p-5 border-b border-gray-100 flex items-center justify-between flex-wrap gap-3">
+      <div className="bg-white border border-[#E8EEF4] rounded-lg mb-6 shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
+        <div className="p-5 border-b border-[#EEF3F8] flex items-center justify-between flex-wrap gap-3">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <TrendingUp className="w-4 h-4 text-gray-500" />
-              <span className="font-semibold text-gray-900">All Series</span>
+              <TrendingUp className="w-4 h-4 text-[#5F6F86]" />
+              <span className="font-semibold text-[#0D1B4C]">All Series</span>
             </div>
-            <p className="text-gray-500 text-sm">View and manage all tournament series</p>
+            <p className="text-[#5F6F86] text-sm">View and manage all tournament series</p>
           </div>
           <div className="flex gap-2">
-            <button className="flex items-center gap-1.5 px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition">
+            <button className="flex items-center gap-1.5 px-3 py-2 border border-[#D3DEE8] rounded-lg text-sm text-[#4A5B76] hover:bg-[#F5F8FB] transition">
               Check Users DB
             </button>
-            <button className="flex items-center gap-2 px-4 py-2.5 bg-gray-900 text-white rounded-lg text-sm font-semibold hover:bg-gray-700 transition">
+            <button className="flex items-center gap-2 px-4 py-2.5 bg-[#0E7C7B] text-white rounded-lg text-sm font-semibold hover:bg-[#0B6564] transition">
               <Plus className="w-4 h-4" /> Create Series
             </button>
           </div>
         </div>
 
         {/* Filter tabs */}
-        <div className="flex border-b border-gray-100 px-5">
+        <div className="flex border-b border-[#EEF3F8] px-5">
           {filters.map(f => {
             const count = f === 'All Series' ? series.length : 0;
             return (
               <button key={f} onClick={() => setActiveFilter(f)}
-                className={`px-4 py-3 text-sm font-medium border-b-2 transition whitespace-nowrap ${activeFilter === f ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+                className={`px-4 py-3 text-sm font-medium border-b-2 transition whitespace-nowrap ${activeFilter === f ? 'border-[#0E7C7B] text-[#0E7C7B]' : 'border-transparent text-[#5F6F86] hover:text-[#2E3F5C]'}`}>
                 {f} {count}
               </button>
             );
@@ -1871,36 +1871,36 @@ function SeriesTab({ series }: { series: Series[] }) {
         </div>
 
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b border-gray-100">
+          <thead className="bg-[#F5F8FB] border-b border-[#EEF3F8]">
             <tr>
               {['Image', 'Series Name', 'Description', 'Club', 'Start Date', 'End Date', 'Location', 'Actions'].map(h => (
-                <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">{h}</th>
+                <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-[#5F6F86] uppercase">{h}</th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-[#EEF3F8]">
             {series.length === 0 ? (
-              <tr><td colSpan={8} className="px-4 py-12 text-center text-gray-400">No series yet</td></tr>
+              <tr><td colSpan={8} className="px-4 py-12 text-center text-[#8A9AB0]">No series yet</td></tr>
             ) : series.map(s => (
-              <tr key={s.id} className="hover:bg-gray-50">
+              <tr key={s.id} className="hover:bg-[#F5F8FB]">
                 <td className="px-4 py-3">
-                  <div className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center">
-                    <Trophy className="w-5 h-5 text-gray-400" />
+                  <div className="w-10 h-10 bg-[#E1E9F1] rounded-lg flex items-center justify-center">
+                    <Trophy className="w-5 h-5 text-[#8A9AB0]" />
                   </div>
                 </td>
                 <td className="px-4 py-3">
                   <span className="px-1.5 py-0.5 bg-green-100 text-green-700 text-xs rounded mr-1">Active</span>
-                  <div className="font-medium text-blue-600 hover:underline cursor-pointer mt-0.5">{s.name}</div>
+                  <div className="font-medium text-[#0E7C7B] hover:underline cursor-pointer mt-0.5">{s.name}</div>
                 </td>
-                <td className="px-4 py-3 text-gray-600 text-xs max-w-xs">{s.description || '—'}</td>
-                <td className="px-4 py-3 text-gray-600 text-sm">—</td>
-                <td className="px-4 py-3 text-gray-600 text-sm">{new Date(s.createdAt).toLocaleDateString()}</td>
-                <td className="px-4 py-3 text-gray-600 text-sm">—</td>
-                <td className="px-4 py-3 text-gray-600 text-sm">—</td>
+                <td className="px-4 py-3 text-[#4A5B76] text-xs max-w-xs">{s.description || '—'}</td>
+                <td className="px-4 py-3 text-[#4A5B76] text-sm">—</td>
+                <td className="px-4 py-3 text-[#4A5B76] text-sm">{new Date(s.createdAt).toLocaleDateString()}</td>
+                <td className="px-4 py-3 text-[#4A5B76] text-sm">—</td>
+                <td className="px-4 py-3 text-[#4A5B76] text-sm">—</td>
                 <td className="px-4 py-3">
                   <div className="flex gap-1.5">
-                    <button className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"><Pencil className="w-3.5 h-3.5" /></button>
-                    <button className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"><Trash2 className="w-3.5 h-3.5" /></button>
+                    <button className="p-1.5 text-[#8A9AB0] hover:text-[#0E7C7B] hover:bg-[#EEF8F8] rounded-lg transition"><Pencil className="w-3.5 h-3.5" /></button>
+                    <button className="p-1.5 text-[#8A9AB0] hover:text-red-500 hover:bg-red-50 rounded-lg transition"><Trash2 className="w-3.5 h-3.5" /></button>
                   </div>
                 </td>
               </tr>
@@ -1915,15 +1915,15 @@ function SeriesTab({ series }: { series: Series[] }) {
         { icon: Trophy, title: 'Standings & Points', desc: 'Manage points systems and standings', empty: 'No standings data', btn: 'View Standings' },
         { icon: Users, title: 'Series Directors', desc: 'Assign directors to manage series', empty: 'No directors assigned', btn: 'Manage Directors' },
       ].map(section => (
-        <div key={section.title} className="bg-white border border-gray-200 rounded-xl p-6 mb-4">
+        <div key={section.title} className="bg-white border border-[#E8EEF4] rounded-lg p-6 mb-4 shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
           <div className="flex items-center gap-2 mb-1">
-            <section.icon className="w-5 h-5 text-blue-600" />
-            <h3 className="font-semibold text-gray-900">{section.title}</h3>
+            <section.icon className="w-5 h-5 text-[#0E7C7B]" />
+            <h3 className="font-montserrat font-semibold text-[#0D1B4C]">{section.title}</h3>
           </div>
-          <p className="text-gray-500 text-sm mb-6">{section.desc}</p>
-          <div className="text-center py-6 text-gray-400">
+          <p className="text-[#5F6F86] text-sm mb-6">{section.desc}</p>
+          <div className="text-center py-6 text-[#8A9AB0]">
             <p className="text-sm mb-4">{section.empty}</p>
-            <button className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition">{section.btn}</button>
+            <button className="px-4 py-2 border border-[#D3DEE8] rounded-lg text-sm text-[#4A5B76] hover:bg-[#F5F8FB] transition">{section.btn}</button>
           </div>
         </div>
       ))}
@@ -1943,20 +1943,20 @@ function EventsTab() {
     <div>
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Events Management</h2>
-          <p className="text-gray-500 text-sm mt-0.5">Manage expos and boat shows</p>
+          <h2 className="font-montserrat text-2xl font-bold text-[#0D1B4C]">Events Management</h2>
+          <p className="text-[#5F6F86] text-sm mt-0.5">Manage expos and boat shows</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition">
+        <button className="flex items-center gap-2 px-4 py-2.5 bg-[#0E7C7B] text-white rounded-lg text-sm font-semibold hover:bg-[#0B6564] transition">
           <Plus className="w-4 h-4" /> Add Event
         </button>
       </div>
 
       {/* Filters */}
-      <div className="bg-white border border-gray-200 rounded-xl p-4 mb-4">
+      <div className="bg-white border border-[#E8EEF4] rounded-lg p-4 mb-4 shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
         <div className="grid grid-cols-2 gap-4 max-w-sm">
           <div>
-            <label className="block text-xs font-semibold text-blue-600 mb-1.5">Filter by Type</label>
-            <select className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
+            <label className="block text-xs font-semibold text-[#0E7C7B] mb-1.5">Filter by Type</label>
+            <select className="w-full px-3 py-2 border border-[#D3DEE8] rounded-lg text-sm focus:ring-2 focus:ring-[#22B3B5]">
               <option value="">All Types</option>
               <option>Expo</option>
               <option>Boat Show</option>
@@ -1964,8 +1964,8 @@ function EventsTab() {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-semibold text-blue-600 mb-1.5">Filter by Status</label>
-            <select className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
+            <label className="block text-xs font-semibold text-[#0E7C7B] mb-1.5">Filter by Status</label>
+            <select className="w-full px-3 py-2 border border-[#D3DEE8] rounded-lg text-sm focus:ring-2 focus:ring-[#22B3B5]">
               <option value="">All Status</option>
               <option>Active</option>
               <option>Upcoming</option>
@@ -1975,60 +1975,60 @@ function EventsTab() {
         </div>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-        <div className="px-5 py-3.5 border-b border-gray-100">
-          <span className="font-semibold text-gray-900">Events ({events.length})</span>
+      <div className="bg-white border border-[#E8EEF4] rounded-lg overflow-hidden shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
+        <div className="px-5 py-3.5 border-b border-[#EEF3F8]">
+          <span className="font-semibold text-[#0D1B4C]">Events ({events.length})</span>
         </div>
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b border-gray-100">
+          <thead className="bg-[#F5F8FB] border-b border-[#EEF3F8]">
             <tr>
               {['Image', 'Event', 'Dates', 'Fees', 'Location', 'Actions'].map(h => (
-                <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">{h}</th>
+                <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-[#5F6F86] uppercase">{h}</th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-[#EEF3F8]">
             {events.map((e, i) => (
-              <tr key={i} className="hover:bg-gray-50">
+              <tr key={i} className="hover:bg-[#F5F8FB]">
                 <td className="px-4 py-4">
                   <div className="w-14 h-14 bg-green-800 rounded-lg flex items-center justify-center text-2xl">{e.image}</div>
                 </td>
                 <td className="px-4 py-4">
-                  <div className="font-medium text-blue-600 hover:underline cursor-pointer mb-1.5">{e.name}</div>
+                  <div className="font-medium text-[#0E7C7B] hover:underline cursor-pointer mb-1.5">{e.name}</div>
                   <div className="flex gap-1.5">
-                    <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">{e.type}</span>
+                    <span className="px-2 py-0.5 bg-[#E3F4F4] text-[#0B6564] text-xs rounded-full">{e.type}</span>
                     <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">{e.status}</span>
                   </div>
                 </td>
                 <td className="px-4 py-4">
                   {e.dates.map((d, di) => (
-                    <div key={di} className="flex items-center gap-1.5 text-xs text-gray-600 mb-1">
-                      <Calendar className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                    <div key={di} className="flex items-center gap-1.5 text-xs text-[#4A5B76] mb-1">
+                      <Calendar className="w-3 h-3 text-[#8A9AB0] flex-shrink-0" />
                       <span>{d}, 9:00 AM – 8:00 PM</span>
                     </div>
                   ))}
                 </td>
                 <td className="px-4 py-4">
                   {e.fees.map((f, fi) => (
-                    <div key={fi} className="flex items-center gap-1.5 text-xs text-gray-600 mb-1">
+                    <div key={fi} className="flex items-center gap-1.5 text-xs text-[#4A5B76] mb-1">
                       <DollarSign className="w-3 h-3 text-green-500 flex-shrink-0" />
                       <span>{f.label}: <span className="font-semibold text-green-600">{f.amount}</span></span>
                     </div>
                   ))}
                 </td>
-                <td className="px-4 py-4 text-sm text-gray-600">
+                <td className="px-4 py-4 text-sm text-[#4A5B76]">
                   <div className="flex items-start gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-gray-400 mt-0.5 flex-shrink-0" />
+                    <MapPin className="w-3.5 h-3.5 text-[#8A9AB0] mt-0.5 flex-shrink-0" />
                     <div>
                       <div>{e.location}</div>
-                      <div className="text-gray-400 text-xs">{e.city}</div>
+                      <div className="text-[#8A9AB0] text-xs">{e.city}</div>
                     </div>
                   </div>
                 </td>
                 <td className="px-4 py-4">
                   <div className="flex gap-1.5">
-                    <button className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"><Edit2 className="w-3.5 h-3.5" /></button>
-                    <button className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"><Trash2 className="w-3.5 h-3.5" /></button>
+                    <button className="p-1.5 text-[#8A9AB0] hover:text-[#0E7C7B] hover:bg-[#EEF8F8] rounded-lg transition"><Edit2 className="w-3.5 h-3.5" /></button>
+                    <button className="p-1.5 text-[#8A9AB0] hover:text-red-500 hover:bg-red-50 rounded-lg transition"><Trash2 className="w-3.5 h-3.5" /></button>
                   </div>
                 </td>
               </tr>
@@ -2061,18 +2061,18 @@ function AdvertisingTab() {
     { label: 'Total Ads', value: totalAds, icon: Image, color: '' },
     { label: 'Active', value: activeAds, icon: Play, color: 'text-green-500' },
     { label: 'Paused', value: 0, icon: Pause, color: 'text-yellow-500' },
-    { label: 'Inactive', value: 0, icon: EyeOff, color: 'text-gray-400' },
-    { label: 'Currently Live', value: liveNow, icon: Calendar, color: 'text-blue-500' },
+    { label: 'Inactive', value: 0, icon: EyeOff, color: 'text-[#8A9AB0]' },
+    { label: 'Currently Live', value: liveNow, icon: Calendar, color: 'text-[#0E7C7B]' },
   ];
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Advertising Management</h2>
-          <p className="text-gray-500 text-sm mt-0.5">Upload and manage banner advertisements for public-facing pages</p>
+          <h2 className="font-montserrat text-2xl font-bold text-[#0D1B4C]">Advertising Management</h2>
+          <p className="text-[#5F6F86] text-sm mt-0.5">Upload and manage banner advertisements for public-facing pages</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2.5 bg-gray-900 text-white rounded-lg text-sm font-semibold hover:bg-gray-700 transition">
+        <button className="flex items-center gap-2 px-4 py-2.5 bg-[#0E7C7B] text-white rounded-lg text-sm font-semibold hover:bg-[#0B6564] transition">
           <Plus className="w-4 h-4" /> Add Advertisement
         </button>
       </div>
@@ -2080,15 +2080,15 @@ function AdvertisingTab() {
       {/* Stats */}
       <div className="grid grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
         {statCards.map(s => (
-          <div key={s.label} className="bg-white border border-gray-200 rounded-xl p-4">
+          <div key={s.label} className="bg-white border border-[#E8EEF4] rounded-lg p-4 shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-gray-500">{s.label}</span>
-              <s.icon className={`w-4 h-4 ${s.color || 'text-gray-300'}`} />
+              <span className="text-xs text-[#5F6F86]">{s.label}</span>
+              <s.icon className={`w-4 h-4 ${s.color || 'text-[#B9C6D4]'}`} />
             </div>
-            <div className="text-2xl font-bold text-gray-900">{s.value}</div>
+            <div className="text-2xl font-bold text-[#0D1B4C]">{s.value}</div>
           </div>
         ))}
-        <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs text-green-700">Monthly Revenue</span>
             <DollarSign className="w-4 h-4 text-green-500" />
@@ -2099,38 +2099,38 @@ function AdvertisingTab() {
       </div>
 
       {/* Ads List */}
-      <div className="bg-white border border-gray-200 rounded-xl mb-6">
-        <div className="px-5 py-4 border-b border-gray-100">
-          <h3 className="font-semibold text-gray-900">All Advertisements</h3>
-          <p className="text-gray-500 text-sm">Manage banner ads displayed on public-facing pages</p>
+      <div className="bg-white border border-[#E8EEF4] rounded-lg mb-6 shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
+        <div className="px-5 py-4 border-b border-[#EEF3F8]">
+          <h3 className="font-montserrat font-semibold text-[#0D1B4C]">All Advertisements</h3>
+          <p className="text-[#5F6F86] text-sm">Manage banner ads displayed on public-facing pages</p>
         </div>
-        <div className="divide-y divide-gray-100">
+        <div className="divide-y divide-[#EEF3F8]">
           {ads.map((ad, i) => (
-            <div key={i} className="px-5 py-4 flex items-start gap-4 hover:bg-gray-50">
-              <div className="w-20 h-16 bg-gray-100 border border-gray-200 rounded-lg flex items-center justify-center text-xs text-gray-400 flex-shrink-0 text-center px-1">
+            <div key={i} className="px-5 py-4 flex items-start gap-4 hover:bg-[#F5F8FB]">
+              <div className="w-20 h-16 bg-[#EEF3F8] border border-[#E8EEF4] rounded-lg flex items-center justify-center text-xs text-[#8A9AB0] flex-shrink-0 text-center px-1">
                 {ad.size} pixels
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap mb-1">
-                  <span className="font-semibold text-gray-900">{ad.name}</span>
+                  <span className="font-semibold text-[#0D1B4C]">{ad.name}</span>
                   <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">{ad.status}</span>
-                  {ad.live && <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full flex items-center gap-1">● Live Now</span>}
+                  {ad.live && <span className="px-2 py-0.5 bg-[#E3F4F4] text-[#0B6564] text-xs rounded-full flex items-center gap-1">● Live Now</span>}
                 </div>
-                <div className="text-sm text-gray-500 mb-1">Company: <span className="text-gray-700">{ad.company}</span></div>
-                <div className="flex flex-wrap gap-3 text-xs text-gray-500 mb-1">
-                  <span>Category: {ad.category.map(c => <span key={c} className="px-1.5 py-0.5 bg-gray-100 rounded mr-1">{c}</span>)}</span>
+                <div className="text-sm text-[#5F6F86] mb-1">Company: <span className="text-[#2E3F5C]">{ad.company}</span></div>
+                <div className="flex flex-wrap gap-3 text-xs text-[#5F6F86] mb-1">
+                  <span>Category: {ad.category.map(c => <span key={c} className="px-1.5 py-0.5 bg-[#EEF3F8] rounded mr-1">{c}</span>)}</span>
                   <span>Size: {ad.size}</span>
                   <span>Position: {ad.position}</span>
                 </div>
-                <div className="text-xs text-gray-400 mb-1 flex items-center gap-1"><Calendar className="w-3 h-3" /> Display: {ad.start} → {ad.end}</div>
-                <a href="#" className="text-xs text-blue-600 hover:underline">{ad.url}</a>
-                {ad.cost && <div className="text-xs text-gray-500 mt-0.5">Cost Per Month: <span className="text-green-600 font-semibold">{ad.cost}</span></div>}
+                <div className="text-xs text-[#8A9AB0] mb-1 flex items-center gap-1"><Calendar className="w-3 h-3" /> Display: {ad.start} → {ad.end}</div>
+                <a href="#" className="text-xs text-[#0E7C7B] hover:underline">{ad.url}</a>
+                {ad.cost && <div className="text-xs text-[#5F6F86] mt-0.5">Cost Per Month: <span className="text-green-600 font-semibold">{ad.cost}</span></div>}
               </div>
               <div className="flex items-center gap-1.5 flex-shrink-0">
-                <button className="flex items-center gap-1 px-2.5 py-1.5 text-blue-600 text-xs border border-blue-200 rounded-lg hover:bg-blue-50 transition"><Eye className="w-3 h-3" /> View</button>
-                <button className="flex items-center gap-1 px-2.5 py-1.5 text-gray-600 text-xs border border-gray-200 rounded-lg hover:bg-gray-50 transition"><Edit2 className="w-3 h-3" /> Edit</button>
+                <button className="flex items-center gap-1 px-2.5 py-1.5 text-[#0E7C7B] text-xs border border-[#BFE6E6] rounded-lg hover:bg-[#EEF8F8] transition"><Eye className="w-3 h-3" /> View</button>
+                <button className="flex items-center gap-1 px-2.5 py-1.5 text-[#4A5B76] text-xs border border-[#E8EEF4] rounded-lg hover:bg-[#F5F8FB] transition"><Edit2 className="w-3 h-3" /> Edit</button>
                 <button className="flex items-center gap-1 px-2.5 py-1.5 text-yellow-600 text-xs border border-yellow-200 rounded-lg hover:bg-yellow-50 transition"><Pause className="w-3 h-3" /> Pause</button>
-                <button className="flex items-center gap-1 px-2.5 py-1.5 text-gray-500 text-xs border border-gray-200 rounded-lg hover:bg-gray-50 transition"><EyeOff className="w-3 h-3" /> Deactivate</button>
+                <button className="flex items-center gap-1 px-2.5 py-1.5 text-[#5F6F86] text-xs border border-[#E8EEF4] rounded-lg hover:bg-[#F5F8FB] transition"><EyeOff className="w-3 h-3" /> Deactivate</button>
                 <button className="p-1.5 text-red-400 hover:bg-red-50 rounded-lg transition"><Trash2 className="w-3.5 h-3.5" /></button>
               </div>
             </div>
@@ -2145,20 +2145,20 @@ function AdvertisingTab() {
       <HomeBannersManager />
 
       {/* Banner Info */}
-      <div className="bg-white border border-gray-200 rounded-xl p-5">
-        <h3 className="font-semibold text-gray-900 mb-4">Banner Information</h3>
+      <div className="bg-white border border-[#E8EEF4] rounded-lg p-5 shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
+        <h3 className="font-montserrat font-semibold text-[#0D1B4C] mb-4">Banner Information</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <h4 className="text-sm font-semibold text-blue-600 mb-3">Ad Status:</h4>
-            <div className="space-y-2 text-sm text-gray-600">
+            <h4 className="font-montserrat text-sm font-semibold text-[#0E7C7B] mb-3">Ad Status:</h4>
+            <div className="space-y-2 text-sm text-[#4A5B76]">
               <div><span className="text-green-600 font-medium">Active:</span> Ad is eligible to display during scheduled time</div>
               <div><span className="text-yellow-600 font-medium">Paused:</span> Temporarily stopped, can be resumed</div>
-              <div><span className="text-gray-500 font-medium">Inactive:</span> Completely disabled, not displayed</div>
+              <div><span className="text-[#5F6F86] font-medium">Inactive:</span> Completely disabled, not displayed</div>
             </div>
           </div>
           <div>
-            <h4 className="text-sm font-semibold text-blue-600 mb-3">Display Positions:</h4>
-            <div className="space-y-2 text-sm text-gray-600">
+            <h4 className="font-montserrat text-sm font-semibold text-[#0E7C7B] mb-3">Display Positions:</h4>
+            <div className="space-y-2 text-sm text-[#4A5B76]">
               <div><span className="font-medium">Top Banner:</span> Displayed at the top of pages</div>
               <div><span className="font-medium">Sidebar:</span> Shown in page sidebars</div>
               <div><span className="font-medium">Footer:</span> Appears at the bottom of pages</div>
@@ -2180,36 +2180,36 @@ function MonetizationTab() {
 
   const revenueCards = [
     { title: 'Total Registration Revenue', badge: '0 Registrations', badgeColor: 'bg-purple-100 text-purple-700', amount: '$0.00', sub: '0 registrations × $6.50', color: 'purple', bg: 'bg-purple-50 border-purple-100' },
-    { title: 'YTD Registration Revenue', badge: '0 Registrations', badgeColor: 'bg-teal-100 text-teal-700', amount: '$0.00', sub: '0 registrations × $6.50', color: 'teal', bg: 'bg-teal-50 border-teal-100' },
+    { title: 'YTD Registration Revenue', badge: '0 Registrations', badgeColor: 'bg-teal-100 text-[#0B6564]', amount: '$0.00', sub: '0 registrations × $6.50', color: 'teal', bg: 'bg-teal-50 border-teal-100' },
     { title: 'APR 2026 Registration Revenue', badge: '0 Registrations', badgeColor: 'bg-orange-100 text-orange-700', amount: '$0.00', sub: '0 registrations × $6.50', color: 'orange', bg: 'bg-orange-50 border-orange-100' },
     { title: 'Total Ad Revenue', badge: '5 Ads', badgeColor: 'bg-purple-100 text-purple-700', amount: '$400.00', sub: 'All-time ad revenue', color: 'purple', bg: 'bg-purple-50 border-purple-100' },
-    { title: 'YTD Ad Revenue', badge: '5 Ads', badgeColor: 'bg-teal-100 text-teal-700', amount: '$400.00', sub: 'Year-to-date revenue for 2026', color: 'teal', bg: 'bg-teal-50 border-teal-100' },
+    { title: 'YTD Ad Revenue', badge: '5 Ads', badgeColor: 'bg-teal-100 text-[#0B6564]', amount: '$400.00', sub: 'Year-to-date revenue for 2026', color: 'teal', bg: 'bg-teal-50 border-teal-100' },
     { title: 'APR 2026 Ad Revenue', badge: '3 Ads', badgeColor: 'bg-purple-100 text-purple-700', amount: '$0.00', sub: 'Revenue for current month', color: 'purple', bg: 'bg-purple-50 border-purple-100' },
   ];
 
   const toolCards = [
-    { icon: Package, title: 'Pricing Plans', desc: 'Create and manage subscription tiers and pricing', empty: 'No pricing plans configured', btn: 'Create Pricing Plan', btnStyle: 'bg-gray-900 text-white hover:bg-gray-700' },
-    { icon: CreditCard, title: 'Payment Processing', desc: 'Configure payment gateways and processing settings', empty: 'No payment gateway connected', btn: 'Connect Payment Gateway', btnStyle: 'bg-gray-900 text-white hover:bg-gray-700' },
-    { icon: BarChart2, title: 'Revenue Analytics', desc: 'View revenue trends and financial reports', empty: 'No revenue data available', btn: 'View Reports', btnStyle: 'border border-gray-300 text-gray-700 hover:bg-gray-50' },
-    { icon: Users, title: 'Subscription Management', desc: 'Manage user subscriptions and billing', empty: 'No active subscriptions', btn: 'View Subscriptions', btnStyle: 'border border-gray-300 text-gray-700 hover:bg-gray-50' },
+    { icon: Package, title: 'Pricing Plans', desc: 'Create and manage subscription tiers and pricing', empty: 'No pricing plans configured', btn: 'Create Pricing Plan', btnStyle: 'bg-[#0E7C7B] text-white hover:bg-[#0B6564]' },
+    { icon: CreditCard, title: 'Payment Processing', desc: 'Configure payment gateways and processing settings', empty: 'No payment gateway connected', btn: 'Connect Payment Gateway', btnStyle: 'bg-[#0E7C7B] text-white hover:bg-[#0B6564]' },
+    { icon: BarChart2, title: 'Revenue Analytics', desc: 'View revenue trends and financial reports', empty: 'No revenue data available', btn: 'View Reports', btnStyle: 'border border-[#D3DEE8] text-[#2E3F5C] hover:bg-[#F5F8FB]' },
+    { icon: Users, title: 'Subscription Management', desc: 'Manage user subscriptions and billing', empty: 'No active subscriptions', btn: 'View Subscriptions', btnStyle: 'border border-[#D3DEE8] text-[#2E3F5C] hover:bg-[#F5F8FB]' },
   ];
 
-  const amountColor: Record<string, string> = { purple: 'text-purple-600', teal: 'text-teal-600', orange: 'text-orange-600' };
+  const amountColor: Record<string, string> = { purple: 'text-purple-600', teal: 'text-[#0E7C7B]', orange: 'text-orange-600' };
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Monetization</h2>
-          <p className="text-gray-500 text-sm mt-0.5">Manage pricing, subscriptions, revenue, and payment processing</p>
+          <h2 className="font-montserrat text-2xl font-bold text-[#0D1B4C]">Monetization</h2>
+          <p className="text-[#5F6F86] text-sm mt-0.5">Manage pricing, subscriptions, revenue, and payment processing</p>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-gray-200 mb-6">
+      <div className="flex gap-1 border-b border-[#E8EEF4] mb-6">
         {tabs.map(t => (
           <button key={t} onClick={() => setActiveTab(t)}
-            className={`px-4 py-2.5 text-sm font-medium border-b-2 transition ${activeTab === t ? 'border-green-500 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+            className={`px-4 py-2.5 text-sm font-medium border-b-2 transition ${activeTab === t ? 'border-[#0E7C7B] text-[#0E7C7B]' : 'border-transparent text-[#5F6F86] hover:text-[#2E3F5C]'}`}>
             {t}
           </button>
         ))}
@@ -2218,9 +2218,9 @@ function MonetizationTab() {
       {/* Revenue Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         {revenueCards.map(c => (
-          <div key={c.title} className={`border rounded-xl p-5 ${c.bg}`}>
+          <div key={c.title} className={`border rounded-lg p-5 ${c.bg}`}>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-semibold text-gray-800">{c.title}</span>
+              <span className="text-sm font-semibold text-[#0D1B4C]">{c.title}</span>
               <DollarSign className={`w-5 h-5 ${amountColor[c.color]}`} />
             </div>
             <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium mb-3 ${c.badgeColor}`}>{c.badge}</span>
@@ -2233,13 +2233,13 @@ function MonetizationTab() {
       {/* Tool Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {toolCards.map(t => (
-          <div key={t.title} className="bg-white border border-gray-200 rounded-xl p-5">
+          <div key={t.title} className="bg-white border border-[#E8EEF4] rounded-lg p-5 shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
             <div className="flex items-center gap-2 mb-2">
               <t.icon className="w-5 h-5 text-green-600" />
-              <h3 className="font-semibold text-gray-900 text-sm">{t.title}</h3>
+              <h3 className="font-montserrat font-semibold text-[#0D1B4C] text-sm">{t.title}</h3>
             </div>
-            <p className="text-xs text-gray-500 mb-4">{t.desc}</p>
-            <div className="text-xs text-gray-400 mb-4">{t.empty}</div>
+            <p className="text-xs text-[#5F6F86] mb-4">{t.desc}</p>
+            <div className="text-xs text-[#8A9AB0] mb-4">{t.empty}</div>
             <button className={`w-full py-2 rounded-lg text-sm font-medium transition ${t.btnStyle}`}>{t.btn}</button>
           </div>
         ))}
@@ -2266,10 +2266,10 @@ function CMSTab() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Website Content Management</h2>
-          <p className="text-gray-500 text-sm mt-0.5">Manage pages, content sections, and media assets across your platform</p>
+          <h2 className="font-montserrat text-2xl font-bold text-[#0D1B4C]">Website Content Management</h2>
+          <p className="text-[#5F6F86] text-sm mt-0.5">Manage pages, content sections, and media assets across your platform</p>
         </div>
-        <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+        <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
           <FileEdit className="w-6 h-6 text-purple-600" />
         </div>
       </div>
@@ -2282,23 +2282,23 @@ function CMSTab() {
           { label: 'Media Assets', value: 14, sub: 'Images, videos, files', icon: Image },
           { label: 'Content Sections', value: 1, sub: 'Across all pages', icon: Layers },
         ].map(s => (
-          <div key={s.label} className="bg-white border border-gray-200 rounded-xl p-5">
+          <div key={s.label} className="bg-white border border-[#E8EEF4] rounded-lg p-5 shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-sm text-gray-500">{s.label}</span>
-              <s.icon className="w-5 h-5 text-gray-300" />
+              <span className="text-sm text-[#5F6F86]">{s.label}</span>
+              <s.icon className="w-5 h-5 text-[#B9C6D4]" />
             </div>
-            <div className="text-3xl font-bold text-gray-900 mb-1">{s.value}</div>
-            <div className="text-xs text-gray-400">{s.sub}</div>
+            <div className="text-3xl font-bold text-[#0D1B4C] mb-1">{s.value}</div>
+            <div className="text-xs text-[#8A9AB0]">{s.sub}</div>
           </div>
         ))}
       </div>
 
       {/* Section Tabs */}
-      <div className="bg-white border border-gray-200 rounded-xl">
-        <div className="flex border-b border-gray-200">
+      <div className="bg-white border border-[#E8EEF4] rounded-lg shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
+        <div className="flex border-b border-[#E8EEF4]">
           {sections.map(s => (
             <button key={s} onClick={() => setActiveSection(s)}
-              className={`flex-1 flex items-center justify-center gap-2 py-3.5 text-sm font-medium transition rounded-t-xl ${activeSection === s ? 'bg-white text-gray-900 border-b-2 border-transparent' : 'bg-gray-50 text-gray-500 hover:text-gray-700'}`}>
+              className={`flex-1 flex items-center justify-center gap-2 py-3.5 text-sm font-medium transition rounded-t-xl ${activeSection === s ? 'bg-white text-[#0D1B4C] border-b-2 border-transparent' : 'bg-[#F5F8FB] text-[#5F6F86] hover:text-[#2E3F5C]'}`}>
               {s === 'Pages' && <BookOpen className="w-4 h-4" />}
               {s === 'Media Library' && <Image className="w-4 h-4" />}
               {s === 'Content Sections' && <Settings className="w-4 h-4" />}
@@ -2312,34 +2312,34 @@ function CMSTab() {
             <>
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="font-semibold text-gray-900">Pages Management</h3>
-                  <p className="text-gray-500 text-sm">Create and manage website pages</p>
+                  <h3 className="font-montserrat font-semibold text-[#0D1B4C]">Pages Management</h3>
+                  <p className="text-[#5F6F86] text-sm">Create and manage website pages</p>
                 </div>
-                <button className="flex items-center gap-2 px-4 py-2.5 bg-gray-900 text-white rounded-lg text-sm font-semibold hover:bg-gray-700 transition">
+                <button className="flex items-center gap-2 px-4 py-2.5 bg-[#0E7C7B] text-white rounded-lg text-sm font-semibold hover:bg-[#0B6564] transition">
                   <Plus className="w-4 h-4" /> Create New Page
                 </button>
               </div>
               <table className="w-full text-sm">
-                <thead className="border-b border-gray-100">
+                <thead className="border-b border-[#EEF3F8]">
                   <tr>
                     {['Title', 'Slug', 'Status', 'Last Updated', 'Actions'].map(h => (
-                      <th key={h} className={`py-3 text-xs font-semibold text-gray-500 uppercase ${h === 'Actions' ? 'text-right' : 'text-left'}`}>{h}</th>
+                      <th key={h} className={`py-3 text-xs font-semibold text-[#5F6F86] uppercase ${h === 'Actions' ? 'text-right' : 'text-left'}`}>{h}</th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-[#EEF3F8]">
                   {pages.map(p => (
-                    <tr key={p.slug} className="hover:bg-gray-50">
-                      <td className="py-3.5 font-medium text-gray-900">{p.title}</td>
-                      <td className="py-3.5 text-gray-500 font-mono text-xs">{p.slug}</td>
+                    <tr key={p.slug} className="hover:bg-[#F5F8FB]">
+                      <td className="py-3.5 font-medium text-[#0D1B4C]">{p.title}</td>
+                      <td className="py-3.5 text-[#5F6F86] font-mono text-xs">{p.slug}</td>
                       <td className="py-3.5">
-                        <span className="px-2.5 py-1 bg-gray-900 text-white text-xs rounded-full font-medium">{p.status}</span>
+                        <span className="px-2.5 py-1 bg-[#0E7C7B] text-white text-xs rounded-full font-medium">{p.status}</span>
                       </td>
-                      <td className="py-3.5 text-gray-500 text-xs">{p.updated}</td>
+                      <td className="py-3.5 text-[#5F6F86] text-xs">{p.updated}</td>
                       <td className="py-3.5 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <button className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"><Eye className="w-3.5 h-3.5" /></button>
-                          <button className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition"><Edit2 className="w-3.5 h-3.5" /></button>
+                          <button className="p-1.5 text-[#8A9AB0] hover:text-[#0E7C7B] hover:bg-[#EEF8F8] rounded-lg transition"><Eye className="w-3.5 h-3.5" /></button>
+                          <button className="p-1.5 text-[#8A9AB0] hover:text-[#2E3F5C] hover:bg-[#EEF3F8] rounded-lg transition"><Edit2 className="w-3.5 h-3.5" /></button>
                           <button className="p-1.5 text-red-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition"><Trash2 className="w-3.5 h-3.5" /></button>
                         </div>
                       </td>
@@ -2350,16 +2350,16 @@ function CMSTab() {
             </>
           )}
           {activeSection === 'Media Library' && (
-            <div className="text-center py-16 text-gray-400">
+            <div className="text-center py-16 text-[#8A9AB0]">
               <Image className="w-12 h-12 mx-auto mb-3 opacity-20" />
               <p className="text-sm">Media library coming soon</p>
-              <button className="mt-4 flex items-center gap-2 px-4 py-2.5 bg-gray-900 text-white rounded-lg text-sm font-semibold hover:bg-gray-700 transition mx-auto">
+              <button className="mt-4 flex items-center gap-2 px-4 py-2.5 bg-[#0E7C7B] text-white rounded-lg text-sm font-semibold hover:bg-[#0B6564] transition mx-auto">
                 <Upload className="w-4 h-4" /> Upload Media
               </button>
             </div>
           )}
           {activeSection === 'Content Sections' && (
-            <div className="text-center py-16 text-gray-400">
+            <div className="text-center py-16 text-[#8A9AB0]">
               <Layers className="w-12 h-12 mx-auto mb-3 opacity-20" />
               <p className="text-sm">Content sections editor coming soon</p>
             </div>
@@ -2375,27 +2375,27 @@ function CMSTab() {
 // ============================================================
 function SettingsTab() {
   const cards = [
-    { icon: BarChart2, color: 'bg-blue-100 text-blue-600', title: 'Reports & Analytics', desc: 'View system analytics, reports, and performance metrics', btn: 'View Analytics' },
-    { icon: Settings, color: 'bg-gray-100 text-gray-600', title: 'Platform Settings', desc: 'Configure platform-wide settings and preferences', btn: 'Manage Settings' },
-    { icon: Database, color: 'bg-blue-100 text-blue-600', title: 'Database Management', desc: 'Manage database, backups, and data integrity', btn: 'Database Tools' },
-    { icon: Lock, color: 'bg-blue-100 text-blue-600', title: 'Security & Access', desc: 'Manage security settings, access controls, and permissions', btn: 'Security Settings' },
+    { icon: BarChart2, color: 'bg-[#E3F4F4] text-[#0E7C7B]', title: 'Reports & Analytics', desc: 'View system analytics, reports, and performance metrics', btn: 'View Analytics' },
+    { icon: Settings, color: 'bg-[#EEF3F8] text-[#4A5B76]', title: 'Platform Settings', desc: 'Configure platform-wide settings and preferences', btn: 'Manage Settings' },
+    { icon: Database, color: 'bg-[#E3F4F4] text-[#0E7C7B]', title: 'Database Management', desc: 'Manage database, backups, and data integrity', btn: 'Database Tools' },
+    { icon: Lock, color: 'bg-[#E3F4F4] text-[#0E7C7B]', title: 'Security & Access', desc: 'Manage security settings, access controls, and permissions', btn: 'Security Settings' },
   ];
 
   return (
     <div>
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Settings</h2>
-        <p className="text-gray-500 text-sm mt-0.5">Manage platform settings, security, analytics, and database</p>
+        <h2 className="font-montserrat text-2xl font-bold text-[#0D1B4C]">Settings</h2>
+        <p className="text-[#5F6F86] text-sm mt-0.5">Manage platform settings, security, analytics, and database</p>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {cards.map(c => (
-          <div key={c.title} className="bg-white border border-gray-200 rounded-xl p-6">
+          <div key={c.title} className="bg-white border border-[#E8EEF4] rounded-lg p-6 shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
             <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-4 ${c.color}`}>
               <c.icon className="w-5 h-5" />
             </div>
-            <h3 className="font-bold text-gray-900 mb-2">{c.title}</h3>
-            <p className="text-gray-500 text-sm mb-6 leading-relaxed">{c.desc}</p>
-            <button className="w-full py-2.5 bg-gray-900 text-white rounded-lg text-sm font-semibold hover:bg-gray-700 transition">{c.btn}</button>
+            <h3 className="font-montserrat font-bold text-[#0D1B4C] mb-2">{c.title}</h3>
+            <p className="text-[#5F6F86] text-sm mb-6 leading-relaxed">{c.desc}</p>
+            <button className="w-full py-2.5 bg-[#0E7C7B] text-white rounded-lg text-sm font-semibold hover:bg-[#0B6564] transition">{c.btn}</button>
           </div>
         ))}
       </div>
@@ -2409,8 +2409,8 @@ function ComingSoonTab({ tab }: { tab: string }) {
     <div className="flex items-center justify-center py-24">
       <div className="text-center">
         <div className="text-5xl mb-4">🚧</div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">{tab}</h2>
-        <p className="text-gray-500">This section is coming soon.</p>
+        <h2 className="font-montserrat text-2xl font-bold text-[#0D1B4C] mb-2">{tab}</h2>
+        <p className="text-[#5F6F86]">This section is coming soon.</p>
       </div>
     </div>
   );
