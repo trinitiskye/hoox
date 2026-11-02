@@ -290,6 +290,10 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
   const [roleFilter, setRoleFilter] = useState(initialFilter || 'all');
   const subView = subViewProp || 'dashboard';
   const selectedUser = users.find(u => u.id === selectedUserId) || null;
+  // The signed-in admin's own record lives at /admin/profile (opened from their name in the header)
+  const isSelf = (id?: string) => !!id && id === currentUser.id;
+  const viewPath = (id?: string) => (isSelf(id) ? '/admin/profile' : `/admin/users/${id ?? ''}`);
+  const editPath = (id?: string) => (isSelf(id) ? '/admin/profile/edit' : `/admin/users/${id ?? ''}/edit`);
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<User>>({});
@@ -297,8 +301,10 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
   const [editSuccess, setEditSuccess] = useState(false);
 
   // View/Edit page tab state
-  const [viewTab, setViewTab] = useState<'profile' | 'account'>('profile');
-  const [editTab, setEditTab] = useState<'profile' | 'account' | 'security'>('profile');
+  // Admins have no role-specific profile fields yet, so open on Account Info for them
+  const adminRecord = selectedUser?.role === 'admin' || (isSelf(selectedUserId) && currentUser.role === 'admin');
+  const [viewTab, setViewTab] = useState<'profile' | 'account'>(adminRecord ? 'account' : 'profile');
+  const [editTab, setEditTab] = useState<'profile' | 'account' | 'security'>(adminRecord ? 'account' : 'profile');
 
   // Judge profile form state
   const [judgeProfile, setJudgeProfile] = useState<{
@@ -416,11 +422,11 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
     await onRefresh();
   };
 
-  const openView = (user: User) => { onNavigate(`/admin/users/${user.id}`); };
+  const openView = (user: User) => { onNavigate(viewPath(user.id)); };
   const openEdit = (user: User) => {
     setEditForm({ ...user });
     setEditSuccess(false);
-    setEditTab('profile');
+    setEditTab(user.role === 'admin' ? 'account' : 'profile');
     // Pre-populate judge profile form if editing a judge (separate profile_ columns)
     if (user.role === 'judge') {
       setJudgeProfile(p => ({
@@ -442,7 +448,7 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
         newSponsor:       { name: '', website: '' },
       }));
     }
-    onNavigate(`/admin/users/${user.id}/edit`);
+    onNavigate(editPath(user.id));
   };
 
   const saveEdit = async () => {
@@ -471,7 +477,7 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
     setEditSaving(false);
     setEditSuccess(true);
     toastSuccess('User information saved successfully.');
-    onNavigate(`/admin/users/${selectedUser?.id}`);
+    onNavigate(viewPath(selectedUser?.id));
   };
 
   const changePasswordForUser = async () => {
@@ -542,13 +548,19 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
         <DeleteModal />
 
         {/* Breadcrumb */}
-        <nav className="flex items-center gap-1 text-sm mb-6">
-          <button onClick={() => onNavigate('/admin/users')} className="text-blue-600 hover:underline">Users</button>
-          <span className="text-gray-300 mx-1">›</span>
-          <button onClick={() => onNavigate('/admin/users/list')} className="text-blue-600 hover:underline">User Management</button>
-          <span className="text-gray-300 mx-1">›</span>
-          <span className="text-gray-500">{u.name}</span>
-        </nav>
+        {isSelf(u.id) ? (
+          <nav className="flex items-center gap-1 text-sm mb-6">
+            <span className="text-gray-500">My Profile</span>
+          </nav>
+        ) : (
+          <nav className="flex items-center gap-1 text-sm mb-6">
+            <button onClick={() => onNavigate('/admin/users')} className="text-blue-600 hover:underline">Users</button>
+            <span className="text-gray-300 mx-1">›</span>
+            <button onClick={() => onNavigate('/admin/users/list')} className="text-blue-600 hover:underline">User Management</button>
+            <span className="text-gray-300 mx-1">›</span>
+            <span className="text-gray-500">{u.name}</span>
+          </nav>
+        )}
 
         {/* Header */}
         <div className="flex items-start justify-between mb-2 flex-wrap gap-3">
@@ -568,6 +580,8 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
             <button onClick={() => openEdit(u)} className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition">
               <Pencil className="w-3.5 h-3.5" /> Edit
             </button>
+            {/* No pausing, banning or deleting your own account */}
+            {!isSelf(u.id) && <>
             {u.status === 'paused'
               ? <button onClick={() => doAction(u.id, 'unpause')} disabled={!!actionLoading} className="flex items-center gap-1.5 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition disabled:opacity-50">
                   <Play className="w-3.5 h-3.5" /> Unpause
@@ -587,6 +601,7 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
             <button onClick={() => setDeleteTarget(u)} className="flex items-center gap-1.5 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition">
               <Trash2 className="w-3.5 h-3.5" /> Delete
             </button>
+            </>}
           </div>
         </div>
 
@@ -758,11 +773,15 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
 
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1 text-sm mb-6">
+          {isSelf(selectedUser.id) ? (
+            <button onClick={() => onNavigate('/admin/profile')} className="text-blue-600 hover:underline">My Profile</button>
+          ) : (<>
           <button onClick={() => onNavigate('/admin/users')} className="text-blue-600 hover:underline">Users</button>
           <span className="text-gray-300 mx-1">›</span>
           <button onClick={() => onNavigate('/admin/users/list')} className="text-blue-600 hover:underline">User Management</button>
           <span className="text-gray-300 mx-1">›</span>
-          <button onClick={() => onNavigate(`/admin/users/${selectedUser?.id ?? ''}`)} className="text-blue-600 hover:underline">{selectedUser.name}</button>
+          <button onClick={() => onNavigate(viewPath(selectedUser?.id))} className="text-blue-600 hover:underline">{selectedUser.name}</button>
+          </>)}
           <span className="text-gray-300 mx-1">›</span>
           <span className="text-gray-500">Edit</span>
         </nav>
@@ -778,9 +797,11 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
               <span className="text-gray-400 text-sm">{selectedUser.email}</span>
             </div>
           </div>
+          {!isSelf(selectedUser.id) && (
           <button onClick={() => setDeleteTarget(selectedUser)} className="flex items-center gap-1.5 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition">
             <Trash2 className="w-3.5 h-3.5" /> Delete Account
           </button>
+          )}
         </div>
 
         {/* Three tabs */}
@@ -965,7 +986,7 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
 
                   {/* Save */}
                   <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
-                    <button onClick={() => onNavigate(`/admin/users/${selectedUser.id}`)}
+                    <button onClick={() => onNavigate(viewPath(selectedUser.id))}
                       className="px-5 py-2.5 border border-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition text-sm">
                       Cancel
                     </button>
@@ -1026,7 +1047,9 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
                 <select
                   value={editForm.role || ''}
                   onChange={e => setEditForm(f => ({ ...f, role: e.target.value as any }))}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                  disabled={isSelf(selectedUser.id)}
+                  title={isSelf(selectedUser.id) ? 'You can’t change your own role' : undefined}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
                 >
                   <option value="angler">Angler</option>
                   <option value="director">Director</option>
@@ -1040,7 +1063,9 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
                 <select
                   value={editForm.status || 'active'}
                   onChange={e => setEditForm(f => ({ ...f, status: e.target.value as any }))}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                  disabled={isSelf(selectedUser.id)}
+                  title={isSelf(selectedUser.id) ? 'You can’t change your own status' : undefined}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
                 >
                   <option value="active">Active</option>
                   <option value="pending">Pending</option>
@@ -1073,7 +1098,7 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
               </div>
             )}
             <div className="flex gap-3">
-              <button onClick={() => onNavigate(`/admin/users/${selectedUser?.id ?? ''}`)} className="px-5 py-2.5 border border-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition text-sm">
+              <button onClick={() => onNavigate(viewPath(selectedUser?.id))} className="px-5 py-2.5 border border-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition text-sm">
                 Cancel
               </button>
               <button onClick={saveEdit} disabled={editSaving} className="px-5 py-2.5 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition disabled:opacity-50 text-sm">

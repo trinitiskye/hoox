@@ -278,7 +278,14 @@ export default function Header({ currentUser, onNavigate, onLogout }: HeaderProp
                 {currentUser ? (
                   <>
                     <span className="text-sm text-hoox-text whitespace-nowrap">
-                      Welcome, <span className="font-semibold">{currentUser.name}</span>
+                      Welcome,{' '}
+                      {currentUser.role === 'admin' ? (
+                        <Link href="/admin/profile" title="View or edit your profile" className="font-semibold text-hoox-link hover:text-hoox-brand hover:underline">
+                          {currentUser.name}
+                        </Link>
+                      ) : (
+                        <span className="font-semibold">{currentUser.name}</span>
+                      )}
                     </span>
                     {currentUser.role === 'admin' && (
                       <button
@@ -352,7 +359,14 @@ export default function Header({ currentUser, onNavigate, onLogout }: HeaderProp
               {currentUser ? (
                 <>
                   <p className="px-3 pb-1 text-sm text-hoox-text">
-                    Welcome, <span className="font-semibold">{currentUser.name}</span>
+                    Welcome,{' '}
+                    {currentUser.role === 'admin' ? (
+                      <Link href="/admin/profile" onClick={() => setMobileMenuOpen(false)} className="font-semibold text-hoox-link hover:underline">
+                        {currentUser.name}
+                      </Link>
+                    ) : (
+                      <span className="font-semibold">{currentUser.name}</span>
+                    )}
                   </p>
                   {currentUser.role === 'admin' && (
                     <button onClick={() => go('admin-dashboard')} className="w-full h-[42px] rounded-md bg-hoox-navy text-white font-medium text-[15px]">
