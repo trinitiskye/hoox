@@ -114,9 +114,9 @@ export default function SignUpPage({ onNavigate }: SignUpPageProps) {
 
       <div className="relative mx-auto max-w-[1440px] px-4 md:px-[26px] pt-[26px] pb-8">
         <header className="text-center">
-          <h1 className="font-montserrat text-[28px] sm:text-[40px] font-bold leading-tight text-[#01024A]">Join the HOOX Tournament Community</h1>
+          <h1 className="font-montserrat text-[28px] sm:text-[40px] font-bold leading-tight text-[#01024A]">Get HOOX!</h1>
           <p className="mx-auto mt-3 max-w-[840px] text-[17px] sm:text-[20px] leading-[1.25] text-[#0838B2]">
-            Whether you run tournaments or love to compete, HOOX gives you the tools to make it easier, fairer and more exciting on the water.
+            The best of class tournament management tool for Tournament Directors and Professional Anglers.
           </p>
         </header>
 
