@@ -11,7 +11,6 @@ import Link from 'next/link';
 import {
   ArrowRight, ChevronLeft, ChevronRight, Check, ClipboardList, Fish, Handshake, Users, Clock, Eye, MousePointerClick, Trophy, ShieldCheck,
 } from 'lucide-react';
-import SubmissionIllustration from '@/components/home/SubmissionIllustration';
 
 const AUTOPLAY_MS = 7000;
 const photo = (id: string) => `https://images.unsplash.com/photo-${id}?w=1400&q=70&auto=format&fit=crop`;
@@ -74,12 +73,13 @@ const SLIDES: Slide[] = [
     card: (
       <PreviewCard className="p-3">
         <div className="relative aspect-[4/3] overflow-hidden rounded-md">
-          <SubmissionIllustration look="largemouth" code="HX-7Q2" inches={21.5} className="absolute inset-0 h-full w-full" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/submissions/demo-largemouth.jpg" alt="Largemouth bass on a measuring board, with the tournament code on the angler's hand" className="absolute inset-0 h-full w-full object-cover" />
         </div>
         <div className="mt-3 flex items-center justify-between">
           <div>
             <p className="font-montserrat text-[15px] font-bold text-[#0D1B4C]">Catch approved</p>
-            <p className="text-[12.5px] text-[#536B84]">Largemouth Bass · 21.5&quot;</p>
+            <p className="text-[12.5px] text-[#536B84]">Largemouth Bass · 19&quot;</p>
           </div>
           <span className="inline-flex items-center gap-1 rounded-full bg-[#E3F6EC] px-2.5 py-1 text-[12px] font-bold text-[#11764A]"><Check className="h-3.5 w-3.5" strokeWidth={3} />Rank #3</span>
         </div>

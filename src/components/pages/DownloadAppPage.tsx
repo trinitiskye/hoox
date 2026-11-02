@@ -6,7 +6,6 @@
 /* ------------------------------------------------------------------ */
 
 import { ArrowRight, Camera, Bell, WifiOff, Ticket, ShieldCheck, Trophy, MapPin, Smartphone, Check } from 'lucide-react';
-import SubmissionIllustration from '@/components/home/SubmissionIllustration';
 import { APP_STORE_URL, PLAY_STORE_URL } from '@/lib/navLinks';
 
 interface DownloadAppPageProps {
@@ -75,12 +74,13 @@ function PhoneMock() {
         </div>
         <div className="p-3">
           <div className="relative aspect-[4/3] overflow-hidden rounded-md">
-            <SubmissionIllustration look="largemouth" code="HX-7Q2" inches={21.5} className="absolute inset-0 h-full w-full" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/submissions/demo-largemouth.jpg" alt="Largemouth bass on a measuring board, with the tournament code written on the angler's hand" className="absolute inset-0 h-full w-full object-cover" />
           </div>
           <div className="mt-2.5 space-y-1.5 rounded-md bg-white p-2.5 text-[11.5px] shadow-sm">
             <p className="flex justify-between"><span className="text-[#5F7896]">Species</span><span className="font-semibold text-[#0D1B4C]">Largemouth Bass</span></p>
-            <p className="flex justify-between"><span className="text-[#5F7896]">Length</span><span className="font-semibold text-[#0D1B4C]">21.5&quot;</span></p>
-            <p className="flex justify-between"><span className="text-[#5F7896]">Code on hand</span><span className="font-semibold text-[#0E7C7B]">HX-7Q2 ✓</span></p>
+            <p className="flex justify-between"><span className="text-[#5F7896]">Length</span><span className="font-semibold text-[#0D1B4C]">19&quot;</span></p>
+            <p className="flex justify-between"><span className="text-[#5F7896]">Code on hand</span><span className="font-semibold text-[#0E7C7B]">Verified ✓</span></p>
           </div>
           <div className="mt-2.5 flex h-[36px] items-center justify-center rounded-md bg-[#22B3B5] text-[13px] font-semibold text-white">Submit catch</div>
           <div className="mt-2.5 flex items-center gap-2 rounded-md bg-[#E3F6EC] px-2.5 py-2 text-[11px] font-semibold text-[#11764A]">

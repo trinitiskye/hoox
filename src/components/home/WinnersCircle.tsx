@@ -31,11 +31,14 @@ interface Winner {
   timezone: string;
 }
 
+// Demo submission photo (fish on the measuring board, code on the angler's hand)
+const DEMO_SUBMISSION = '/submissions/demo-largemouth.jpg';
+
 const WINNERS: Winner[] = [
-  { boardId: 'lakefront-classic', species: 'Largemouth Bass', anglers: 156, fishCaught: 412, look: 'largemouth', code: 'HX-7Q2', inches: 21.5, endsInHours: 105.04, timezone: 'Eastern Time' },
-  { boardId: 'riverside-open', species: 'Striped Bass', anglers: 128, fishCaught: 297, look: 'striped', code: 'RV-3K8', inches: 26, endsInHours: 30.6, timezone: 'Eastern Time' },
-  { boardId: 'mountain-lake-shootout', species: 'Smallmouth Bass', anglers: 94, fishCaught: 238, look: 'smallmouth', code: 'ML-52W', inches: 19.75, finalDate: 'Jul 14, 2025', timezone: 'Eastern Time' },
-  { boardId: 'bayou-brawl', species: 'Largemouth Bass', anglers: 172, fishCaught: 466, look: 'largemouth', code: 'BB-8H1', inches: 23.25, finalDate: 'Aug 4, 2025', timezone: 'Central Time' },
+  { boardId: 'lakefront-classic', photo: DEMO_SUBMISSION, species: 'Largemouth Bass', anglers: 156, fishCaught: 412, look: 'largemouth', code: 'HX-7Q2', inches: 21.5, endsInHours: 105.04, timezone: 'Eastern Time' },
+  { boardId: 'riverside-open', photo: DEMO_SUBMISSION, species: 'Striped Bass', anglers: 128, fishCaught: 297, look: 'striped', code: 'RV-3K8', inches: 26, endsInHours: 30.6, timezone: 'Eastern Time' },
+  { boardId: 'mountain-lake-shootout', photo: DEMO_SUBMISSION, species: 'Smallmouth Bass', anglers: 94, fishCaught: 238, look: 'smallmouth', code: 'ML-52W', inches: 19.75, finalDate: 'Jul 14, 2025', timezone: 'Eastern Time' },
+  { boardId: 'bayou-brawl', photo: DEMO_SUBMISSION, species: 'Largemouth Bass', anglers: 172, fishCaught: 466, look: 'largemouth', code: 'BB-8H1', inches: 23.25, finalDate: 'Aug 4, 2025', timezone: 'Central Time' },
 ];
 
 function timeLeft(ms: number) {
