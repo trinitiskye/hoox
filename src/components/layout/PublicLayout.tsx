@@ -6,7 +6,7 @@ import Footer from './Footer';
 import { useAuth } from '@/lib/AuthContext';
 import { toPath } from '@/lib/routes';
 
-export default function PublicLayout({ children, bgClassName = 'bg-white' }: { children: React.ReactNode; bgClassName?: string }) {
+export default function PublicLayout({ children, bgClassName = 'bg-white', flushFooter = false }: { children: React.ReactNode; bgClassName?: string; flushFooter?: boolean }) {
   const router = useRouter();
   const { currentUser, logout } = useAuth();
 
@@ -20,10 +20,10 @@ export default function PublicLayout({ children, bgClassName = 'bg-white' }: { c
   return (
     <div className={`min-h-screen flex flex-col ${bgClassName}`}>
       <Header currentUser={currentUser} onNavigate={navigate} onLogout={handleLogout} />
-      <main className="flex-grow">
+      <main className={flushFooter ? 'flex flex-grow flex-col' : 'flex-grow'}>
         {children}
       </main>
-      <Footer onNavigate={navigate} />
+      <Footer onNavigate={navigate} flush={flushFooter} />
     </div>
   );
 }

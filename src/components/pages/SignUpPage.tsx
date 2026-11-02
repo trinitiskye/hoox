@@ -1,7 +1,7 @@
 'use client';
 
 import {
-  Trophy, ArrowRight, CalendarDays, Users, Smartphone, BarChart3, Search, ShieldCheck, Mountain,
+  Trophy, ArrowRight, CalendarDays, Users, Smartphone, BarChart3, Search, ShieldCheck, Fish,
 } from 'lucide-react';
 
 interface SignUpPageProps {
@@ -100,13 +100,13 @@ function AudienceCard({
 export default function SignUpPage({ onNavigate }: SignUpPageProps) {
   const trust = [
     { icon: <ShieldCheck className="h-[50px] w-[50px]" strokeWidth={1.5} />, text: ['Trusted by', 'Tournament Communities'] },
-    { icon: <Mountain className="h-[50px] w-[50px]" strokeWidth={1.5} />, text: ['Built for the', 'Outdoors'] },
+    { icon: <Fish className="h-[50px] w-[50px]" strokeWidth={1.5} />, text: ['Built for', 'Fishing'] },
     { icon: <CalendarDays className="h-[50px] w-[50px]" strokeWidth={1.5} />, text: ['Events Nationwide'] },
     { icon: <Users className="h-[50px] w-[50px]" strokeWidth={1.5} />, text: ['A Growing Community', 'of Anglers and Directors'] },
   ];
 
   return (
-    <div className="font-roboto relative overflow-hidden">
+    <div className="font-roboto relative flex-1 overflow-hidden">
       {/* Soft lake backdrop */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/home/mountain-lake.jpg" alt="" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-30 blur-[3px]" />
@@ -160,14 +160,7 @@ export default function SignUpPage({ onNavigate }: SignUpPageProps) {
         </ul>
 
         <section className="mt-9 text-center">
-          <h2 className="font-montserrat text-[24px] sm:text-[30px] font-bold text-[#00005B]">Join Today and Be Part of Something Bigger</h2>
-          <p className="mx-auto mt-2 max-w-[650px] text-[16px] leading-[22px] text-[#285192]">
-            HOOX is more than a tournament app — it’s a community that’s passionate about fishing, competition, and the experiences we all love.
-          </p>
-          <svg viewBox="0 0 100 10" className="mx-auto mt-4 h-[10px] w-[96px]" aria-hidden>
-            <path d="M0 6 C 20 0, 30 0, 50 5 S 80 10, 100 3" fill="none" stroke="#5BA1E8" strokeWidth="2.2" strokeLinecap="round" />
-          </svg>
-          <p className="mt-5 text-[14px] text-[#285192]">
+          <p className="text-[14px] text-[#285192]">
             Already have an account?{' '}
             <button onClick={() => onNavigate('login')} className="font-semibold text-[#0838B2] hover:underline">Log in</button>
           </p>

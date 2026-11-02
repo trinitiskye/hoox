@@ -5,11 +5,13 @@ import { ADVERTISE_LINKS } from '@/lib/navLinks';
 
 interface FooterProps {
   onNavigate: (view: string) => void;
+  /** Sit directly under the page content, with no top gap. */
+  flush?: boolean;
 }
 
-export default function Footer({ onNavigate }: FooterProps) {
+export default function Footer({ onNavigate, flush = false }: FooterProps) {
   return (
-    <footer className="bg-gray-900 text-white mt-12 md:mt-20">
+    <footer className={`bg-gray-900 text-white ${flush ? '' : 'mt-12 md:mt-20'}`}>
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-12 md:py-16">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 md:gap-10">
 
