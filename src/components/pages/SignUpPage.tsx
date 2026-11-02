@@ -116,7 +116,7 @@ export default function SignUpPage({ onNavigate }: SignUpPageProps) {
         <header className="text-center">
           <h1 className="font-montserrat text-[28px] sm:text-[40px] font-bold leading-tight text-[#01024A]">Get HOOX!</h1>
           <p className="mx-auto mt-3 max-w-[840px] text-[17px] sm:text-[20px] leading-[1.25] text-[#0838B2]">
-            The best of class tournament management tool for Tournament Directors and Professional Anglers.
+            The best-in-class tournament management tool for Tournament Directors and Anglers.
           </p>
         </header>
 
