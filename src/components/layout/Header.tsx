@@ -158,8 +158,7 @@ export default function Header({ currentUser, onNavigate, onLogout }: HeaderProp
         <div className="flex items-center justify-between gap-6 h-[76px]">
           <HooxLogo onClick={() => go('home')} />
 
-          {!currentUser ? (
-            <>
+          <>
               {/* Desktop navigation — Tournaments, Calendar, Sponsors and More open a mega menu on hover */}
               <nav
                 ref={navRef}
@@ -274,14 +273,36 @@ export default function Header({ currentUser, onNavigate, onLogout }: HeaderProp
                 )}
               </nav>
 
-              <div className="hidden xl:flex flex-shrink-0 items-center">
-                {/* One login for everyone — the account type comes from the user's credentials */}
-                <button
-                  onClick={() => go('login')}
-                  className="h-[38px] px-8 2xl:px-10 rounded-md bg-gradient-to-b from-[#077A92] to-[#02566E] text-white text-[15px] font-medium shadow-sm hover:brightness-110 transition whitespace-nowrap"
-                >
-                  Log In
-                </button>
+              <div className="hidden xl:flex flex-shrink-0 items-center gap-3">
+                {currentUser ? (
+                  <>
+                    <span className="text-sm text-hoox-text whitespace-nowrap">
+                      Welcome, <span className="font-semibold">{currentUser.name}</span>
+                    </span>
+                    {currentUser.role === 'admin' && (
+                      <button
+                        onClick={() => go('admin-dashboard')}
+                        className="h-[38px] px-5 rounded-md bg-hoox-navy text-white font-medium text-sm hover:bg-[#03385E] transition whitespace-nowrap"
+                      >
+                        Dashboard
+                      </button>
+                    )}
+                    <button
+                      onClick={onLogout}
+                      className="h-[38px] px-5 rounded-md border border-[#DDE3EA] text-hoox-navy font-medium text-sm hover:bg-hoox-light transition whitespace-nowrap"
+                    >
+                      Logout
+                    </button>
+                  </>
+                ) : (
+                  /* One login for everyone — the account type comes from the user's credentials */
+                  <button
+                    onClick={() => go('login')}
+                    className="h-[38px] px-8 2xl:px-10 rounded-md bg-gradient-to-b from-[#077A92] to-[#02566E] text-white text-[15px] font-medium shadow-sm hover:brightness-110 transition whitespace-nowrap"
+                  >
+                    Log In
+                  </button>
+                )}
               </div>
 
               {/* Mobile menu button */}
@@ -292,32 +313,11 @@ export default function Header({ currentUser, onNavigate, onLogout }: HeaderProp
               >
                 {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
-            </>
-          ) : (
-            <div className="flex items-center gap-3">
-              <span className="text-sm text-hoox-text hidden sm:inline">
-                Welcome, <span className="font-semibold">{currentUser.name}</span>
-              </span>
-              {currentUser.role === 'admin' && (
-                <button
-                  onClick={() => onNavigate('admin-dashboard')}
-                  className="h-[38px] px-5 rounded-md bg-hoox-navy text-white font-medium text-sm hover:bg-[#03385E] transition"
-                >
-                  Dashboard
-                </button>
-              )}
-              <button
-                onClick={onLogout}
-                className="h-[38px] px-5 rounded-md border border-[#DDE3EA] text-hoox-navy font-medium text-sm hover:bg-hoox-light transition"
-              >
-                Logout
-              </button>
-            </div>
-          )}
+          </>
         </div>
 
         {/* Mobile menu */}
-        {!currentUser && mobileMenuOpen && (
+        {mobileMenuOpen && (
           <div className="xl:hidden border-t border-hoox-line py-4 space-y-1">
             <button
               onClick={() => go('register')}
@@ -347,10 +347,29 @@ export default function Header({ currentUser, onNavigate, onLogout }: HeaderProp
                 ))}
               </div>
             ))}
-            <div className="pt-3 border-t border-hoox-line mt-2">
-              <button onClick={() => go('login')} className="w-full h-[42px] rounded-md bg-gradient-to-b from-[#077A92] to-[#02566E] text-white font-medium text-[15px]">
-                Log In
-              </button>
+            <div className="pt-3 border-t border-hoox-line mt-2 space-y-2">
+              {currentUser ? (
+                <>
+                  <p className="px-3 pb-1 text-sm text-hoox-text">
+                    Welcome, <span className="font-semibold">{currentUser.name}</span>
+                  </p>
+                  {currentUser.role === 'admin' && (
+                    <button onClick={() => go('admin-dashboard')} className="w-full h-[42px] rounded-md bg-hoox-navy text-white font-medium text-[15px]">
+                      Dashboard
+                    </button>
+                  )}
+                  <button
+                    onClick={() => { setMobileMenuOpen(false); onLogout(); }}
+                    className="w-full h-[42px] rounded-md border border-[#DDE3EA] text-hoox-navy font-medium text-[15px]"
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <button onClick={() => go('login')} className="w-full h-[42px] rounded-md bg-gradient-to-b from-[#077A92] to-[#02566E] text-white font-medium text-[15px]">
+                  Log In
+                </button>
+              )}
             </div>
           </div>
         )}
