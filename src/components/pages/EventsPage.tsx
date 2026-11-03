@@ -65,8 +65,9 @@ function FeaturedSlide({ e, active, index, total }: { e: Expo; active: boolean; 
 
 const ROTATE_MS = 7000;
 
-/** Rotates through every expo marked `featured`. Pauses on hover/focus and for reduced motion. */
-function FeaturedCarousel({ expos }: { expos: Expo[] }) {
+/** Rotates through every expo marked `featured`. Pauses on hover/focus and for reduced motion.
+ *  Also used as the hero on the Event Calendar (/events/calendar). */
+export function FeaturedCarousel({ expos, className = 'mt-6' }: { expos: Expo[]; className?: string }) {
   const [i, setI] = useState(0);
   const [paused, setPaused] = useState(false);
   const reduced = useRef(false);
@@ -90,7 +91,7 @@ function FeaturedCarousel({ expos }: { expos: Expo[] }) {
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}
       onBlur={() => setPaused(false)}
-      className="relative mt-6 grid overflow-hidden rounded-lg bg-[#0A2A47] shadow-[0_6px_20px_rgba(5,30,60,0.18)]"
+      className={`relative grid overflow-hidden rounded-lg bg-[#0A2A47] shadow-[0_6px_20px_rgba(5,30,60,0.18)] ${className}`}
     >
       {expos.map((e, k) => (
         <FeaturedSlide key={e.id} e={e} active={k === i} index={k} total={n} />
@@ -131,6 +132,12 @@ function FeaturedCarousel({ expos }: { expos: Expo[] }) {
   );
 }
 
+/** Upcoming/in-progress expos marked featured (soonest first); falls back to the next show. */
+export function featuredExpos(items: Expo[]) {
+  const f = items.filter((e) => e.featured).sort((a, b) => a.start.localeCompare(b.start));
+  return f.length ? f : [...items].sort((a, b) => a.start.localeCompare(b.start)).slice(0, 1);
+}
+
 export default function EventsPage(_props: EventsPageProps) {
   const [q, setQ] = useState('');
   const [state, setState] = useState('all');
@@ -140,10 +147,7 @@ export default function EventsPage(_props: EventsPageProps) {
 
   // Past shows drop off the page
   const items = useMemo(() => EXPOS.filter((e) => statusFor(e.start, e.end, today) !== 'Completed'), [today]);
-  const featured = useMemo(() => {
-    const f = items.filter((e) => e.featured).sort((a, b) => a.start.localeCompare(b.start));
-    return f.length ? f : items.slice(0, 1);
-  }, [items]);
+  const featured = useMemo(() => featuredExpos(items), [items]);
 
   const matchingOtherFilters = useMemo(() => {
     const s = q.trim().toLowerCase();

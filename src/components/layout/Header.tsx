@@ -43,7 +43,7 @@ const MEGA_COLUMNS: MegaColumn[] = [
       { href: '/series', label: 'Series' },
       { href: '/leaderboards', label: 'Leaderboards' },
       { href: '/search?type=tournaments', label: 'Search' },
-      { href: '/calendar', label: 'Calendar' },
+      { href: '/calendar', label: 'Tournament Calendar' },
       { href: '/tournaments/submit', label: 'Submit a Listing' },
     ],
   }],
@@ -51,7 +51,7 @@ const MEGA_COLUMNS: MegaColumn[] = [
     title: 'Events',
     links: [
       { href: '/events', label: 'Expos and Trade Shows' },
-      { href: '/events', label: 'Event Calendar' },
+      { href: '/events/calendar', label: 'Event Calendar' },
       { href: '/events/submit', label: 'Submit your Event' },
     ],
   }],
