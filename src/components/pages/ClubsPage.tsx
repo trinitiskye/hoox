@@ -32,6 +32,9 @@ export interface Club {
   about: string;
   featured?: boolean;
   logo?: string;
+  /** Club's own website (approved submissions) */
+  website?: string;
+  /** NaN when a submitted club has no map location yet */
   lat: number;
   lng: number;
 }
@@ -215,7 +218,13 @@ export function ClubDialog({ club, onClose, onNavigate }: { club: Club; onClose:
             <div><dt className="text-[#5F7896]">Members</dt><dd className={`font-semibold ${INK}`}>{club.members.toLocaleString()}</dd></div>
             <div><dt className="text-[#5F7896]">Skill level</dt><dd className={`font-semibold ${INK}`}>{club.level}</dd></div>
             <div><dt className="text-[#5F7896]">Fishing style</dt><dd className={`font-semibold ${INK}`}>{club.styles.join(', ')}</dd></div>
+            {club.schedule && <div><dt className="text-[#5F7896]">Meets</dt><dd className={`font-semibold ${INK}`}>{club.schedule}</dd></div>}
           </dl>
+          {club.website && (
+            <a href={club.website} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex items-center gap-1.5 text-[15px] font-semibold text-[#0E7C7B] hover:underline">
+              Visit club website <ArrowRight className="h-4 w-4" strokeWidth={2} />
+            </a>
+          )}
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
             <button
               onClick={() => onNavigate('register-angler')}
@@ -243,17 +252,33 @@ export default function ClubsPage({ onNavigate }: ClubsPageProps) {
   const [sort, setSort] = useState<Sort>('members');
   const [open, setOpen] = useState<Club | null>(null);
   const [view, setView] = useState<'grid' | 'map'>('grid');
+  // Approved clubs from "Submit a Club", shown alongside the demo clubs
+  const [live, setLive] = useState<Club[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/clubs')
+      .then((r) => (r.ok ? r.json() : { clubs: [] }))
+      .then((j: { clubs?: (Omit<Club, 'lat' | 'lng'> & { lat: number | null; lng: number | null })[] }) => {
+        if (cancelled || !Array.isArray(j.clubs)) return;
+        setLive(j.clubs.map((c) => ({ ...c, lat: c.lat ?? NaN, lng: c.lng ?? NaN })));
+      })
+      .catch(() => undefined);
+    return () => { cancelled = true; };
+  }, []);
+
+  const allClubs = useMemo(() => [...live, ...CLUBS], [live]);
 
   // Deep link from the menu: /clubs?view=map opens the map
   useEffect(() => {
     if (new URLSearchParams(window.location.search).get('view') === 'map') setView('map');
   }, []);
 
-  const states = useMemo(() => Array.from(new Set(CLUBS.map((c) => c.state))).sort((a, b) => (STATE_NAMES[a] ?? a).localeCompare(STATE_NAMES[b] ?? b)), []);
+  const states = useMemo(() => Array.from(new Set(allClubs.map((c) => c.state))).sort((a, b) => (STATE_NAMES[a] ?? a).localeCompare(STATE_NAMES[b] ?? b)), [allClubs]);
 
   const results = useMemo(() => {
     const term = q.trim().toLowerCase();
-    const list = CLUBS.filter((c) => {
+    const list = allClubs.filter((c) => {
       if (state !== 'all' && c.state !== state) return false;
       if (style !== 'all' && !c.styles.includes(style as Style)) return false;
       if (level !== 'all' && c.level !== level) return false;
@@ -261,7 +286,7 @@ export default function ClubsPage({ onNavigate }: ClubsPageProps) {
       return [c.name, c.city, c.state, STATE_NAMES[c.state] ?? '', ...c.species, ...c.styles, c.about].some((s) => s.toLowerCase().includes(term));
     });
     return list.sort((a, b) => (sort === 'name' ? a.name.localeCompare(b.name) : sort === 'fewest' ? a.members - b.members : b.members - a.members));
-  }, [q, state, style, level, sort]);
+  }, [allClubs, q, state, style, level, sort]);
 
   const filtering = q.trim() !== '' || state !== 'all' || style !== 'all' || level !== 'all';
   const featured = !filtering ? results.find((c) => c.featured) : undefined;
@@ -397,8 +422,8 @@ export default function ClubsPage({ onNavigate }: ClubsPageProps) {
         {view === 'map' ? (
           <div className="mt-4">
             <ClubsMap
-              clubs={results.map((c) => ({ id: c.id, name: c.name, place: `${c.city}, ${c.state}`, members: c.members, lat: c.lat, lng: c.lng }))}
-              onSelect={(id) => setOpen(CLUBS.find((c) => c.id === id) ?? null)}
+              clubs={results.filter((c) => Number.isFinite(c.lat) && Number.isFinite(c.lng)).map((c) => ({ id: c.id, name: c.name, place: `${c.city}, ${c.state}`, members: c.members, lat: c.lat, lng: c.lng }))}
+              onSelect={(id) => setOpen(allClubs.find((c) => c.id === id) ?? null)}
             />
           </div>
         ) : grid.length === 0 ? (

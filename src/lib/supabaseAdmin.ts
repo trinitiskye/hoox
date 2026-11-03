@@ -260,10 +260,15 @@ export async function listClubSubmissionsAdmin() {
 
 export async function updateClubSubmissionAdmin(
   id: string,
-  updates: Partial<Pick<DbClubSubmission, 'status' | 'admin_notes' | 'reviewed_at'>>
+  updates: Partial<Pick<DbClubSubmission, 'status' | 'admin_notes' | 'reviewed_at' | 'lat' | 'lng'>>
 ) {
   return supabaseAdminFetch<DbClubSubmission[]>(`club_submissions?id=eq.${encodeURIComponent(id)}`, {
     method: 'PATCH',
     body: JSON.stringify(updates),
   });
+}
+
+/** Approved clubs, for the public /clubs directory and map. */
+export async function listApprovedClubsAdmin() {
+  return supabaseAdminFetch<DbClubSubmission[]>('club_submissions?select=*&status=eq.approved&order=created_at.desc&limit=1000');
 }

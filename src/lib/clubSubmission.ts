@@ -51,6 +51,9 @@ export interface DbClubSubmission {
   logo_url: string | null;
   cover_image_url: string | null;
   agreed_authorized: boolean;
+  /** Added by migration_2026_11_club_locations.sql; filled in on approval */
+  lat?: number | null;
+  lng?: number | null;
   admin_notes: string | null;
   reviewed_at: string | null;
   created_at: string;
@@ -59,7 +62,7 @@ export interface DbClubSubmission {
 
 export type DbClubSubmissionInsert = Omit<
   DbClubSubmission,
-  'id' | 'status' | 'admin_notes' | 'reviewed_at' | 'created_at' | 'updated_at'
+  'id' | 'status' | 'admin_notes' | 'reviewed_at' | 'created_at' | 'updated_at' | 'lat' | 'lng'
 >;
 
 /** Club fields only; the submitter_* fields are filled in by the API route. */

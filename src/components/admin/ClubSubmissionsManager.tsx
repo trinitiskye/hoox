@@ -43,7 +43,7 @@ function Detail({ label, children }: { label: string; children: React.ReactNode 
   );
 }
 
-function Row({ s, onChanged }: { s: DbClubSubmission; onChanged: (s: DbClubSubmission, msg: string) => void }) {
+function Row({ s, onChanged }: { s: DbClubSubmission; onChanged: (s: DbClubSubmission, msg: string, warning?: string | null) => void }) {
   const [open, setOpen] = useState(false);
   const [notes, setNotes] = useState(s.admin_notes || '');
   const [saving, setSaving] = useState(false);
@@ -52,12 +52,12 @@ function Row({ s, onChanged }: { s: DbClubSubmission; onChanged: (s: DbClubSubmi
   const save = async (updates: { status?: SubmissionStatus; adminNotes?: string }, msg: string) => {
     setSaving(true); setErr(null);
     try {
-      const { submission } = await api<{ submission: DbClubSubmission }>(`/api/admin/club-submissions/${s.id}`, {
+      const { submission, warning } = await api<{ submission: DbClubSubmission; warning?: string | null }>(`/api/admin/club-submissions/${s.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates),
       });
-      onChanged(submission, msg);
+      onChanged(submission, updates.status === 'approved' && !warning ? 'Approved — now live in the club directory and map' : msg, warning);
     } catch (e) {
       setErr((e as Error).message);
     } finally {
@@ -99,7 +99,7 @@ function Row({ s, onChanged }: { s: DbClubSubmission; onChanged: (s: DbClubSubmi
             )}
             <Detail label="About">{s.about}</Detail>
             <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Detail label="Location">{`${s.city}, ${s.state}, ${s.country}`}</Detail>
+              <Detail label="Location">{`${s.city}, ${s.state}, ${s.country}`}{s.status === 'approved' && (Number.isFinite(s.lat) ? ' · pinned on map' : ' · no map pin yet')}</Detail>
               <Detail label="Species">{s.species}</Detail>
               <Detail label="Skill level">{s.skill_level}</Detail>
               <Detail label="Schedule">{s.schedule}</Detail>
@@ -167,7 +167,7 @@ export default function ClubSubmissionsManager() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [filter, setFilter] = useState<SubmissionStatus | 'all'>('new');
-  const { toasts, remove, success } = useToast();
+  const { toasts, remove, success, error: toastError } = useToast();
 
   const load = useCallback(async () => {
     setLoading(true); setLoadError(null);
@@ -218,7 +218,7 @@ export default function ClubSubmissionsManager() {
       ) : (
         <ul>
           {shown.map((s) => (
-            <Row key={s.id} s={s} onChanged={(next, msg) => { setItems((l) => l.map((x) => (x.id === next.id ? next : x))); success(msg); }} />
+            <Row key={s.id} s={s} onChanged={(next, msg, warning) => { setItems((l) => l.map((x) => (x.id === next.id ? next : x))); if (warning) toastError(warning); else success(msg); }} />
           ))}
         </ul>
       )}

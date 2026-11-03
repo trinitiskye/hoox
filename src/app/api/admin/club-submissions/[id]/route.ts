@@ -4,6 +4,7 @@
 export const runtime = 'edge';
 
 import { updateClubSubmissionAdmin } from '@/lib/supabaseAdmin';
+import { ensureClubLocation } from '@/lib/clubLocation';
 import { getAuthenticatedAdmin } from '@/lib/serverSession';
 import { SUBMISSION_STATUSES, type SubmissionStatus, type DbClubSubmission } from '@/lib/clubSubmission';
 
@@ -36,5 +37,11 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
   const { data, error } = await updateClubSubmissionAdmin(id, updates);
   if (error || !data?.[0]) return Response.json({ error: error || 'Submission not found.' }, { status: error ? 500 : 404 });
-  return Response.json({ submission: data[0], error: null });
+
+  // Approved clubs go on the public map, so look up their coordinates now.
+  if (data[0].status === 'approved') {
+    const { club, warning } = await ensureClubLocation(data[0]);
+    return Response.json({ submission: club, warning, error: null });
+  }
+  return Response.json({ submission: data[0], warning: null, error: null });
 }
