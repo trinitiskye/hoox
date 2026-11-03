@@ -155,9 +155,16 @@ function RulesCard({ e }: { e: EventDetail }) {
 // Boat # is intentionally not shown publicly.
 function LeaderboardCard({ e }: { e: EventDetail }) {
   const board = e.isDemo ? BOARDS.find((b) => b.id === 'lakefront-classic') : undefined;
+  const standingsHref = `/tournaments/${encodeURIComponent(e.id)}/leaderboard`;
+  const fieldSize = e.isDemo ? e.entries : e.registration.filled;
   return (
     <section className={`${CARD} p-4`} aria-label="Leaderboard">
-      <CardTitle icon={<Medal className="h-[20px] w-[20px]" strokeWidth={2} />}>Leaderboard</CardTitle>
+      <CardTitle icon={<Medal className="h-[20px] w-[20px]" strokeWidth={2} />}>
+        Leaderboard
+        <a href={standingsHref} className="ml-auto flex items-center gap-1 text-[13.5px] font-semibold text-[#0E7C7B] hover:underline">
+          View all rankings <ChevronRight className="h-4 w-4" strokeWidth={2.25} />
+        </a>
+      </CardTitle>
       {!board ? (
         <Empty>Standings will appear here once the tournament starts.</Empty>
       ) : (
@@ -179,6 +186,9 @@ function LeaderboardCard({ e }: { e: EventDetail }) {
               <span role="cell" className={`text-right text-[13px] font-medium ${INK}`}>{row.weight !== undefined ? `${row.weight.toFixed(2)} lb` : '-'}</span>
             </div>
           ))}
+          <a href={standingsHref} className="mt-3 flex h-[40px] items-center justify-center gap-2 rounded-md border border-[#1FA3A6] text-[14px] font-semibold text-[#0E7C7B] transition hover:bg-[#EEF9F8]">
+            See {fieldSize ? `all ${fieldSize} anglers` : 'all anglers'} and where they ranked <ChevronRight className="h-4 w-4" strokeWidth={2.25} />
+          </a>
         </div>
       )}
     </section>
