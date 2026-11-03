@@ -50,6 +50,18 @@ const TAB_TO_PATH: Record<string, string> = {
   'Monetization':     '/admin/monetization',
   'CMS':              '/admin/cms',
   'Settings':         '/admin/settings',
+  'HOOX Sponsors':                '/admin/sponsors',
+  'Display Banner Accounts':      '/admin/marketing/banners/accounts',
+  'Ad Revenue':                   '/admin/marketing/banners/revenue',
+  'Featured Marketing':           '/admin/marketing/featured',
+  'Featured Marketing Accounts':  '/admin/marketing/featured/accounts',
+  'Featured Content Revenue':     '/admin/marketing/featured/revenue',
+  'Sponsor Programs':             '/admin/marketing/sponsors',
+  'Sponsor Program Accounts':     '/admin/marketing/sponsors/accounts',
+  'Brand Promotion Revenue':      '/admin/marketing/sponsors/revenue',
+  'Affiliate Management':         '/admin/marketing/affiliates',
+  'Affiliate Accounts':           '/admin/marketing/affiliates/accounts',
+  'Affiliate Revenue':            '/admin/marketing/affiliates/revenue',
 };
 
 const PATH_TO_TAB: Record<string, string> = Object.fromEntries(
@@ -104,10 +116,13 @@ export default function AdminDashboard({ currentUser, onNavigate, initialTab, us
         {activeTab === 'CMS' && <CMSTab />}
         {activeTab === 'Settings' && <SettingsTab />}
         {activeTab === 'Support' && <SupportInbox />}
+        {activeTab === 'Featured Marketing' && <FeaturedMarketingTab />}
+        {activeTab === 'Ad Revenue' && <MonetizationTab initial="Ad Revenue" />}
         {activeTab !== 'Dashboard' && activeTab !== 'Users' && activeTab !== 'Tournaments' &&
          activeTab !== 'Catch Submissions' && activeTab !== 'Partners' && activeTab !== 'Clubs' &&
          activeTab !== 'Series' && activeTab !== 'Events' && activeTab !== 'Advertising' &&
-         activeTab !== 'Monetization' && activeTab !== 'CMS' && activeTab !== 'Settings' && activeTab !== 'Support' && (
+         activeTab !== 'Monetization' && activeTab !== 'CMS' && activeTab !== 'Settings' && activeTab !== 'Support' &&
+         activeTab !== 'Featured Marketing' && activeTab !== 'Ad Revenue' && (
           <ComingSoonTab tab={activeTab} />
         )}
       </div>
@@ -296,6 +311,8 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
 }) {
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState(initialFilter || 'all');
+  // Follow the menu's ?filter= links (Directors / Anglers / Judges) without a full reload
+  useEffect(() => { setRoleFilter(initialFilter || 'all'); }, [initialFilter]);
   const subView = subViewProp || 'dashboard';
   const selectedUser = users.find(u => u.id === selectedUserId) || null;
   // The signed-in admin's own record lives at /admin/profile (opened from their name in the header)
@@ -1751,12 +1768,6 @@ function ClubsTab() {
       {/* Requests from the public /clubs/submit form */}
       <ClubSubmissionsManager />
 
-      {/* Requests from the public /clubs/feature page */}
-      <ClubFeatureRequestsManager />
-
-      {/* Prices shown on /clubs/feature */}
-      <FeaturePricingEditor />
-
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="bg-white border border-[#E8EEF4] rounded-lg p-5 shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
@@ -2200,8 +2211,22 @@ function AdvertisingTab() {
 // ============================================================
 // MONETIZATION TAB
 // ============================================================
-function MonetizationTab() {
-  const [activeTab, setActiveTab] = useState('All Revenue');
+/** Digital Marketing → Featured Marketing: club feature requests and pricing */
+function FeaturedMarketingTab() {
+  return (
+    <div>
+      <div className="mb-6">
+        <h2 className="font-montserrat text-2xl font-bold text-[#0D1B4C]">Featured Marketing</h2>
+        <p className="text-[#5F6F86] text-sm mt-0.5">Featured placements requested from the public “Feature your Club” page, and the prices shown there</p>
+      </div>
+      <ClubFeatureRequestsManager />
+      <FeaturePricingEditor />
+    </div>
+  );
+}
+
+function MonetizationTab({ initial = 'All Revenue' }: { initial?: string }) {
+  const [activeTab, setActiveTab] = useState(initial);
   const tabs = ['All Revenue', 'Tournament Registration Revenue', 'Ad Revenue'];
 
   const revenueCards = [

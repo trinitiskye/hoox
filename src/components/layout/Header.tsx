@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, Suspense } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { toPath } from '@/lib/routes';
@@ -392,7 +392,7 @@ export default function Header({ currentUser, onNavigate, onLogout }: HeaderProp
       </div>
 
       {/* Second tier: admin back-end navigation */}
-      {currentUser?.role === 'admin' && <AdminNav />}
+      {currentUser?.role === 'admin' && <Suspense fallback={null}><AdminNav /></Suspense>}
     </header>
   );
 }
