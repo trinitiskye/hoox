@@ -53,8 +53,11 @@ function StatusDot({ online, className = '' }: { online: boolean; className?: st
 export default function ChatWidget() {
   const pathname = usePathname() || '';
   const { currentUser } = useAuth();
-  // Not shown in the admin area or to admins (they answer chats in Admin → Support)
-  const hidden = pathname.startsWith('/admin') || currentUser?.role === 'admin';
+  // Always shown on public pages. Hidden only inside the admin dashboard, where
+  // admins answer chats. Admins browsing the site still see the bubble but
+  // aren't tracked as visitors.
+  const hidden = pathname.startsWith('/admin');
+  const isAdmin = currentUser?.role === 'admin';
 
   const [open, setOpen] = useState(false);
   const [view, setView] = useState<View>('home');
@@ -114,13 +117,13 @@ export default function ChatWidget() {
   }, []);
 
   useEffect(() => {
-    if (hidden) return;
+    if (hidden || isAdmin) return;
     heartbeat();
     const t = setInterval(heartbeat, HEARTBEAT_MS);
     const onVis = () => { if (document.visibilityState === 'visible') heartbeat(); };
     document.addEventListener('visibilitychange', onVis);
     return () => { clearInterval(t); document.removeEventListener('visibilitychange', onVis); };
-  }, [heartbeat, hidden]);
+  }, [heartbeat, hidden, isAdmin]);
 
   /* ------------------------------ messages ------------------------------ */
   const loadMessages = useCallback(async (id: string, full = false) => {
@@ -211,7 +214,7 @@ export default function ChatWidget() {
   const current = useMemo(() => threads.find((t) => t.id === threadId) ?? null, [threads, threadId]);
   const recent = threads.filter((t) => t.status !== 'closed').slice(0, 3);
 
-  if (hidden || setupMissing) return null;
+  if (hidden) return null;
 
   /* -------------------------------- render ------------------------------- */
   return (
@@ -362,7 +365,18 @@ export default function ChatWidget() {
               </div>
             )}
 
-            {view === 'ask' && (
+            {view === 'ask' && setupMissing && (
+              <div className="space-y-3 p-4">
+                <div className="ml-auto w-fit max-w-[85%] rounded-2xl rounded-br-md bg-[#0E7C7B] px-3.5 py-2 text-[14px] text-white">{asked}</div>
+                <div className="rounded-lg border border-[#E3EAF1] bg-white p-4 text-[14px] leading-[21px] text-[#3E5675]">
+                  <p className="font-semibold text-[#0D1B4C]">Messaging our team isn’t available just yet.</p>
+                  <p className="mt-1">Please check the <Link href="/faq" onClick={() => setOpen(false)} className="font-semibold text-[#0E7C7B] underline">FAQ</Link> or try again soon.</p>
+                  {isAdmin && <p className="mt-2 text-[12.5px] text-[#B42318]">Admin: run supabase/migration_2026_11_support.sql in Supabase to turn on chat and tickets.</p>}
+                </div>
+              </div>
+            )}
+
+            {view === 'ask' && !setupMissing && (
               <form noValidate onSubmit={(e) => { e.preventDefault(); start(adminOnline ? 'live' : 'question'); }} className="space-y-4 p-4">
                 <div className="ml-auto w-fit max-w-[85%] rounded-2xl rounded-br-md bg-[#0E7C7B] px-3.5 py-2 text-[14px] text-white">{asked}</div>
                 <div className="rounded-lg border border-[#E3EAF1] bg-white p-3.5">

@@ -7,6 +7,7 @@ export const runtime = 'edge';
 import { getAuthenticatedUser, AUTH_COOKIE_NAME } from '@/lib/serverSession';
 import { authVisitor, adminOnline, listVisitorThreads, toPublicThread, pruneVisitors, missingTables, lastMessage } from '@/lib/supportServer';
 import { cleanText } from '@/lib/support';
+import { supabaseAdminFetch } from '@/lib/supabaseAdmin';
 
 export async function POST(request: Request) {
   try {
@@ -24,7 +25,12 @@ export async function POST(request: Request) {
     }
 
     const visitor = await authVisitor(body.visitorId, body.key, extra);
-    if (!visitor) return Response.json({ error: 'Unknown visitor.', code: 'bad_visitor' }, { status: 401 });
+    if (!visitor) {
+      // Distinguish "support isn't set up yet" from a bad visitor key
+      const probe = await supabaseAdminFetch('support_visitors?select=visitor_id&limit=1');
+      if (missingTables(probe.error)) return Response.json({ adminOnline: false, threads: [], unread: 0, setup: false });
+      return Response.json({ error: 'Unknown visitor.', code: 'bad_visitor' }, { status: 401 });
+    }
 
     const [online, threadsRes] = await Promise.all([adminOnline(), listVisitorThreads(visitor.visitor_id)]);
     if (missingTables(threadsRes.error)) return Response.json({ adminOnline: false, threads: [], unread: 0, setup: false });
