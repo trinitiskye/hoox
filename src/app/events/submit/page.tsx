@@ -1,17 +1,15 @@
 import PublicLayout from '@/components/layout/PublicLayout';
-import ComingSoon from '@/components/common/ComingSoon';
+import SubmitEventPage from '@/components/events/SubmitEventPage';
 
-export const metadata = { title: 'Submit your Event | HOOX' };
+export const metadata = {
+  title: 'Submit your Event | HOOX',
+  description: 'List your fishing expo, trade show or boat show on HOOX, or request a featured hero or banner placement.',
+};
 
 export default function Page() {
   return (
     <PublicLayout bgClassName="bg-[#F1F6FA]">
-      <ComingSoon
-        title="Submit your Event"
-        description="Soon you’ll be able to submit your fishing expo, trade show or activity to be listed on HOOX."
-        backHref="/events"
-        backLabel="Browse events"
-      />
+      <SubmitEventPage />
     </PublicLayout>
   );
 }

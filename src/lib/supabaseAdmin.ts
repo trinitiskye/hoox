@@ -5,6 +5,7 @@
 // Only import this from src/app/api/** route handlers.
 
 import type { DbUser, DbUserInsert, DbHeroSlide, DbHeroSlideInsert, DbHomeBanner, DbHomeBannerInsert } from './supabase';
+import type { DbEventSubmission, DbEventSubmissionInsert } from './eventSubmission';
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -209,5 +210,32 @@ export async function updateHomeBannerAdmin(id: string, updates: Partial<DbHomeB
 export async function deleteHomeBannerAdmin(id: string) {
   return supabaseAdminFetch<DbHomeBanner[]>(`home_banners?id=eq.${encodeURIComponent(id)}`, {
     method: 'DELETE',
+  });
+}
+
+// ============================================================
+// EVENT SUBMISSIONS — "Submit your Event" (service-role — bypasses RLS)
+// ============================================================
+
+export const EVENT_SUBMISSION_BUCKET = 'event-submissions';
+
+export async function createEventSubmissionAdmin(s: DbEventSubmissionInsert) {
+  return supabaseAdminFetch<DbEventSubmission[]>('event_submissions', {
+    method: 'POST',
+    body: JSON.stringify(s),
+  });
+}
+
+export async function listEventSubmissionsAdmin() {
+  return supabaseAdminFetch<DbEventSubmission[]>('event_submissions?select=*&order=created_at.desc&limit=500');
+}
+
+export async function updateEventSubmissionAdmin(
+  id: string,
+  updates: Partial<Pick<DbEventSubmission, 'status' | 'admin_notes' | 'reviewed_at'>>
+) {
+  return supabaseAdminFetch<DbEventSubmission[]>(`event_submissions?id=eq.${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(updates),
   });
 }

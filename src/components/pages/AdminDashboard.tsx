@@ -19,6 +19,7 @@ import AddressSelector from '@/components/ui/AddressSelector';
 import { Toast, useToast } from '@/components/ui/Toast';
 import HeroSlidesManager from '@/components/admin/HeroSlidesManager';
 import HomeBannersManager from '@/components/admin/HomeBannersManager';
+import EventSubmissionsManager from '@/components/admin/EventSubmissionsManager';
 
 interface AdminDashboardProps {
   currentUser: User;
@@ -1950,6 +1951,9 @@ function EventsTab() {
           <Plus className="w-4 h-4" /> Add Event
         </button>
       </div>
+
+      {/* Requests from the public /events/submit form */}
+      <EventSubmissionsManager />
 
       {/* Filters */}
       <div className="bg-white border border-[#E8EEF4] rounded-lg p-4 mb-4 shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
