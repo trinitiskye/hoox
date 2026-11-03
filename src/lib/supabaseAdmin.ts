@@ -8,6 +8,7 @@ import type { DbUser, DbUserInsert, DbHeroSlide, DbHeroSlideInsert, DbHomeBanner
 import type { DbEventSubmission, DbEventSubmissionInsert } from './eventSubmission';
 import type { DbClubSubmission, DbClubSubmissionInsert } from './clubSubmission';
 import type { DbClubFeatureRequest, DbClubFeatureRequestInsert } from './clubFeature';
+import type { DbFishSpecies } from './species';
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -341,5 +342,47 @@ export async function upsertSettingAdmin(key: string, value: unknown, userId: st
     method: 'POST',
     headers: { Prefer: 'resolution=merge-duplicates,return=representation' },
     body: JSON.stringify({ key, value, updated_by: userId, updated_at: new Date().toISOString() }),
+  });
+}
+
+// ============================================================
+// FISH SPECIES — master list for tournament species (service-role)
+// ============================================================
+
+export async function listSpeciesAdmin(activeOnly = false) {
+  return supabaseAdminFetch<DbFishSpecies[]>(`fish_species?select=*${activeOnly ? '&is_active=eq.true' : ''}&order=name.asc&limit=1000`);
+}
+
+export async function createSpeciesAdmin(s: Pick<DbFishSpecies, 'name' | 'category' | 'is_active'>) {
+  return supabaseAdminFetch<DbFishSpecies[]>('fish_species', { method: 'POST', body: JSON.stringify(s) });
+}
+
+export async function getSpeciesAdmin(id: string) {
+  return supabaseAdminFetch<DbFishSpecies[]>(`fish_species?id=eq.${encodeURIComponent(id)}&select=*`);
+}
+
+export async function updateSpeciesAdmin(id: string, updates: Partial<Pick<DbFishSpecies, 'name' | 'category' | 'is_active'>>) {
+  return supabaseAdminFetch<DbFishSpecies[]>(`fish_species?id=eq.${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(updates),
+  });
+}
+
+export async function deleteSpeciesAdmin(id: string) {
+  return supabaseAdminFetch<DbFishSpecies[]>(`fish_species?id=eq.${encodeURIComponent(id)}`, { method: 'DELETE' });
+}
+
+/** Tournaments whose fish_types include `name` (exact match). */
+export async function listTournamentsWithSpeciesAdmin(name: string) {
+  const arr = `{${JSON.stringify(name)}}`; // Postgres array literal, quoted
+  return supabaseAdminFetch<{ id: string; fish_types: string[] | null }[]>(
+    `tournaments?select=id,fish_types&fish_types=cs.${encodeURIComponent(arr)}&limit=1000`
+  );
+}
+
+export async function setTournamentFishTypesAdmin(id: string, fishTypes: string[]) {
+  return supabaseAdminFetch<unknown[]>(`tournaments?id=eq.${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ fish_types: fishTypes }),
   });
 }

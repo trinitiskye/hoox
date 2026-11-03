@@ -23,6 +23,7 @@ import EventSubmissionsManager from '@/components/admin/EventSubmissionsManager'
 import ClubSubmissionsManager from '@/components/admin/ClubSubmissionsManager';
 import ClubFeatureRequestsManager from '@/components/admin/ClubFeatureRequestsManager';
 import FeaturePricingEditor from '@/components/admin/FeaturePricingEditor';
+import SpeciesManager from '@/components/admin/SpeciesManager';
 
 interface AdminDashboardProps {
   currentUser: User;
@@ -1505,6 +1506,12 @@ function TournamentsTab({ tournaments }: { tournaments: Tournament[] }) {
           </div>
         ))}
       </div>
+
+      {/* Master species list for the public Species filters */}
+      <SpeciesManager usage={tournaments.reduce<Record<string, number>>((m, t) => {
+        new Set(t.fishTypes?.length ? t.fishTypes : t.species ? [t.species] : []).forEach((f) => { m[f] = (m[f] || 0) + 1; });
+        return m;
+      }, {})} />
 
       {/* Calendar + List */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

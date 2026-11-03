@@ -28,6 +28,7 @@ import { DEMO as DEMO_TOURNAMENTS, fromTournament, type TItem } from '@/componen
 import { fetchTournaments } from '@/lib/storage';
 import { toPath } from '@/lib/routes';
 import { Tournament } from '@/types';
+import { useSpeciesList } from '@/lib/useSpeciesList';
 
 type Kind = 'tournaments' | 'series';
 type Sort = 'soonest' | 'start' | 'name' | 'nearest';
@@ -301,7 +302,12 @@ export default function SearchPage() {
     if (origin) items.forEach((r) => { if (r.lat !== undefined && r.lng !== undefined) m[r.id] = miles(origin, { lat: r.lat, lng: r.lng }); });
     return m;
   }, [items, origin]);
-  const tagList = useMemo(() => Array.from(new Set(items.flatMap((r) => r.tags))).sort(), [items]);
+  // Tournaments use the admin-managed species list (fallback: species in the data); series use their fishing styles
+  const managedSpecies = useSpeciesList();
+  const tagList = useMemo(
+    () => (kind === 'tournaments' && managedSpecies) ? managedSpecies : Array.from(new Set(items.flatMap((r) => r.tags))).sort(),
+    [kind, managedSpecies, items],
+  );
   const states = useMemo(() => Object.keys(STATE_NAMES).sort((a, b) => STATE_NAMES[a].localeCompare(STATE_NAMES[b])), []);
 
   // Every filter except Location (drives the per-state counts too)

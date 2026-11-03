@@ -11,6 +11,7 @@ import {
   statusFor, fmtRange,
 } from '@/components/listing/ListingUI';
 import { Tournament } from '@/types';
+import { useSpeciesList } from '@/lib/useSpeciesList';
 
 interface TournamentsPageProps {
   /** null while loading; [] falls back to demo tournaments */
@@ -221,7 +222,9 @@ export default function TournamentsPage({ tournaments, onNavigate }: Tournaments
     () => Object.fromEntries(items.map((t) => [t.id, t.completed ? 'Completed' : statusFor(t.start, t.end, today)])) as Record<string, Status>,
     [items, today],
   );
-  const speciesList = useMemo(() => Array.from(new Set(items.flatMap((t) => t.species))).sort(), [items]);
+  // Admin-managed species list; falls back to the species found in the tournaments
+  const managedSpecies = useSpeciesList();
+  const speciesList = useMemo(() => managedSpecies ?? Array.from(new Set(items.flatMap((t) => t.species))).sort(), [managedSpecies, items]);
   const states = useMemo(() => Object.keys(STATE_NAMES).sort((a, b) => STATE_NAMES[a].localeCompare(STATE_NAMES[b])), []);
 
   // Everything except the Location filter (also drives the per-state counts)
