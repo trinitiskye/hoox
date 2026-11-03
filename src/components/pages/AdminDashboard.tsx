@@ -20,6 +20,7 @@ import { Toast, useToast } from '@/components/ui/Toast';
 import HeroSlidesManager from '@/components/admin/HeroSlidesManager';
 import HomeBannersManager from '@/components/admin/HomeBannersManager';
 import EventSubmissionsManager from '@/components/admin/EventSubmissionsManager';
+import ClubSubmissionsManager from '@/components/admin/ClubSubmissionsManager';
 
 interface AdminDashboardProps {
   currentUser: User;
@@ -1734,6 +1735,9 @@ function ClubsTab() {
           <Plus className="w-4 h-4" /> Add Club
         </button>
       </div>
+
+      {/* Requests from the public /clubs/submit form */}
+      <ClubSubmissionsManager />
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4 mb-6">

@@ -6,6 +6,7 @@
 
 import type { DbUser, DbUserInsert, DbHeroSlide, DbHeroSlideInsert, DbHomeBanner, DbHomeBannerInsert } from './supabase';
 import type { DbEventSubmission, DbEventSubmissionInsert } from './eventSubmission';
+import type { DbClubSubmission, DbClubSubmissionInsert } from './clubSubmission';
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -235,6 +236,33 @@ export async function updateEventSubmissionAdmin(
   updates: Partial<Pick<DbEventSubmission, 'status' | 'admin_notes' | 'reviewed_at'>>
 ) {
   return supabaseAdminFetch<DbEventSubmission[]>(`event_submissions?id=eq.${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(updates),
+  });
+}
+
+// ============================================================
+// CLUB SUBMISSIONS — "Submit a Club" (service-role — bypasses RLS)
+// ============================================================
+
+export const CLUB_SUBMISSION_BUCKET = 'club-submissions';
+
+export async function createClubSubmissionAdmin(s: DbClubSubmissionInsert) {
+  return supabaseAdminFetch<DbClubSubmission[]>('club_submissions', {
+    method: 'POST',
+    body: JSON.stringify(s),
+  });
+}
+
+export async function listClubSubmissionsAdmin() {
+  return supabaseAdminFetch<DbClubSubmission[]>('club_submissions?select=*&order=created_at.desc&limit=500');
+}
+
+export async function updateClubSubmissionAdmin(
+  id: string,
+  updates: Partial<Pick<DbClubSubmission, 'status' | 'admin_notes' | 'reviewed_at'>>
+) {
+  return supabaseAdminFetch<DbClubSubmission[]>(`club_submissions?id=eq.${encodeURIComponent(id)}`, {
     method: 'PATCH',
     body: JSON.stringify(updates),
   });
