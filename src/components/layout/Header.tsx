@@ -69,10 +69,10 @@ const MEGA_COLUMNS: MegaColumn[] = [
     {
       title: 'Support',
       links: [
-        { href: '/faq', label: 'FAQ' },
-        { href: '/contact', label: 'Contact Us' },
         { href: '/features', label: 'App Features' },
+        { href: '/faq', label: 'FAQ' },
         { href: '/support/ticket', label: 'Submit a Ticket' },
+        { href: '/contact', label: 'Contact Us' },
       ],
     },
   ],
