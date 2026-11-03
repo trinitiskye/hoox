@@ -312,7 +312,7 @@ export default function EventDetailPage({ e, onNavigate }: { e: EventDetail; onN
 
   const stats = [
     e.prizePool && { icon: <Trophy className="h-[38px] w-[38px]" fill="currentColor" strokeWidth={1.25} />, value: e.prizePool, label: 'Total Prize Pool' },
-    e.entries && { icon: <Users className="h-[38px] w-[38px]" fill="currentColor" strokeWidth={1.25} />, value: String(e.entries), label: 'Boat Entries' },
+    e.entries && { icon: <Users className="h-[38px] w-[38px]" fill="currentColor" strokeWidth={1.25} />, value: String(e.entries), label: 'Entries' },
     // eslint-disable-next-line @next/next/no-img-element
     e.primarySpecies && { icon: <img src="/home/live-fish.png" alt="" className="h-[40px] w-[52px] object-contain" />, value: e.primarySpecies, label: 'Primary Species' },
     e.skillLevel && { icon: <LifeBuoy className="h-[38px] w-[38px]" strokeWidth={2} />, value: e.skillLevel, label: 'Welcome' },
