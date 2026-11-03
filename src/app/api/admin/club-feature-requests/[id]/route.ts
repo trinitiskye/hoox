@@ -11,7 +11,8 @@ import {
   setClubFeaturedAdmin,
 } from '@/lib/supabaseAdmin';
 import { getAuthenticatedAdmin } from '@/lib/serverSession';
-import { SUBMISSION_STATUSES, featuredUntil, type SubmissionStatus, type DbClubFeatureRequest } from '@/lib/clubFeature';
+import { SUBMISSION_STATUSES, featuredUntil, planIn, type SubmissionStatus, type DbClubFeatureRequest } from '@/lib/clubFeature';
+import { loadFeaturePricing } from '@/lib/featurePricing';
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const admin = await getAuthenticatedAdmin(request);
@@ -50,7 +51,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   let featuredThrough: string | null = null;
   if (updates.status && next.club_submission_id) {
     if (next.status === 'approved') {
-      featuredThrough = featuredUntil(next.plan, next.start_date);
+      // Use the length quoted when they asked; fall back to current pricing.
+      const months = next.term_months || planIn((await loadFeaturePricing()).pricing, next.plan)?.months || 1;
+      featuredThrough = featuredUntil(months, next.start_date);
       const r = await setClubFeaturedAdmin(next.club_submission_id, true, featuredThrough);
       if (r.error) warning = /featured/i.test(r.error)
         ? 'Approved, but the club couldn’t be featured. Run supabase/migration_2026_11_club_feature_requests.sql in Supabase.'

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Star, Loader2, AlertCircle, Mail, Phone, RefreshCw } from 'lucide-react';
 import { Toast, useToast } from '@/components/ui/Toast';
-import { planById, type DbClubFeatureRequest, type SubmissionStatus } from '@/lib/clubFeature';
+import { DEFAULT_FEATURE_PRICING, planIn, formatMoney, type DbClubFeatureRequest, type SubmissionStatus } from '@/lib/clubFeature';
 
 /* ------------------------------------------------------------------ */
 /* Admin → Clubs → Feature Requests                                    */
@@ -35,7 +35,10 @@ const fmt = (d: string | null) => (d ? new Date(d.length === 10 ? `${d}T12:00:00
 function Row({ r, onChanged }: { r: DbClubFeatureRequest; onChanged: (r: DbClubFeatureRequest, msg: string, warn: boolean) => void }) {
   const [notes, setNotes] = useState(r.admin_notes || '');
   const [saving, setSaving] = useState(false);
-  const plan = planById(r.plan);
+  // Show what was quoted when they asked (older requests fall back to the default plan)
+  const fallback = planIn(DEFAULT_FEATURE_PRICING, r.plan);
+  const planName = r.plan_name || fallback?.name || r.plan;
+  const price = r.price_quoted ?? fallback?.price;
 
   const save = async (body: Record<string, unknown>, msg: string) => {
     setSaving(true);
@@ -59,7 +62,7 @@ function Row({ r, onChanged }: { r: DbClubFeatureRequest; onChanged: (r: DbClubF
           <Star className="h-4 w-4 text-[#0E7C7B]" />
           <span className="font-medium text-[#0D1B4C]">{r.club_name}</span>
           <span className={`rounded-full px-2 py-0.5 text-xs ${STATUS_META[r.status].cls}`}>{STATUS_META[r.status].label}</span>
-          <span className="rounded-full bg-[#FFF4E5] px-2 py-0.5 text-xs text-[#9A5B00]">{plan ? `${plan.name} · $${plan.price}` : r.plan}</span>
+          <span className="rounded-full bg-[#FFF4E5] px-2 py-0.5 text-xs text-[#9A5B00]">{price != null ? `${planName} · ${formatMoney(Number(price))}` : planName}</span>
           {!r.club_submission_id && <span className="rounded-full bg-red-50 px-2 py-0.5 text-xs text-red-600">Club not listed</span>}
         </div>
         <div className="mt-1 text-xs text-[#5F6F86]">

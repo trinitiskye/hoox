@@ -11,7 +11,10 @@ import { loginUser } from '@/lib/auth';
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
 import { CLUBS, ClubCard } from '@/components/pages/ClubsPage';
 import { CLUB_SUBMIT_ROLES } from '@/lib/clubSubmission';
-import { FEATURE_PERKS, FEATURE_PLANS, planById, type FeaturePlanId, type MyClub } from '@/lib/clubFeature';
+import {
+  DEFAULT_FEATURE_PRICING, enabledPlans, formatMoney as money, perMonth, planIn,
+  type FeaturePlanId, type FeaturePricing, type MyClub,
+} from '@/lib/clubFeature';
 import type { User } from '@/types';
 
 /* ------------------------------------------------------------------ */
@@ -26,8 +29,6 @@ const labelClass = 'mb-1.5 block text-[14px] font-medium text-[#0D1B4C]';
 const hintClass = 'mt-1.5 text-[13px] leading-[18px] text-[#6B7D93]';
 const ROLE_LABEL: Record<string, string> = { angler: 'Angler', director: 'Tournament Director', admin: 'Admin', judge: 'Judge', sponsor: 'Partner' };
 const canRequest = (u: User | null) => !!u && (CLUB_SUBMIT_ROLES as readonly string[]).includes(u.role);
-const money = (n: number) => (Number.isInteger(n) ? `$${n}` : `$${n.toFixed(2)}`);
-const lowestPerMonth = Math.min(...FEATURE_PLANS.map((p) => p.perMonth));
 
 const scrollToId = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
@@ -40,7 +41,7 @@ const BENEFITS = [
   { icon: Megaphone, title: 'Clubs page hero banner', text: 'Your cover photo, logo and story in the large banner at the top of the Clubs page.' },
   { icon: Home, title: 'Home page spotlight', text: 'A spot in the Featured Clubs row on the HOOX home page, the first page anglers see.' },
   { icon: Users, title: 'Reach active anglers', text: 'HOOX anglers are already registering for tournaments and looking for people to fish with.' },
-  { icon: CalendarCheck, title: 'Flexible terms', text: 'Feature for a month, a season or a full year. No long contracts, no setup fees.' },
+  { icon: CalendarCheck, title: 'Flexible terms', text: 'Choose the plan length that fits your club. No long contracts, no setup fees.' },
 ];
 
 const STEPS = [
@@ -52,15 +53,38 @@ const STEPS = [
 const FAQ = [
   { q: 'Does my club need to be listed on HOOX first?', a: 'Yes. Featuring promotes a club that’s already in the HOOX directory. If yours isn’t listed yet, submit it first. It’s free, and you can request featuring at the same time.' },
   { q: 'Who can request a featured listing?', a: 'Anyone with an Angler or Tournament Director account, usually a club officer or organizer. You can only feature clubs you submitted, or tell us which club in the notes.' },
-  { q: 'When does featuring start?', a: 'On the start date you choose, or as soon as your invoice is paid. Your plan runs for one month, three months or a year from that date.' },
+  { q: 'When does featuring start?', a: 'On the start date you choose, or as soon as your invoice is paid. Featuring runs for the length of your plan from that date.' },
   { q: 'How do I pay?', a: 'After we review your request, we email you an invoice. You won’t be charged until you approve it.' },
-  { q: 'Can I renew or upgrade?', a: 'Yes. Send a new request anytime from this page, or reply to your invoice email. Annual plans keep the same rate when you renew.' },
+  { q: 'Can I renew or upgrade?', a: 'Yes. Send a new request anytime from this page, or reply to your invoice email.' },
 ];
 
 /* ============================== page =============================== */
 
+/** Live pricing from Admin → Clubs → Feature your Club pricing (null while loading). */
+function usePricing() {
+  const [pricing, setPricing] = useState<FeaturePricing | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/feature-pricing')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => { if (!cancelled) setPricing(j?.pricing ?? DEFAULT_FEATURE_PRICING); })
+      .catch(() => { if (!cancelled) setPricing(DEFAULT_FEATURE_PRICING); });
+    return () => { cancelled = true; };
+  }, []);
+  return pricing;
+}
+
 export default function FeatureClubPage() {
+  const pricing = usePricing();
+  const plans = pricing ? enabledPlans(pricing) : [];
   const [plan, setPlan] = useState<FeaturePlanId>('annual');
+  // Default selection: the highlighted plan, else the first one shown
+  useEffect(() => {
+    if (!pricing) return;
+    const shown = enabledPlans(pricing);
+    setPlan((cur) => (shown.some((p) => p.id === cur) ? (shown.find((p) => p.highlight)?.id ?? cur) : (shown.find((p) => p.highlight) ?? shown[0]).id));
+  }, [pricing]);
+  const lowestPerMonth = plans.length ? Math.min(...plans.map(perMonth)) : null;
 
   const choosePlan = (id: FeaturePlanId) => {
     setPlan(id);
@@ -95,7 +119,7 @@ export default function FeatureClubPage() {
                 See pricing
               </button>
             </div>
-            <p className="mt-5 text-[14px] text-white/75">Plans from {money(lowestPerMonth)}/month · No setup fees</p>
+            <p className="mt-5 h-5 text-[14px] text-white/75">{lowestPerMonth !== null && <>Plans from {money(lowestPerMonth)}/month · No setup fees</>}</p>
           </div>
 
           {/* Preview: what a featured club card looks like */}
@@ -134,11 +158,12 @@ export default function FeatureClubPage() {
           <div className="mx-auto max-w-[640px] text-center">
             <p className="text-[13px] font-semibold uppercase tracking-[0.08em] text-[#14889A]">Pricing</p>
             <h2 id="pricing-heading" className={`mt-2 font-montserrat text-[28px] font-bold leading-tight sm:text-[36px] ${INK}`}>Simple plans for every club</h2>
-            <p className="mt-3 text-[17px] leading-[26px] text-[#536B84]">Same features on every plan. Longer plans cost less per month.</p>
+            <p className="mt-3 text-[17px] leading-[26px] text-[#536B84]">Every plan includes the same features.</p>
           </div>
-          <ul className="mx-auto mt-10 grid max-w-[1100px] grid-cols-1 gap-5 md:grid-cols-3">
-            {FEATURE_PLANS.map((p) => {
-              const best = p.id === 'annual';
+          <ul className={`mx-auto mt-10 grid max-w-[1100px] grid-cols-1 gap-5 ${plans.length === 2 ? 'md:max-w-[740px] md:grid-cols-2' : plans.length === 1 ? 'md:max-w-[380px]' : 'md:grid-cols-3'}`} aria-busy={!pricing}>
+            {!pricing && [0, 1, 2].map((i) => <li key={i} className="h-[520px] animate-pulse rounded-xl border border-[#E8EEF4] bg-white" />)}
+            {pricing && plans.map((p) => {
+              const best = p.highlight;
               return (
                 <li key={p.id}
                   className={`relative flex flex-col rounded-xl border bg-white p-7 shadow-[0_2px_10px_rgba(10,30,60,0.06)] ${best ? 'border-[#0E7C7B] ring-2 ring-[#0E7C7B] md:-translate-y-2' : 'border-[#E8EEF4]'}`}>
@@ -152,9 +177,9 @@ export default function FeatureClubPage() {
                     <span className={`font-montserrat text-[44px] font-bold leading-none ${INK}`}>{money(p.price)}</span>
                     <span className="text-[16px] text-[#5F7896]">/ {p.term}</span>
                   </p>
-                  <p className="mt-2 h-5 text-[14px] text-[#5F7896]">{p.months > 1 ? `About ${money(p.perMonth)} / month` : 'Billed monthly'}</p>
+                  <p className="mt-2 h-5 text-[14px] text-[#5F7896]">{p.months > 1 ? `About ${money(perMonth(p))} / month` : 'Billed monthly'}</p>
                   <ul className="mb-8 mt-6 space-y-3 text-[15px] text-[#2E3F5C]">
-                    {[...FEATURE_PERKS, ...p.extras].map((perk) => (
+                    {[...pricing.perks, ...p.extras].map((perk) => (
                       <li key={perk} className="flex items-start gap-2.5">
                         <Check className="mt-0.5 h-[18px] w-[18px] flex-shrink-0 text-[#0E7C7B]" strokeWidth={2.5} /> {perk}
                       </li>
@@ -205,7 +230,7 @@ export default function FeatureClubPage() {
                 first. It’s free.
               </p>
             </div>
-            <RequestPanel plan={plan} setPlan={setPlan} />
+            <RequestPanel plan={plan} setPlan={setPlan} pricing={pricing} />
           </div>
         </section>
 
@@ -231,7 +256,7 @@ export default function FeatureClubPage() {
 
 /* ====================== Sign in + request form ====================== */
 
-function RequestPanel({ plan, setPlan }: { plan: FeaturePlanId; setPlan: (p: FeaturePlanId) => void }) {
+function RequestPanel({ plan, setPlan, pricing }: { plan: FeaturePlanId; setPlan: (p: FeaturePlanId) => void; pricing: FeaturePricing | null }) {
   const { currentUser, login, logout, loading: authLoading } = useAuth();
   const allowed = canRequest(currentUser);
 
@@ -331,7 +356,8 @@ function RequestPanel({ plan, setPlan }: { plan: FeaturePlanId; setPlan: (p: Fea
     }
   };
 
-  const chosen = planById(plan)!;
+  const shownPlans = pricing ? enabledPlans(pricing) : [];
+  const chosen = pricing ? planIn(pricing, plan) : undefined;
 
   return (
     <div ref={panelRef} className="scroll-mt-[100px] rounded-lg border border-[#E8EEF4] bg-white p-5 shadow-[0_2px_10px_rgba(10,30,60,0.06)] sm:p-8">
@@ -342,7 +368,7 @@ function RequestPanel({ plan, setPlan }: { plan: FeaturePlanId; setPlan: (p: Fea
           </span>
           <h3 className={`mt-5 font-montserrat text-[26px] font-bold ${INK}`}>Request received!</h3>
           <p className="mt-3 max-w-[460px] text-[16px] leading-[25px] text-[#536B84]">
-            Thanks{currentUser ? `, ${currentUser.name.split(' ')[0]}` : ''}. We’ll review your <strong className={INK}>{planById(done.plan)?.name}</strong> plan for{' '}
+            Thanks{currentUser ? `, ${currentUser.name.split(' ')[0]}` : ''}. We’ll review your <strong className={INK}>{(pricing && planIn(pricing, done.plan)?.name) || 'featured'}</strong> plan for{' '}
             <strong className={INK}>{done.club}</strong> and email {currentUser?.email || 'you'} with dates and an invoice.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -448,8 +474,8 @@ function RequestPanel({ plan, setPlan }: { plan: FeaturePlanId; setPlan: (p: Fea
 
           <fieldset>
             <legend className={labelClass}>Plan<span className="text-[#B42318]"> *</span></legend>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              {FEATURE_PLANS.map((p) => (
+            <div className={`grid grid-cols-1 gap-3 ${shownPlans.length >= 3 ? 'sm:grid-cols-3' : shownPlans.length === 2 ? 'sm:grid-cols-2' : ''}`}>
+              {shownPlans.map((p) => (
                 <label key={p.id} className={`flex cursor-pointer flex-col rounded-md border p-4 transition ${plan === p.id ? 'border-[#0E7C7B] bg-[#F1F9F9] ring-1 ring-[#0E7C7B]' : 'border-[#D9E3EC] hover:border-[#9FB3C6]'}`}>
                   <span className="flex items-center gap-2">
                     <input type="radio" name="plan" value={p.id} checked={plan === p.id} onChange={() => setPlan(p.id)} className="h-[18px] w-[18px] accent-[#0E7C7B]" />
@@ -485,9 +511,9 @@ function RequestPanel({ plan, setPlan }: { plan: FeaturePlanId; setPlan: (p: Fea
           {error && <div role="alert" className="rounded-md border border-[#F5C2BD] bg-[#FEF3F2] px-4 py-3 text-[14px] text-[#B42318]">{error}</div>}
 
           <div className="border-t border-[#EDF1F5] pt-6">
-            <button type="submit" disabled={sending || clubs === null}
+            <button type="submit" disabled={sending || clubs === null || !chosen}
               className="flex h-[50px] w-full items-center justify-center gap-3 rounded-md bg-[#0E7C7B] text-[16px] font-semibold text-white shadow-[0_4px_12px_rgba(14,124,123,0.25)] transition hover:bg-[#0B6766] disabled:opacity-60">
-              {sending ? 'Sending…' : <>Request {chosen.name} plan · {money(chosen.price)} <ArrowRight className="h-5 w-5" strokeWidth={2} /></>}
+              {sending ? 'Sending…' : chosen ? <>Request {chosen.name} plan · {money(chosen.price)} <ArrowRight className="h-5 w-5" strokeWidth={2} /></> : 'Loading plans…'}
             </button>
             <p className="mt-3 text-center text-[13px] text-[#6B7D93]">You won’t be charged now. We’ll email an invoice after review.</p>
           </div>

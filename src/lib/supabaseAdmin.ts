@@ -320,3 +320,26 @@ export async function updateClubFeatureRequestAdmin(
 export async function getClubFeatureRequestAdmin(id: string) {
   return supabaseAdminFetch<DbClubFeatureRequest[]>(`club_feature_requests?id=eq.${encodeURIComponent(id)}&select=*`);
 }
+
+// ============================================================
+// SITE SETTINGS — admin-editable key/value settings (service-role)
+// ============================================================
+
+export interface DbSiteSetting {
+  key: string;
+  value: unknown;
+  updated_by: string | null;
+  updated_at: string;
+}
+
+export async function getSettingAdmin(key: string) {
+  return supabaseAdminFetch<DbSiteSetting[]>(`site_settings?key=eq.${encodeURIComponent(key)}&select=*`);
+}
+
+export async function upsertSettingAdmin(key: string, value: unknown, userId: string) {
+  return supabaseAdminFetch<DbSiteSetting[]>('site_settings?on_conflict=key', {
+    method: 'POST',
+    headers: { Prefer: 'resolution=merge-duplicates,return=representation' },
+    body: JSON.stringify({ key, value, updated_by: userId, updated_at: new Date().toISOString() }),
+  });
+}

@@ -8,7 +8,8 @@ export const runtime = 'edge';
 import { getAuthenticatedUser } from '@/lib/serverSession';
 import { getClubSubmissionAdmin, createClubFeatureRequestAdmin } from '@/lib/supabaseAdmin';
 import { CLUB_SUBMIT_ROLES } from '@/lib/clubSubmission';
-import { planById, type FeaturePlanId } from '@/lib/clubFeature';
+import { planIn, type FeaturePlanId, type FeaturePlan } from '@/lib/clubFeature';
+import { loadFeaturePricing } from '@/lib/featurePricing';
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const fail = (error: string, code: string, status = 400) => Response.json({ ok: false, error, code }, { status });
@@ -36,12 +37,16 @@ export async function POST(request: Request) {
     let clubName = '';
     let clubId: string | null = null;
     let plan: FeaturePlanId;
+    let chosen: FeaturePlan;
     let start: string | null;
     let phone: string, promo: string, notes: string;
     try {
       const planRaw = str('plan', 20);
-      if (!planById(planRaw)) return fail('Choose a plan.', 'invalid');
-      plan = planRaw as FeaturePlanId;
+      const { pricing } = await loadFeaturePricing();
+      const found = planIn(pricing, planRaw);
+      if (!found || !found.enabled) return fail('That plan isn’t available. Please choose another plan.', 'invalid');
+      plan = found.id;
+      chosen = found;
 
       start = str('startDate', 10) || null;
       if (start) {
@@ -70,7 +75,7 @@ export async function POST(request: Request) {
       return fail(e instanceof Error ? e.message : 'Invalid request.', 'invalid');
     }
 
-    const { error } = await createClubFeatureRequestAdmin({
+    const row = {
       requested_by: user.id,
       requester_name: user.name,
       requester_email: user.email,
@@ -82,7 +87,12 @@ export async function POST(request: Request) {
       start_date: start,
       promo_code: promo || null,
       notes: notes || null,
-    });
+    };
+    // Record the price and length quoted right now, so later pricing edits don't change this request.
+    let { error } = await createClubFeatureRequestAdmin({ ...row, price_quoted: chosen.price, term_months: chosen.months, plan_name: chosen.name });
+    if (error && /price_quoted|term_months|plan_name/i.test(error)) {
+      ({ error } = await createClubFeatureRequestAdmin(row)); // pricing migration not run yet
+    }
     if (error) return fail('We couldn’t save your request. Please try again in a moment.', 'unknown', 500);
     return Response.json({ ok: true, error: null, code: null });
   } catch {

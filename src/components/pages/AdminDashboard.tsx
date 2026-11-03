@@ -22,6 +22,7 @@ import HomeBannersManager from '@/components/admin/HomeBannersManager';
 import EventSubmissionsManager from '@/components/admin/EventSubmissionsManager';
 import ClubSubmissionsManager from '@/components/admin/ClubSubmissionsManager';
 import ClubFeatureRequestsManager from '@/components/admin/ClubFeatureRequestsManager';
+import FeaturePricingEditor from '@/components/admin/FeaturePricingEditor';
 
 interface AdminDashboardProps {
   currentUser: User;
@@ -1742,6 +1743,9 @@ function ClubsTab() {
 
       {/* Requests from the public /clubs/feature page */}
       <ClubFeatureRequestsManager />
+
+      {/* Prices shown on /clubs/feature */}
+      <FeaturePricingEditor />
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4 mb-6">
