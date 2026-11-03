@@ -1,17 +1,28 @@
 import PublicLayout from '@/components/layout/PublicLayout';
-import ComingSoon from '@/components/common/ComingSoon';
+import FaqPage from '@/components/pages/FaqPage';
+import { FAQ, plain } from '@/lib/faqContent';
 
-export const metadata = { title: 'FAQ | HOOX' };
+export const metadata = {
+  title: 'FAQ | HOOX',
+  description: 'Answers about HOOX fishing tournaments, catch submissions and tournament codes, clubs, expos, advertising and your account.',
+};
+
+// FAQPage structured data so Google can show these answers in search results
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: FAQ.flatMap((s) => s.items).map((i) => ({
+    '@type': 'Question',
+    name: i.q,
+    acceptedAnswer: { '@type': 'Answer', text: i.a.map(plain).join(' ') },
+  })),
+};
 
 export default function Page() {
   return (
     <PublicLayout bgClassName="bg-[#F1F6FA]">
-      <ComingSoon
-        title="FAQ"
-        description="Answers to common questions about tournaments, registration, catch submissions and more are on the way."
-        backHref="/"
-        backLabel="Back to home"
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }} />
+      <FaqPage />
     </PublicLayout>
   );
 }
