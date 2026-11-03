@@ -7,6 +7,7 @@
 import type { DbUser, DbUserInsert, DbHeroSlide, DbHeroSlideInsert, DbHomeBanner, DbHomeBannerInsert } from './supabase';
 import type { DbEventSubmission, DbEventSubmissionInsert } from './eventSubmission';
 import type { DbClubSubmission, DbClubSubmissionInsert } from './clubSubmission';
+import type { DbClubFeatureRequest, DbClubFeatureRequestInsert } from './clubFeature';
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -271,4 +272,51 @@ export async function updateClubSubmissionAdmin(
 /** Approved clubs, for the public /clubs directory and map. */
 export async function listApprovedClubsAdmin() {
   return supabaseAdminFetch<DbClubSubmission[]>('club_submissions?select=*&status=eq.approved&order=created_at.desc&limit=1000');
+}
+
+export async function getClubSubmissionAdmin(id: string) {
+  return supabaseAdminFetch<DbClubSubmission[]>(`club_submissions?id=eq.${encodeURIComponent(id)}&select=*`);
+}
+
+/** Clubs a user submitted (any status), for "Feature your Club". */
+export async function listClubSubmissionsByUserAdmin(userId: string) {
+  return supabaseAdminFetch<DbClubSubmission[]>(
+    `club_submissions?submitted_by=eq.${encodeURIComponent(userId)}&select=*&order=created_at.desc&limit=100`
+  );
+}
+
+export async function setClubFeaturedAdmin(id: string, featured: boolean, until: string | null) {
+  return supabaseAdminFetch<DbClubSubmission[]>(`club_submissions?id=eq.${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ featured, featured_until: until }),
+  });
+}
+
+// ============================================================
+// CLUB FEATURE REQUESTS — "Feature your Club" (service-role)
+// ============================================================
+
+export async function createClubFeatureRequestAdmin(r: DbClubFeatureRequestInsert) {
+  return supabaseAdminFetch<DbClubFeatureRequest[]>('club_feature_requests', {
+    method: 'POST',
+    body: JSON.stringify(r),
+  });
+}
+
+export async function listClubFeatureRequestsAdmin() {
+  return supabaseAdminFetch<DbClubFeatureRequest[]>('club_feature_requests?select=*&order=created_at.desc&limit=500');
+}
+
+export async function updateClubFeatureRequestAdmin(
+  id: string,
+  updates: Partial<Pick<DbClubFeatureRequest, 'status' | 'admin_notes' | 'reviewed_at'>>
+) {
+  return supabaseAdminFetch<DbClubFeatureRequest[]>(`club_feature_requests?id=eq.${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(updates),
+  });
+}
+
+export async function getClubFeatureRequestAdmin(id: string) {
+  return supabaseAdminFetch<DbClubFeatureRequest[]>(`club_feature_requests?id=eq.${encodeURIComponent(id)}&select=*`);
 }

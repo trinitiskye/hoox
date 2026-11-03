@@ -21,6 +21,7 @@ import HeroSlidesManager from '@/components/admin/HeroSlidesManager';
 import HomeBannersManager from '@/components/admin/HomeBannersManager';
 import EventSubmissionsManager from '@/components/admin/EventSubmissionsManager';
 import ClubSubmissionsManager from '@/components/admin/ClubSubmissionsManager';
+import ClubFeatureRequestsManager from '@/components/admin/ClubFeatureRequestsManager';
 
 interface AdminDashboardProps {
   currentUser: User;
@@ -1738,6 +1739,9 @@ function ClubsTab() {
 
       {/* Requests from the public /clubs/submit form */}
       <ClubSubmissionsManager />
+
+      {/* Requests from the public /clubs/feature page */}
+      <ClubFeatureRequestsManager />
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4 mb-6">

@@ -5,7 +5,7 @@
 /* Uses the same club cards and details window as the Clubs page.      */
 /* ------------------------------------------------------------------ */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { CLUBS, ClubCard, ClubDialog, type Club } from '@/components/pages/ClubsPage';
 
@@ -13,7 +13,20 @@ const MAX_FEATURED = 4;
 
 export default function FeaturedClubs({ onNavigate }: { onNavigate: (view: string) => void }) {
   const [open, setOpen] = useState<Club | null>(null);
-  const featured = CLUBS.filter((c) => c.featured).slice(0, MAX_FEATURED);
+  // Clubs featured through "Feature your Club" come first, then demo clubs
+  const [live, setLive] = useState<Club[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/clubs')
+      .then((r) => (r.ok ? r.json() : { clubs: [] }))
+      .then((j: { clubs?: (Omit<Club, 'lat' | 'lng'> & { lat: number | null; lng: number | null })[] }) => {
+        if (cancelled || !Array.isArray(j.clubs)) return;
+        setLive(j.clubs.filter((c) => c.featured).map((c) => ({ ...c, lat: c.lat ?? NaN, lng: c.lng ?? NaN })));
+      })
+      .catch(() => undefined);
+    return () => { cancelled = true; };
+  }, []);
+  const featured = [...live, ...CLUBS.filter((c) => c.featured)].slice(0, MAX_FEATURED);
   if (featured.length === 0) return null;
 
   return (

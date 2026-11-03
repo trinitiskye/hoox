@@ -285,11 +285,17 @@ export default function ClubsPage({ onNavigate }: ClubsPageProps) {
       if (!term) return true;
       return [c.name, c.city, c.state, STATE_NAMES[c.state] ?? '', ...c.species, ...c.styles, c.about].some((s) => s.toLowerCase().includes(term));
     });
-    return list.sort((a, b) => (sort === 'name' ? a.name.localeCompare(b.name) : sort === 'fewest' ? a.members - b.members : b.members - a.members));
+    // Featured clubs always come first, then the chosen sort
+    return list.sort((a, b) =>
+      Number(!!b.featured) - Number(!!a.featured) ||
+      (sort === 'name' ? a.name.localeCompare(b.name) : sort === 'fewest' ? a.members - b.members : b.members - a.members));
   }, [allClubs, q, state, style, level, sort]);
 
   const filtering = q.trim() !== '' || state !== 'all' || style !== 'all' || level !== 'all';
-  const featured = !filtering ? results.find((c) => c.featured) : undefined;
+  // Hero banner rotates daily among featured clubs
+  const featuredList = results.filter((c) => c.featured);
+  const dayIndex = Math.floor(Date.now() / 86_400_000);
+  const featured = !filtering && featuredList.length ? featuredList[dayIndex % featuredList.length] : undefined;
   const grid = featured ? results.filter((c) => c.id !== featured.id) : results;
   const reset = () => { setQ(''); setState('all'); setStyle('all'); setLevel('all'); };
 

@@ -9,6 +9,7 @@ export const runtime = 'edge';
 import { listApprovedClubsAdmin } from '@/lib/supabaseAdmin';
 import { ensureClubLocation } from '@/lib/clubLocation';
 import { CLUB_LEVELS, type DbClubSubmission } from '@/lib/clubSubmission';
+import { isFeaturedNow } from '@/lib/clubFeature';
 
 const MAX_LOOKUPS_PER_REQUEST = 5; // Nominatim asks for light use
 const CLUB_PLACEHOLDER_IMAGE = '/clubs/placeholder.svg';
@@ -28,6 +29,7 @@ function toPublic(s: DbClubSubmission) {
     logo: s.logo_url || undefined,
     about: s.about,
     website: s.website || undefined,
+    featured: isFeaturedNow(s.featured, s.featured_until),
     lat: Number.isFinite(s.lat) ? s.lat : null,
     lng: Number.isFinite(s.lng) ? s.lng : null,
   };
