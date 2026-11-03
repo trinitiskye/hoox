@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import Header from './Header';
 import Footer from './Footer';
+import ChatWidget from '@/components/support/ChatWidget';
 import { useAuth } from '@/lib/AuthContext';
 import { toPath } from '@/lib/routes';
 
@@ -24,6 +25,7 @@ export default function PublicLayout({ children, bgClassName = 'bg-white', flush
         {children}
       </main>
       <Footer onNavigate={navigate} flush={flushFooter} />
+      <ChatWidget />
     </div>
   );
 }

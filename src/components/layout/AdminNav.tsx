@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ShieldCheck } from 'lucide-react';
@@ -8,6 +8,7 @@ import { ShieldCheck } from 'lucide-react';
 /** Second-tier navigation shown under the site header for signed-in admins. */
 export const ADMIN_TABS = [
   { label: 'Dashboard',         href: '/admin' },
+  { label: 'Support',           href: '/admin/support' },
   { label: 'Users',             href: '/admin/users' },
   { label: 'Clubs',             href: '/admin/clubs' },
   { label: 'Series',            href: '/admin/series' },
@@ -23,6 +24,33 @@ export const ADMIN_TABS = [
 export default function AdminNav() {
   const pathname = usePathname() || '';
   const listRef = useRef<HTMLUListElement>(null);
+  const [supportUnread, setSupportUnread] = useState(0);
+
+  // Support heartbeat: keeps the visitor-facing "We're online" dot green while an
+  // admin is signed in (and set to Online), and fetches the unread count for the badge.
+  useEffect(() => {
+    let stopped = false;
+    const beat = async () => {
+      if (document.visibilityState !== 'visible') return;
+      try {
+        const r = await fetch('/api/admin/support', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+        if (!r.ok) return;
+        const j = await r.json();
+        if (!stopped && typeof j.unread === 'number') setSupportUnread(j.unread);
+      } catch { /* try again next beat */ }
+    };
+    beat();
+    const t = setInterval(beat, 30_000);
+    const onVis = () => { if (document.visibilityState === 'visible') beat(); };
+    document.addEventListener('visibilitychange', onVis);
+    return () => { stopped = true; clearInterval(t); document.removeEventListener('visibilitychange', onVis); };
+  }, []);
+
+  // Show new support messages in the browser tab title too
+  useEffect(() => {
+    const base = document.title.replace(/^\(\d+\) /, '');
+    document.title = supportUnread ? `(${supportUnread}) ${base}` : base;
+  }, [supportUnread, pathname]);
 
   // On narrow screens the tab row scrolls; keep the current tab in view
   useEffect(() => {
@@ -54,6 +82,9 @@ export default function AdminNav() {
                   }`}
                 >
                   {t.label}
+                  {t.href === '/admin/support' && supportUnread > 0 && (
+                    <span className="ml-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#E5484D] px-1 text-[11px] font-bold text-white" aria-label={`${supportUnread} unread`}>{supportUnread}</span>
+                  )}
                   {active && <span className="absolute inset-x-3 bottom-0 h-[3px] rounded-t-full bg-[#22B3B5]" />}
                 </Link>
               </li>

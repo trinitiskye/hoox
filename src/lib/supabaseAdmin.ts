@@ -21,7 +21,7 @@ function assertConfigured() {
   }
 }
 
-async function supabaseAdminFetch<T>(
+export async function supabaseAdminFetch<T>(
   path: string,
   options: RequestInit = {}
 ): Promise<{ data: T | null; error: string | null }> {

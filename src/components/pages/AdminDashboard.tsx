@@ -24,6 +24,7 @@ import ClubSubmissionsManager from '@/components/admin/ClubSubmissionsManager';
 import ClubFeatureRequestsManager from '@/components/admin/ClubFeatureRequestsManager';
 import FeaturePricingEditor from '@/components/admin/FeaturePricingEditor';
 import SpeciesManager from '@/components/admin/SpeciesManager';
+import SupportInbox from '@/components/admin/SupportInbox';
 
 interface AdminDashboardProps {
   currentUser: User;
@@ -38,6 +39,7 @@ interface AdminDashboardProps {
 
 const TAB_TO_PATH: Record<string, string> = {
   'Dashboard':        '/admin',
+  'Support':          '/admin/support',
   'Users':            '/admin/users',
   'Clubs':            '/admin/clubs',
   'Series':           '/admin/series',
@@ -101,10 +103,11 @@ export default function AdminDashboard({ currentUser, onNavigate, initialTab, us
         {activeTab === 'Monetization' && <MonetizationTab />}
         {activeTab === 'CMS' && <CMSTab />}
         {activeTab === 'Settings' && <SettingsTab />}
+        {activeTab === 'Support' && <SupportInbox />}
         {activeTab !== 'Dashboard' && activeTab !== 'Users' && activeTab !== 'Tournaments' &&
          activeTab !== 'Catch Submissions' && activeTab !== 'Partners' && activeTab !== 'Clubs' &&
          activeTab !== 'Series' && activeTab !== 'Events' && activeTab !== 'Advertising' &&
-         activeTab !== 'Monetization' && activeTab !== 'CMS' && activeTab !== 'Settings' && (
+         activeTab !== 'Monetization' && activeTab !== 'CMS' && activeTab !== 'Settings' && activeTab !== 'Support' && (
           <ComingSoonTab tab={activeTab} />
         )}
       </div>
