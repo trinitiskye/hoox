@@ -194,8 +194,9 @@ export default function AdminNav() {
 
   const linkClass = (href: string, sub = false) => {
     const cur = isCurrent(href);
-    return `flex items-center rounded-md px-3 transition ${sub ? 'py-1.5 pl-6 text-[13.5px]' : 'py-2 text-[14.5px] font-semibold'} ${
-      cur ? 'bg-[#E6F4F5] text-[#0B6564]' : sub ? 'text-[#4A5B76] hover:bg-[#F2F7FA] hover:text-[#0D1B4C]' : 'text-[#0D1B4C] hover:bg-[#F2F7FA]'}`;
+    // Current page: bold teal text, no background
+    return `flex items-center rounded-md px-3 transition ${sub ? 'py-1.5 pl-6 text-[13.5px]' : 'py-2 text-[14.5px]'} ${
+      cur ? 'font-bold text-[#0E7C7B]' : sub ? 'text-[#4A5B76] hover:bg-[#F2F7FA] hover:text-[#0D1B4C]' : 'font-semibold text-[#0D1B4C] hover:bg-[#F2F7FA]'}`;
   };
 
   return (
