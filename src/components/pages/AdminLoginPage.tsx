@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Shield, Eye, EyeOff } from 'lucide-react';
 import { loginAdmin } from '@/lib/auth';
 import { User } from '@/types';
@@ -16,6 +16,8 @@ export default function AdminLoginPage({ onNavigate, onLogin }: AdminLoginPagePr
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [expired, setExpired] = useState(false);
+  useEffect(() => { setExpired(new URLSearchParams(window.location.search).has('expired')); }, []);
 
   const handleLogin = async () => {
     if (!email || !password) { setError('Please enter email and password.'); return; }
@@ -55,6 +57,7 @@ export default function AdminLoginPage({ onNavigate, onLogin }: AdminLoginPagePr
           </div>
         </div>
 
+        {expired && !error && <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-sm">Your admin session timed out. Please sign in again.</div>}
         {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">{error}</div>}
 
         <button onClick={handleLogin} disabled={loading}

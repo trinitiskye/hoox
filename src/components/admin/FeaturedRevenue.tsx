@@ -25,6 +25,7 @@ async function api<T>(url: string): Promise<T> {
   const res = await fetch(url, { cache: 'no-store' });
   let json: Record<string, unknown> = {};
   try { json = await res.json(); } catch { /* ignore */ }
+  if (res.status === 403) throw new Error('Your admin session has expired. Please log in again.');
   if (!res.ok || json.error) throw new Error(typeof json.error === 'string' ? json.error : `Request failed (${res.status})`);
   return json as T;
 }
