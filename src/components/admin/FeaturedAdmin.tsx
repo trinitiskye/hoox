@@ -1,7 +1,7 @@
 'use client';
 
 /* ------------------------------------------------------------------ */
-/* Admin → Marketing → Featured Marketing                      */
+/* Admin → Marketing → Marketing Promotions                   */
 /*   FeaturedOverview   all four listing types at a glance             */
 /*   FeaturedTypePage   one type: Requests | Pricing | Revenue tabs    */
 /*   FeaturedCustomers  customer accounts built from placements        */
@@ -40,7 +40,7 @@ export function FeaturedOverview() {
 
   return (
     <div>
-      <Header title="Featured Marketing" sub="Featured listings and page heroes for tournaments, series, clubs and tradeshows"
+      <Header title="Marketing Promotions" sub="Featured listings and page heroes for tournaments, series, clubs and tradeshows"
         right={<Link href="/admin/marketing/featured/revenue" className="flex items-center gap-1.5 text-sm font-semibold text-[#0E7C7B] hover:underline">Revenue insights <ArrowRight className="h-4 w-4" /></Link>} />
       {error && <p className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
       {!ins ? (
@@ -181,7 +181,7 @@ export function FeaturedCustomers() {
 
   return (
     <div>
-      <Header title="Featured Marketing · Customer Accounts" sub="Everyone who has requested or bought a featured placement" />
+      <Header title="Marketing Promotions · Customer Accounts" sub="Everyone who has requested or bought a featured placement" />
       {error && <p className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
       <label className="relative mb-4 block max-w-[360px]">
         <span className="sr-only">Search customers</span>

@@ -55,7 +55,7 @@ export const ADMIN_MENU: AdminItem[] = [
         children: [{ label: 'Affiliate Accounts', href: '/admin/marketing/affiliates/accounts' }, { label: 'Affiliate Revenue', href: '/admin/marketing/affiliates/revenue' }],
       },
       {
-        label: 'Featured Marketing', href: '/admin/marketing/featured', column: 2,
+        label: 'Marketing Promotions', href: '/admin/marketing/featured', column: 2,
         children: [
           { label: 'Tournaments', href: '/admin/marketing/featured/tournaments' },
           { label: 'Series', href: '/admin/marketing/featured/series' },

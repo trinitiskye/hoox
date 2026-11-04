@@ -10,7 +10,7 @@ import {
 import { PLACEMENTS, PLACEMENT_META, TYPE_META, type ListingType, type Placement, type TypePricing } from '@/lib/featured';
 
 /* ------------------------------------------------------------------ */
-/* Admin → Featured Marketing → <type> → Pricing (both products)      */
+/* Admin → Marketing Promotions → <type> → Pricing (both products)      */
 /* Edits what /clubs/feature shows and what new requests are quoted.   */
 /* Saved via /api/admin/feature-pricing (admin session required).      */
 /* ------------------------------------------------------------------ */

@@ -61,7 +61,7 @@ const FAQ = [
 
 /* ============================== page =============================== */
 
-/** Live club pricing for both products, from Admin → Featured Marketing → Clubs → Pricing (null while loading). */
+/** Live club pricing for both products, from Admin → Marketing Promotions → Clubs → Pricing (null while loading). */
 function usePricing() {
   const [pricing, setPricing] = useState<TypePricing | null>(null);
   useEffect(() => {

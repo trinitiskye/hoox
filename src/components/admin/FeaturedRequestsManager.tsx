@@ -10,7 +10,7 @@ import {
 } from '@/lib/featured';
 
 /* ------------------------------------------------------------------ */
-/* Admin → Featured Marketing → <type> → Requests                       */
+/* Admin → Marketing Promotions → <type> → Requests                       */
 /* Requests from the public pages and placements added by HOOX, for    */
 /* both products (Featured listing / Featured page hero).              */
 /* ------------------------------------------------------------------ */

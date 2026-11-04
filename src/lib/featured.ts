@@ -5,7 +5,7 @@
 //   hero  — "Featured page hero": the big banner at the top of that type's page
 //
 // Pricing for each type & product is edited in Admin → Marketing →
-// Featured Marketing → <type> → Pricing, stored in site_settings under
+// Marketing Promotions → <type> → Pricing, stored in site_settings under
 // 'featured_pricing_<type>'. The defaults below are the starting point.
 
 import {
