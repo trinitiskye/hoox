@@ -1,7 +1,7 @@
 'use client';
 
 /* ------------------------------------------------------------------ */
-/* Admin → Digital Marketing → Featured Marketing                      */
+/* Admin → Marketing → Featured Marketing                      */
 /*   FeaturedOverview   all four listing types at a glance             */
 /*   FeaturedTypePage   one type: Requests | Pricing | Revenue tabs    */
 /*   FeaturedCustomers  customer accounts built from placements        */

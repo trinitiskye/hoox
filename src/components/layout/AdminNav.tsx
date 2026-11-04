@@ -11,7 +11,8 @@ import { ShieldCheck, ChevronDown } from 'lucide-react';
 /* have one level of sub-links (shown indented under their parent).    */
 /* ------------------------------------------------------------------ */
 
-export interface AdminLink { label: string; href: string; children?: AdminLink[] }
+/** `column: 2` puts an entry in the right-hand column of a wide dropdown */
+export interface AdminLink { label: string; href: string; children?: AdminLink[]; column?: 1 | 2 }
 export type AdminItem =
   | { label: string; href: string; items?: undefined }
   | { label: string; href?: undefined; items: AdminLink[]; wide?: boolean };
@@ -38,23 +39,12 @@ export const ADMIN_MENU: AdminItem[] = [
     ],
   },
   {
-    label: 'Digital Marketing',
+    label: 'Marketing',
     wide: true,
     items: [
       {
         label: 'Display Banners', href: '/admin/advertising',
         children: [{ label: 'Customer Accounts', href: '/admin/marketing/banners/accounts' }, { label: 'Ad Revenue', href: '/admin/marketing/banners/revenue' }],
-      },
-      {
-        label: 'Featured Marketing', href: '/admin/marketing/featured',
-        children: [
-          { label: 'Tournaments', href: '/admin/marketing/featured/tournaments' },
-          { label: 'Series', href: '/admin/marketing/featured/series' },
-          { label: 'Clubs', href: '/admin/marketing/featured/clubs' },
-          { label: 'Tradeshows & Expos', href: '/admin/marketing/featured/expos' },
-          { label: 'Customer Accounts', href: '/admin/marketing/featured/accounts' },
-          { label: 'Featured Content Revenue', href: '/admin/marketing/featured/revenue' },
-        ],
       },
       {
         label: 'Sponsor Programs', href: '/admin/marketing/sponsors',
@@ -63,6 +53,17 @@ export const ADMIN_MENU: AdminItem[] = [
       {
         label: 'Affiliate Management', href: '/admin/marketing/affiliates',
         children: [{ label: 'Affiliate Accounts', href: '/admin/marketing/affiliates/accounts' }, { label: 'Affiliate Revenue', href: '/admin/marketing/affiliates/revenue' }],
+      },
+      {
+        label: 'Featured Marketing', href: '/admin/marketing/featured', column: 2,
+        children: [
+          { label: 'Tournaments', href: '/admin/marketing/featured/tournaments' },
+          { label: 'Series', href: '/admin/marketing/featured/series' },
+          { label: 'Clubs', href: '/admin/marketing/featured/clubs' },
+          { label: 'Tradeshows & Expos', href: '/admin/marketing/featured/expos' },
+          { label: 'Customer Accounts', href: '/admin/marketing/featured/accounts' },
+          { label: 'Featured Content Revenue', href: '/admin/marketing/featured/revenue' },
+        ],
       },
     ],
   },
@@ -263,26 +264,35 @@ export default function AdminNav() {
           style={{ left: panelPos.left, top: panelPos.top }}
           className={`fixed z-[1150] mt-1 max-w-[calc(100vw-24px)] rounded-lg border border-[#E3EAF1] bg-white p-2 shadow-[0_14px_36px_rgba(10,30,60,0.22)] ${openItem.wide ? 'w-[560px]' : 'w-[260px]'}`}
         >
-          <ul className={openItem.wide ? 'grid grid-cols-1 gap-1 sm:grid-cols-2' : 'space-y-0.5'}>
-            {openItem.items.map((l) => (
-              <li key={l.href} className={openItem.wide ? 'rounded-md p-1' : ''}>
-                <Link href={l.href} role="menuitem" onClick={() => setOpen(null)} aria-current={isCurrent(l.href) ? 'page' : undefined} className={linkClass(l.href)}>
-                  {l.label}
-                </Link>
-                {l.children && (
-                  <ul className="mt-0.5 space-y-0.5 border-l border-[#E3EAF1] ml-3">
-                    {l.children.map((c) => (
-                      <li key={c.href}>
-                        <Link href={c.href} role="menuitem" onClick={() => setOpen(null)} aria-current={isCurrent(c.href) ? 'page' : undefined} className={linkClass(c.href, true)}>
-                          {c.label}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </li>
-            ))}
-          </ul>
+          {(() => {
+            const renderItem = (l: AdminLink) => (
+                <li key={l.href} className={openItem.wide ? 'rounded-md p-1' : ''}>
+                  <Link href={l.href} role="menuitem" onClick={() => setOpen(null)} aria-current={isCurrent(l.href) ? 'page' : undefined} className={linkClass(l.href)}>
+                    {l.label}
+                  </Link>
+                  {l.children && (
+                    <ul className="mt-0.5 space-y-0.5 border-l border-[#E3EAF1] ml-3">
+                      {l.children.map((c) => (
+                        <li key={c.href}>
+                          <Link href={c.href} role="menuitem" onClick={() => setOpen(null)} aria-current={isCurrent(c.href) ? 'page' : undefined} className={linkClass(c.href, true)}>
+                            {c.label}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </li>
+            );
+            if (!openItem.wide) return <ul className="space-y-0.5">{openItem.items.map(renderItem)}</ul>;
+            const cols = [openItem.items.filter((l) => l.column !== 2), openItem.items.filter((l) => l.column === 2)];
+            return (
+              <div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
+                {cols.map((col, i) => (
+                  <ul key={i} className="space-y-1">{col.map(renderItem)}</ul>
+                ))}
+              </div>
+            );
+          })()}
         </div>
       )}
     </nav>
