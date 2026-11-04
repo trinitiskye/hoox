@@ -22,6 +22,7 @@ import HomeBannersManager from '@/components/admin/HomeBannersManager';
 import EventSubmissionsManager from '@/components/admin/EventSubmissionsManager';
 import ClubSubmissionsManager from '@/components/admin/ClubSubmissionsManager';
 import { FeaturedOverview, FeaturedTypePage, FeaturedRevenuePage, FeaturedCustomers } from '@/components/admin/FeaturedAdmin';
+import { SponsorProgramsDashboard, SponsorAccountsPage, BrandPromotionRevenuePage } from '@/components/admin/sponsors/SponsorPrograms';
 import SpeciesManager from '@/components/admin/SpeciesManager';
 import SupportInbox from '@/components/admin/SupportInbox';
 
@@ -127,11 +128,15 @@ export default function AdminDashboard({ currentUser, onNavigate, initialTab, us
         {activeTab === 'Featured Marketing Accounts' && <FeaturedCustomers />}
         {activeTab === 'Featured Content Revenue' && <FeaturedRevenuePage />}
         {activeTab === 'Ad Revenue' && <MonetizationTab initial="Ad Revenue" />}
+        {activeTab === 'Sponsor Programs' && <SponsorProgramsDashboard />}
+        {activeTab === 'Sponsor Program Accounts' && <SponsorAccountsPage />}
+        {activeTab === 'Brand Promotion Revenue' && <BrandPromotionRevenuePage />}
         {activeTab !== 'Dashboard' && activeTab !== 'Users' && activeTab !== 'Tournaments' &&
          activeTab !== 'Catch Submissions' && activeTab !== 'Partners' && activeTab !== 'Clubs' &&
          activeTab !== 'Series' && activeTab !== 'Events' && activeTab !== 'Advertising' &&
          activeTab !== 'Monetization' && activeTab !== 'CMS' && activeTab !== 'Settings' && activeTab !== 'Support' &&
-         activeTab !== 'Ad Revenue' && !(activeTab.startsWith('Featured ')) && (
+         activeTab !== 'Ad Revenue' && !(activeTab.startsWith('Featured ')) &&
+         !['Sponsor Programs', 'Sponsor Program Accounts', 'Brand Promotion Revenue'].includes(activeTab) && (
           <ComingSoonTab tab={activeTab} />
         )}
       </div>

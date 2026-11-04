@@ -10,6 +10,7 @@ import type { DbClubSubmission, DbClubSubmissionInsert } from './clubSubmission'
 import type { DbClubFeatureRequest, DbClubFeatureRequestInsert } from './clubFeature';
 import type { DbFishSpecies } from './species';
 import type { DbFeaturedRequest } from './featured';
+import type { DbSponsorAccount, DbSponsorPromotion } from './sponsors';
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -421,4 +422,39 @@ export async function setClubHeroAdmin(id: string, on: boolean, until: string | 
     method: 'PATCH',
     body: JSON.stringify({ featured_hero: on, featured_hero_until: until }),
   });
+}
+
+// ============================================================
+// SPONSOR PROGRAMS — sponsor_accounts + sponsor_promotions (service-role)
+// ============================================================
+
+const idEq = (id: string) => `id=eq.${encodeURIComponent(id)}`;
+
+export async function listSponsorAccountsAdmin() {
+  return supabaseAdminFetch<DbSponsorAccount[]>('sponsor_accounts?select=*&order=brand_name.asc&limit=2000');
+}
+export async function createSponsorAccountAdmin(a: Partial<DbSponsorAccount>) {
+  return supabaseAdminFetch<DbSponsorAccount[]>('sponsor_accounts', { method: 'POST', body: JSON.stringify(a) });
+}
+export async function updateSponsorAccountAdmin(id: string, patch: Partial<DbSponsorAccount>) {
+  return supabaseAdminFetch<DbSponsorAccount[]>(`sponsor_accounts?${idEq(id)}`, { method: 'PATCH', body: JSON.stringify(patch) });
+}
+export async function deleteSponsorAccountAdmin(id: string) {
+  return supabaseAdminFetch<DbSponsorAccount[]>(`sponsor_accounts?${idEq(id)}`, { method: 'DELETE' });
+}
+
+export async function listSponsorPromotionsAdmin() {
+  return supabaseAdminFetch<DbSponsorPromotion[]>('sponsor_promotions?select=*&order=start_date.desc&limit=5000');
+}
+export async function getSponsorPromotionAdmin(id: string) {
+  return supabaseAdminFetch<DbSponsorPromotion[]>(`sponsor_promotions?${idEq(id)}&select=*`);
+}
+export async function createSponsorPromotionAdmin(p: Partial<DbSponsorPromotion>) {
+  return supabaseAdminFetch<DbSponsorPromotion[]>('sponsor_promotions', { method: 'POST', body: JSON.stringify(p) });
+}
+export async function updateSponsorPromotionAdmin(id: string, patch: Partial<DbSponsorPromotion>) {
+  return supabaseAdminFetch<DbSponsorPromotion[]>(`sponsor_promotions?${idEq(id)}`, { method: 'PATCH', body: JSON.stringify(patch) });
+}
+export async function deleteSponsorPromotionAdmin(id: string) {
+  return supabaseAdminFetch<DbSponsorPromotion[]>(`sponsor_promotions?${idEq(id)}`, { method: 'DELETE' });
 }
