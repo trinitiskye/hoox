@@ -38,6 +38,7 @@ export const MARKETING_SECTIONS: Section[] = [
     tabs: [
       { label: 'Overview', href: '/admin/marketing/affiliates' },
       { label: 'Affiliate Accounts', href: '/admin/marketing/affiliates/accounts' },
+      { label: 'Payouts', href: '/admin/marketing/affiliates/payouts' },
       { label: 'Affiliate Revenue', href: '/admin/marketing/affiliates/revenue' },
     ],
   },

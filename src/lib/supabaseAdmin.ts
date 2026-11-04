@@ -11,6 +11,7 @@ import type { DbClubFeatureRequest, DbClubFeatureRequestInsert } from './clubFea
 import type { DbFishSpecies } from './species';
 import type { DbFeaturedRequest } from './featured';
 import type { DbSponsorAccount, DbSponsorPromotion } from './sponsors';
+import type { DbAffiliate, DbAffiliateReferral, DbAffiliatePayout, AffTournament, AffRegistration, AffDirector } from './affiliates';
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -457,4 +458,43 @@ export async function updateSponsorPromotionAdmin(id: string, patch: Partial<DbS
 }
 export async function deleteSponsorPromotionAdmin(id: string) {
   return supabaseAdminFetch<DbSponsorPromotion[]>(`sponsor_promotions?${idEq(id)}`, { method: 'DELETE' });
+}
+
+// ============================================================
+// AFFILIATE PROGRAM — affiliates, referrals, payouts (service-role)
+// ============================================================
+
+const inList = (ids: string[]) => `in.(${ids.map((i) => `"${i.replace(/"/g, '')}"`).join(',')})`;
+
+export const listAffiliatesAdmin = () => supabaseAdminFetch<DbAffiliate[]>('affiliates?select=*&order=created_at.desc&limit=2000');
+export const getAffiliateAdmin = (id: string) => supabaseAdminFetch<DbAffiliate[]>(`affiliates?${idEq(id)}&select=*`);
+export const getAffiliateByCodeAdmin = (code: string) => supabaseAdminFetch<DbAffiliate[]>(`affiliates?code=eq.${encodeURIComponent(code)}&select=*`);
+export const getAffiliateByEmailAdmin = (email: string) => supabaseAdminFetch<DbAffiliate[]>(`affiliates?email=eq.${encodeURIComponent(email.toLowerCase())}&select=id,status`);
+export const createAffiliateAdmin = (a: Partial<DbAffiliate>) => supabaseAdminFetch<DbAffiliate[]>('affiliates', { method: 'POST', body: JSON.stringify(a) });
+export const updateAffiliateAdmin = (id: string, patch: Partial<DbAffiliate>) => supabaseAdminFetch<DbAffiliate[]>(`affiliates?${idEq(id)}`, { method: 'PATCH', body: JSON.stringify(patch) });
+export const deleteAffiliateAdmin = (id: string) => supabaseAdminFetch<DbAffiliate[]>(`affiliates?${idEq(id)}`, { method: 'DELETE' });
+
+export const listAffiliateReferralsAdmin = () => supabaseAdminFetch<DbAffiliateReferral[]>('affiliate_referrals?select=*&order=referred_at.desc&limit=5000');
+export const getActiveReferralForDirectorAdmin = (directorId: string) => supabaseAdminFetch<DbAffiliateReferral[]>(`affiliate_referrals?director_id=eq.${encodeURIComponent(directorId)}&status=eq.active&select=id,affiliate_id`);
+export const createAffiliateReferralAdmin = (r: Partial<DbAffiliateReferral>) => supabaseAdminFetch<DbAffiliateReferral[]>('affiliate_referrals', { method: 'POST', body: JSON.stringify(r) });
+export const updateAffiliateReferralAdmin = (id: string, patch: Partial<DbAffiliateReferral>) => supabaseAdminFetch<DbAffiliateReferral[]>(`affiliate_referrals?${idEq(id)}`, { method: 'PATCH', body: JSON.stringify(patch) });
+
+export const listAffiliatePayoutsAdmin = () => supabaseAdminFetch<DbAffiliatePayout[]>('affiliate_payouts?select=*&order=paid_at.desc&limit=5000');
+export const createAffiliatePayoutAdmin = (p: Partial<DbAffiliatePayout>) => supabaseAdminFetch<DbAffiliatePayout[]>('affiliate_payouts', { method: 'POST', body: JSON.stringify(p) });
+export const deleteAffiliatePayoutAdmin = (id: string) => supabaseAdminFetch<DbAffiliatePayout[]>(`affiliate_payouts?${idEq(id)}`, { method: 'DELETE' });
+
+export const listDirectorsAdmin = () => supabaseAdminFetch<AffDirector[]>('users?select=id,name,email,organization,created_at&role=eq.director&order=name.asc&limit=5000');
+export async function listTournamentsByDirectorsAdmin(directorIds: string[]) {
+  if (directorIds.length === 0) return { data: [] as AffTournament[], error: null };
+  return supabaseAdminFetch<AffTournament[]>(`tournaments?select=id,name,created_by,start_date&created_by=${inList(directorIds)}&limit=5000`);
+}
+export async function listRegistrationsForTournamentsAdmin(tournamentIds: string[]) {
+  if (tournamentIds.length === 0) return { data: [] as AffRegistration[], error: null };
+  const out: AffRegistration[] = [];
+  for (let i = 0; i < tournamentIds.length; i += 100) {
+    const { data, error } = await supabaseAdminFetch<AffRegistration[]>(`registrations?select=id,tournament_id,fee,app_owner_cut,registered_at&tournament_id=${inList(tournamentIds.slice(i, i + 100))}&limit=20000`);
+    if (error) return { data: null, error };
+    out.push(...(data || []));
+  }
+  return { data: out, error: null };
 }

@@ -10,6 +10,7 @@ export const runtime = 'edge';
 
 import { verifyGoogleIdToken } from '@/lib/googleIdToken';
 import { getUserByEmailAdmin, createUserAdmin } from '@/lib/supabaseAdmin';
+import { creditReferral } from '@/lib/affiliateServer';
 import { dbUserToApp } from '@/lib/supabase';
 import { hashPassword } from '@/lib/passwordHash';
 import { createSessionToken, sessionCookieOptions, AUTH_COOKIE_NAME } from '@/lib/serverSession';
@@ -75,6 +76,8 @@ export async function POST(request: Request) {
     if (res.error || !res.data?.[0]) return fail('We couldn’t create your account. Please try again.', 'unknown', 502);
     dbUser = res.data[0];
     created = true;
+    // Signed up through an affiliate's referral link? Credit the affiliate.
+    if (role === 'director') await creditReferral(request, dbUser.id).catch(() => null);
   }
 
   if (dbUser.status === 'paused') return fail('paused', 'account_paused');

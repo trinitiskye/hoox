@@ -195,6 +195,10 @@ export async function registerDirector(data: {
   if (error || !created?.[0]) return { user: null, error: error || 'Registration failed.' };
   const user = dbUserToApp(created[0]);
   setSession(user);
+  // Signed up through an affiliate's referral link? Credit the affiliate (server checks the hoox_ref cookie).
+  if (typeof window !== 'undefined') {
+    fetch('/api/affiliates/credit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ directorId: user.id }) }).catch(() => {});
+  }
   return { user, error: null };
 }
 

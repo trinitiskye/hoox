@@ -52,7 +52,7 @@ export const ADMIN_MENU: AdminItem[] = [
       },
       {
         label: 'Affiliate Management', href: '/admin/marketing/affiliates',
-        children: [{ label: 'Affiliate Accounts', href: '/admin/marketing/affiliates/accounts' }, { label: 'Affiliate Revenue', href: '/admin/marketing/affiliates/revenue' }],
+        children: [{ label: 'Affiliate Accounts', href: '/admin/marketing/affiliates/accounts' }, { label: 'Payouts', href: '/admin/marketing/affiliates/payouts' }, { label: 'Affiliate Revenue', href: '/admin/marketing/affiliates/revenue' }],
       },
       {
         label: 'Marketing Promotions', href: '/admin/marketing/featured', column: 2,
