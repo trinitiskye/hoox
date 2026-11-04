@@ -61,48 +61,35 @@ function ListCard({ title, sub, empty, items }: { title: string; sub?: string; e
 
 /* ================================ dashboard ================================ */
 
-type Tab = 'overview' | 'promotions' | 'packages';
+export type SponsorView = 'overview' | 'promotions' | 'packages';
+const VIEW_META: Record<SponsorView, { title: string; sub: string }> = {
+  overview: { title: 'Sponsor Programs', sub: 'HOOX sponsor tiers and brand placements: who\'s sponsoring, what\'s live and what it\'s earning' },
+  promotions: { title: 'Brand Promotions', sub: 'Every sponsor tier and brand placement, proposed or booked' },
+  packages: { title: 'Packages & Pricing', sub: 'The sponsor tiers and placements you sell, and what they cost' },
+};
 
-export function SponsorProgramsDashboard() {
+/** Sponsor Programs pages that share one data load: Overview, Brand Promotions, Packages & Pricing */
+export function SponsorProgramsDashboard({ view = 'overview' }: { view?: SponsorView }) {
   const { data, error, reload, setData } = useSponsorData();
-  const params = typeof window === 'undefined' ? null : new URLSearchParams(window.location.search);
-  const [tab, setTab] = useState<Tab>(() => { const t = params?.get('tab'); return t === 'promotions' || t === 'packages' ? t : 'overview'; });
-  const [initialAccount] = useState(() => params?.get('account') || null);
-  const choose = (t: Tab) => {
-    setTab(t);
-    const u = new URL(window.location.href);
-    u.searchParams.delete('account');
-    if (t === 'overview') u.searchParams.delete('tab'); else u.searchParams.set('tab', t);
-    window.history.replaceState(null, '', u.toString());
-  };
+  const [params] = useState(() => (typeof window === 'undefined' ? null : new URLSearchParams(window.location.search)));
   const ins = useMemo(() => (data ? computeSponsorInsights(data.accounts, data.promotions) : null), [data]);
 
   return (
     <div>
-      <Header title="Sponsor Programs" sub="HOOX sponsor tiers and brand placements: who's sponsoring, what's live and what it's earning"
-        right={<div className="flex gap-4 text-sm font-semibold">
-          <Link href="/admin/marketing/sponsors/accounts" className="flex items-center gap-1.5 text-[#0E7C7B] hover:underline">Customer accounts <ArrowRight className="h-4 w-4" /></Link>
-          <Link href="/admin/marketing/sponsors/revenue" className="flex items-center gap-1.5 text-[#0E7C7B] hover:underline">Brand promotion revenue <ArrowRight className="h-4 w-4" /></Link>
-        </div>} />
+      <Header title={VIEW_META[view].title} sub={VIEW_META[view].sub} />
       {error && <ErrorNote>{error}</ErrorNote>}
-      <div className="mb-5 flex gap-1 border-b border-[#E3EAF1]" role="tablist">
-        {([['overview', 'Overview'], ['promotions', 'Brand promotions'], ['packages', 'Packages & pricing']] as [Tab, string][]).map(([t, label]) => (
-          <button key={t} type="button" role="tab" aria-selected={tab === t} onClick={() => choose(t)}
-            className={`-mb-px border-b-2 px-4 py-2.5 text-sm font-semibold transition ${tab === t ? 'border-[#0E7C7B] text-[#0E7C7B]' : 'border-transparent text-[#5F6F86] hover:text-[#2E3F5C]'}`}>{label}</button>
-        ))}
-      </div>
       {!data || !ins ? <Loading /> : (
         <>
-          {tab === 'overview' && <Overview data={data} ins={ins} onTab={choose} />}
-          {tab === 'promotions' && <PromotionsManager data={data} reload={reload} initialAccountId={initialAccount} />}
-          {tab === 'packages' && <PackagesEditor data={data} onSaved={(packages) => setData({ ...data, packages, packagesSaved: true })} />}
+          {view === 'overview' && <Overview data={data} ins={ins} />}
+          {view === 'promotions' && <PromotionsManager data={data} reload={reload} initialAccountId={params?.get('account') || null} startAdding={params?.has('add')} />}
+          {view === 'packages' && <PackagesEditor data={data} onSaved={(packages) => setData({ ...data, packages, packagesSaved: true })} />}
         </>
       )}
     </div>
   );
 }
 
-function Overview({ data, ins, onTab }: { data: SponsorData; ins: SponsorInsights; onTab: (t: Tab) => void }) {
+function Overview({ data, ins }: { data: SponsorData; ins: SponsorInsights }) {
   const today = todayIso();
   const proposals = data.promotions.filter((p) => p.status === 'proposal');
   return (
@@ -138,7 +125,7 @@ function Overview({ data, ins, onTab }: { data: SponsorData; ins: SponsorInsight
         <section className={CARD} aria-labelledby="ov-promos">
           <div className="flex items-center justify-between gap-3">
             <h3 id="ov-promos" className="font-semibold text-[#0D1B4C]">Brand promotions</h3>
-            <button type="button" onClick={() => onTab('promotions')} className="flex items-center gap-1 text-sm font-semibold text-[#0E7C7B] hover:underline">Manage <ArrowRight className="h-4 w-4" /></button>
+            <Link href="/admin/marketing/sponsors/promotions" className="flex items-center gap-1 text-sm font-semibold text-[#0E7C7B] hover:underline">Manage <ArrowRight className="h-4 w-4" /></Link>
           </div>
           <ul className="mt-3 grid grid-cols-2 gap-3 text-sm">
             {SPONSOR_KINDS.map((k) => (
@@ -161,7 +148,7 @@ function Overview({ data, ins, onTab }: { data: SponsorData; ins: SponsorInsight
             </ul>
           )}
           <div className="mt-4 flex flex-wrap gap-2">
-            <button type="button" onClick={() => onTab('promotions')} className={BTN}><Plus className="h-4 w-4" />Add promotion</button>
+            <Link href="/admin/marketing/sponsors/promotions?add=1" className={BTN}><Plus className="h-4 w-4" />Add promotion</Link>
             <Link href="/admin/marketing/sponsors/revenue" className={BTN_GHOST}>Revenue insights</Link>
           </div>
         </section>
@@ -259,8 +246,7 @@ export function SponsorAccountsPage() {
 
   return (
     <div>
-      <Header title="Sponsor Programs · Customer Accounts" sub="Every brand that sponsors HOOX, or that you're talking to"
-        right={<Link href="/admin/marketing/sponsors" className="flex items-center gap-1.5 text-sm font-semibold text-[#0E7C7B] hover:underline">Sponsor Programs dashboard <ArrowRight className="h-4 w-4" /></Link>} />
+      <Header title="Customer Accounts" sub="Every brand that sponsors HOOX, or that you're talking to" />
       {error && <ErrorNote>{error}</ErrorNote>}
       {!data ? <Loading /> : (
         <div className="space-y-4">
@@ -427,8 +413,7 @@ export function BrandPromotionRevenuePage() {
   const today = todayIso();
   return (
     <div>
-      <Header title="Brand Promotion Revenue" sub="Sponsor tiers and brand placements · booked, collected and outstanding"
-        right={<Link href="/admin/marketing/sponsors" className="flex items-center gap-1.5 text-sm font-semibold text-[#0E7C7B] hover:underline">Sponsor Programs dashboard <ArrowRight className="h-4 w-4" /></Link>} />
+      <Header title="Brand Promotion Revenue" sub="Sponsor tiers and brand placements · booked, collected and outstanding" />
       {error && <ErrorNote>{error}</ErrorNote>}
       {!data || !ins ? <Loading /> : (
         <div className="space-y-5">

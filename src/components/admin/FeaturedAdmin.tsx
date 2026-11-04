@@ -40,8 +40,7 @@ export function FeaturedOverview() {
 
   return (
     <div>
-      <Header title="Marketing Promotions" sub="Featured listings and page heroes for tournaments, series, clubs and tradeshows"
-        right={<Link href="/admin/marketing/featured/revenue" className="flex items-center gap-1.5 text-sm font-semibold text-[#0E7C7B] hover:underline">Revenue insights <ArrowRight className="h-4 w-4" /></Link>} />
+      <Header title="Marketing Promotions" sub="Featured listings and page heroes for tournaments, series, clubs and tradeshows" />
       {error && <p className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
       {!ins ? (
         <div className="flex items-center justify-center gap-2 py-16 text-sm text-[#5F6F86]"><Loader2 className="h-4 w-4 animate-spin" /> Loading…</div>
@@ -130,10 +129,10 @@ export function FeaturedTypePage({ type }: { type: ListingType }) {
     <div>
       <Header title={`Featured ${meta.plural}`} sub={`${PLACEMENT_META.badge.label} and ${PLACEMENT_META.hero.label.toLowerCase()} placements on the ${meta.plural} page`}
         right={<a href={meta.publicPage} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm font-semibold text-[#0E7C7B] hover:underline">View {meta.plural} page <ArrowRight className="h-4 w-4" /></a>} />
-      <div className="mb-5 flex gap-1 border-b border-[#E3EAF1]" role="tablist">
+      <div className="mb-5 inline-flex rounded-lg border border-[#D3DEE8] bg-white p-1" role="tablist" aria-label={`Featured ${meta.plural}`}>
         {([['requests', 'Requests & placements'], ['pricing', 'Pricing'], ['revenue', 'Revenue']] as [Tab, string][]).map(([t, label]) => (
           <button key={t} type="button" role="tab" aria-selected={tab === t} onClick={() => choose(t)}
-            className={`-mb-px border-b-2 px-4 py-2.5 text-sm font-semibold transition ${tab === t ? 'border-[#0E7C7B] text-[#0E7C7B]' : 'border-transparent text-[#5F6F86] hover:text-[#2E3F5C]'}`}>{label}</button>
+            className={`rounded-md px-3.5 py-1.5 text-sm font-semibold transition ${tab === t ? 'bg-[#0E7C7B] text-white' : 'text-[#5F6F86] hover:text-[#2E3F5C]'}`}>{label}</button>
         ))}
       </div>
       {tab === 'requests' && <FeaturedRequestsManager type={type} />}
@@ -181,7 +180,7 @@ export function FeaturedCustomers() {
 
   return (
     <div>
-      <Header title="Marketing Promotions · Customer Accounts" sub="Everyone who has requested or bought a featured placement" />
+      <Header title="Customer Accounts" sub="Everyone who has requested or bought a featured placement" />
       {error && <p className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
       <label className="relative mb-4 block max-w-[360px]">
         <span className="sr-only">Search customers</span>

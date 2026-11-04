@@ -15,12 +15,12 @@ const FILTERS: [Filter, string][] = [['all', 'All'], ['proposal', 'Proposals'], 
 const targetHint = (pkg?: SponsorPackage) =>
   !pkg ? '' : /tournament|leaderboard|big_fish/.test(pkg.id) ? 'Which tournament?' : /series/.test(pkg.id) ? 'Which series?' : /newsletter/.test(pkg.id) ? 'Which issue?' : /social/.test(pkg.id) ? 'Which post / channel?' : 'Optional';
 
-interface Props { data: SponsorData; reload: () => Promise<void>; initialAccountId?: string | null; accountId?: string }
+interface Props { data: SponsorData; reload: () => Promise<void>; initialAccountId?: string | null; accountId?: string; startAdding?: boolean }
 
-export default function PromotionsManager({ data, reload, initialAccountId, accountId }: Props) {
+export default function PromotionsManager({ data, reload, initialAccountId, accountId, startAdding }: Props) {
   const [filter, setFilter] = useState<Filter>('all');
   const [q, setQ] = useState('');
-  const [adding, setAdding] = useState(!!initialAccountId);
+  const [adding, setAdding] = useState(!!initialAccountId || !!startAdding);
   const [open, setOpen] = useState<string | null>(null);
   const today = todayIso();
   const accById = useMemo(() => new Map(data.accounts.map((a) => [a.id, a])), [data.accounts]);

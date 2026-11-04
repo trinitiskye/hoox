@@ -22,6 +22,7 @@ import HomeBannersManager from '@/components/admin/HomeBannersManager';
 import EventSubmissionsManager from '@/components/admin/EventSubmissionsManager';
 import ClubSubmissionsManager from '@/components/admin/ClubSubmissionsManager';
 import { FeaturedOverview, FeaturedTypePage, FeaturedRevenuePage, FeaturedCustomers } from '@/components/admin/FeaturedAdmin';
+import MarketingSectionTabs from '@/components/admin/MarketingSectionTabs';
 import { SponsorProgramsDashboard, SponsorAccountsPage, BrandPromotionRevenuePage } from '@/components/admin/sponsors/SponsorPrograms';
 import SpeciesManager from '@/components/admin/SpeciesManager';
 import SupportInbox from '@/components/admin/SupportInbox';
@@ -61,6 +62,8 @@ const TAB_TO_PATH: Record<string, string> = {
   'Featured Marketing Accounts':  '/admin/marketing/featured/accounts',
   'Featured Content Revenue':     '/admin/marketing/featured/revenue',
   'Sponsor Programs':             '/admin/marketing/sponsors',
+  'Sponsor Promotions':           '/admin/marketing/sponsors/promotions',
+  'Sponsor Packages':             '/admin/marketing/sponsors/packages',
   'Sponsor Program Accounts':     '/admin/marketing/sponsors/accounts',
   'Brand Promotion Revenue':      '/admin/marketing/sponsors/revenue',
   'Affiliate Management':         '/admin/marketing/affiliates',
@@ -101,6 +104,7 @@ export default function AdminDashboard({ currentUser, onNavigate, initialTab, us
     <div className="font-roboto flex flex-col text-[#0D1B4C]">
       {/* Main Content */}
       <div className="max-w-[1440px] mx-auto w-full px-4 md:px-5 py-8">
+        <MarketingSectionTabs />
         {activeTab === 'Dashboard' && (
           <DashboardTab
             users={users} tournaments={tournaments} series={series} submissions={submissions}
@@ -129,6 +133,8 @@ export default function AdminDashboard({ currentUser, onNavigate, initialTab, us
         {activeTab === 'Featured Content Revenue' && <FeaturedRevenuePage />}
         {activeTab === 'Ad Revenue' && <MonetizationTab initial="Ad Revenue" />}
         {activeTab === 'Sponsor Programs' && <SponsorProgramsDashboard />}
+        {activeTab === 'Sponsor Promotions' && <SponsorProgramsDashboard view="promotions" />}
+        {activeTab === 'Sponsor Packages' && <SponsorProgramsDashboard view="packages" />}
         {activeTab === 'Sponsor Program Accounts' && <SponsorAccountsPage />}
         {activeTab === 'Brand Promotion Revenue' && <BrandPromotionRevenuePage />}
         {activeTab !== 'Dashboard' && activeTab !== 'Users' && activeTab !== 'Tournaments' &&
@@ -136,7 +142,7 @@ export default function AdminDashboard({ currentUser, onNavigate, initialTab, us
          activeTab !== 'Series' && activeTab !== 'Events' && activeTab !== 'Advertising' &&
          activeTab !== 'Monetization' && activeTab !== 'CMS' && activeTab !== 'Settings' && activeTab !== 'Support' &&
          activeTab !== 'Ad Revenue' && !(activeTab.startsWith('Featured ')) &&
-         !['Sponsor Programs', 'Sponsor Program Accounts', 'Brand Promotion Revenue'].includes(activeTab) && (
+         !['Sponsor Programs', 'Sponsor Promotions', 'Sponsor Packages', 'Sponsor Program Accounts', 'Brand Promotion Revenue'].includes(activeTab) && (
           <ComingSoonTab tab={activeTab} />
         )}
       </div>
@@ -2120,7 +2126,7 @@ function AdvertisingTab() {
     <div>
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div>
-          <h2 className="font-montserrat text-2xl font-bold text-[#0D1B4C]">Advertising Management</h2>
+          <h2 className="font-montserrat text-2xl font-bold text-[#0D1B4C]">Display Banners</h2>
           <p className="text-[#5F6F86] text-sm mt-0.5">Upload and manage banner advertisements for public-facing pages</p>
         </div>
         <button className="flex items-center gap-2 px-4 py-2.5 bg-[#0E7C7B] text-white rounded-lg text-sm font-semibold hover:bg-[#0B6564] transition">
@@ -2227,6 +2233,8 @@ function AdvertisingTab() {
 // ============================================================
 function MonetizationTab({ initial = 'All Revenue' }: { initial?: string }) {
   const [activeTab, setActiveTab] = useState(initial);
+  // Marketing → Display Banners → Ad Revenue: just the ad revenue, no Monetization tabs
+  const adOnly = initial === 'Ad Revenue';
   const tabs = ['All Revenue', 'Tournament Registration Revenue', 'Ad Revenue'];
 
   const revenueCards = [
@@ -2251,24 +2259,24 @@ function MonetizationTab({ initial = 'All Revenue' }: { initial?: string }) {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="font-montserrat text-2xl font-bold text-[#0D1B4C]">Monetization</h2>
-          <p className="text-[#5F6F86] text-sm mt-0.5">Manage pricing, subscriptions, revenue, and payment processing</p>
+          <h2 className="font-montserrat text-2xl font-bold text-[#0D1B4C]">{adOnly ? 'Ad Revenue' : 'Monetization'}</h2>
+          <p className="text-[#5F6F86] text-sm mt-0.5">{adOnly ? 'Revenue from display banner advertising' : 'Manage pricing, subscriptions, revenue, and payment processing'}</p>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-[#E8EEF4] mb-6">
+      {!adOnly && <div className="flex gap-1 border-b border-[#E8EEF4] mb-6">
         {tabs.map(t => (
           <button key={t} onClick={() => setActiveTab(t)}
             className={`px-4 py-2.5 text-sm font-medium border-b-2 transition ${activeTab === t ? 'border-[#0E7C7B] text-[#0E7C7B]' : 'border-transparent text-[#5F6F86] hover:text-[#2E3F5C]'}`}>
             {t}
           </button>
         ))}
-      </div>
+      </div>}
 
       {/* Revenue Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        {revenueCards.map(c => (
+        {revenueCards.filter(c => !adOnly || c.title.includes('Ad Revenue')).map(c => (
           <div key={c.title} className={`border rounded-lg p-5 ${c.bg}`}>
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-semibold text-[#0D1B4C]">{c.title}</span>
