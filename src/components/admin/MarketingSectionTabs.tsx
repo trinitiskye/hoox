@@ -1,8 +1,9 @@
 'use client';
 
 /* ------------------------------------------------------------------ */
-/* Section tabs for Admin → Marketing. Every page in a section shows   */
-/* the same tab row (Overview + its sub-pages), so moving between      */
+/* Section tabs for Admin → Marketing, shown under each page's title. */
+/* Every page in a section shows the same tab row (Overview + its      */
+/* sub-pages), so moving between                                       */
 /* Display Banners, Marketing Promotions, Sponsor Programs and         */
 /* Affiliate Management pages works the same way everywhere.          */
 /* ------------------------------------------------------------------ */
@@ -68,7 +69,6 @@ export default function MarketingSectionTabs() {
   if (!section) return null;
   return (
     <nav aria-label={`${section.label} pages`} className="mb-6">
-      <p className="mb-1.5 text-[11.5px] font-semibold uppercase tracking-[0.08em] text-[#7A8BA3]">Marketing · {section.label}</p>
       <div className="-mx-4 overflow-x-auto px-4 md:mx-0 md:px-0">
         <ul className="flex min-w-max gap-1 border-b border-[#E3EAF1]">
           {section.tabs.map((t) => {

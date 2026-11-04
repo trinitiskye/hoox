@@ -4,6 +4,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { BarChart3, Table2, type LucideIcon } from 'lucide-react';
+import MarketingSectionTabs from '@/components/admin/MarketingSectionTabs';
 import {
   formatMoney, KIND_META, SPONSOR_KINDS, PHASE_META, ACCOUNT_STATUS_META,
   type DbSponsorAccount, type DbSponsorPromotion, type SponsorPackage, type SponsorMonth, type PromoPhase, type AccountStatus,
@@ -52,13 +53,17 @@ export function useSponsorData() {
 
 export function Header({ title, sub, right }: { title: string; sub: string; right?: React.ReactNode }) {
   return (
-    <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-      <div>
-        <h2 className="font-montserrat text-2xl font-bold text-[#0D1B4C]">{title}</h2>
-        <p className="mt-0.5 text-sm text-[#5F6F86]">{sub}</p>
+    <>
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 className="font-montserrat text-2xl font-bold text-[#0D1B4C]">{title}</h2>
+          <p className="mt-0.5 text-sm text-[#5F6F86]">{sub}</p>
+        </div>
+        {right}
       </div>
-      {right}
-    </div>
+      {/* Section tabs sit under the page title */}
+      <MarketingSectionTabs />
+    </>
   );
 }
 

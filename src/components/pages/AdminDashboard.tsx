@@ -104,7 +104,6 @@ export default function AdminDashboard({ currentUser, onNavigate, initialTab, us
     <div className="font-roboto flex flex-col text-[#0D1B4C]">
       {/* Main Content */}
       <div className="max-w-[1440px] mx-auto w-full px-4 md:px-5 py-8">
-        <MarketingSectionTabs />
         {activeTab === 'Dashboard' && (
           <DashboardTab
             users={users} tournaments={tournaments} series={series} submissions={submissions}
@@ -2133,6 +2132,7 @@ function AdvertisingTab() {
           <Plus className="w-4 h-4" /> Add Advertisement
         </button>
       </div>
+      <MarketingSectionTabs />
 
       {/* Stats */}
       <div className="grid grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
@@ -2263,6 +2263,7 @@ function MonetizationTab({ initial = 'All Revenue' }: { initial?: string }) {
           <p className="text-[#5F6F86] text-sm mt-0.5">{adOnly ? 'Revenue from display banner advertising' : 'Manage pricing, subscriptions, revenue, and payment processing'}</p>
         </div>
       </div>
+      <MarketingSectionTabs />
 
       {/* Tabs */}
       {!adOnly && <div className="flex gap-1 border-b border-[#E8EEF4] mb-6">
@@ -2464,12 +2465,19 @@ function SettingsTab() {
 
 
 function ComingSoonTab({ tab }: { tab: string }) {
+  const title = ({ 'Display Banner Accounts': 'Customer Accounts' } as Record<string, string>)[tab] || tab;
   return (
-    <div className="flex items-center justify-center py-24">
-      <div className="text-center">
-        <div className="text-5xl mb-4">🚧</div>
-        <h2 className="font-montserrat text-2xl font-bold text-[#0D1B4C] mb-2">{tab}</h2>
-        <p className="text-[#5F6F86]">This section is coming soon.</p>
+    <div>
+      <div className="mb-6">
+        <h2 className="font-montserrat text-2xl font-bold text-[#0D1B4C]">{title}</h2>
+        <p className="text-[#5F6F86] text-sm mt-0.5">This section is coming soon.</p>
+      </div>
+      <MarketingSectionTabs />
+      <div className="flex items-center justify-center py-20">
+        <div className="text-center">
+          <div className="text-5xl mb-4">🚧</div>
+          <p className="text-[#5F6F86]">We&apos;re still building this page.</p>
+        </div>
       </div>
     </div>
   );

@@ -9,6 +9,7 @@
 
 import { Fragment, useMemo, useState } from 'react';
 import Link from 'next/link';
+import MarketingSectionTabs from '@/components/admin/MarketingSectionTabs';
 import { ArrowRight, Loader2, Trophy, Layers, Users, CalendarDays, Search, Mail } from 'lucide-react';
 import FeaturedRequestsManager from './FeaturedRequestsManager';
 import FeaturePricingEditor from './FeaturePricingEditor';
@@ -21,13 +22,17 @@ const fmt = (d: string) => new Date(d).toLocaleDateString('en-US', { month: 'sho
 
 function Header({ title, sub, right }: { title: string; sub: string; right?: React.ReactNode }) {
   return (
-    <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-      <div>
-        <h2 className="font-montserrat text-2xl font-bold text-[#0D1B4C]">{title}</h2>
-        <p className="mt-0.5 text-sm text-[#5F6F86]">{sub}</p>
+    <>
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 className="font-montserrat text-2xl font-bold text-[#0D1B4C]">{title}</h2>
+          <p className="mt-0.5 text-sm text-[#5F6F86]">{sub}</p>
+        </div>
+        {right}
       </div>
-      {right}
-    </div>
+      {/* Section tabs sit under the page title */}
+      <MarketingSectionTabs />
+    </>
   );
 }
 
