@@ -5,6 +5,7 @@ import {
   Search, MapPin, Fish, Users, User, ChevronDown, ArrowUpDown, ArrowRight, Star, X, LayoutGrid, Map as MapIcon,
 } from 'lucide-react';
 import ClubsMap from '@/components/clubs/ClubsMap';
+import { useFeaturedPlacements } from '@/lib/useFeaturedPlacements';
 
 interface ClubsPageProps {
   onNavigate: (view: string) => void;
@@ -31,6 +32,8 @@ export interface Club {
   image: string;
   about: string;
   featured?: boolean;
+  /** Paid Featured page hero (approved clubs) */
+  featuredHero?: boolean;
   logo?: string;
   /** Club's own website (approved submissions) */
   website?: string;
@@ -267,7 +270,13 @@ export default function ClubsPage({ onNavigate }: ClubsPageProps) {
     return () => { cancelled = true; };
   }, []);
 
-  const allClubs = useMemo(() => [...live, ...CLUBS], [live]);
+  // Paid placements: live clubs use their submission id, demo clubs "demo:<slug>"
+  const placements = useFeaturedPlacements('club');
+  const pid = (c: Club) => (c.id.startsWith('club-') ? c.id.slice(5) : `demo:${c.id}`);
+  const allClubs = useMemo(
+    () => [...live, ...CLUBS].map((c) => (placements.badge.has(pid(c)) ? { ...c, featured: true } : c)),
+    [live, placements], // eslint-disable-line react-hooks/exhaustive-deps
+  );
 
   // Deep link from the menu: /clubs?view=map opens the map
   useEffect(() => {
@@ -292,8 +301,9 @@ export default function ClubsPage({ onNavigate }: ClubsPageProps) {
   }, [allClubs, q, state, style, level, sort]);
 
   const filtering = q.trim() !== '' || state !== 'all' || style !== 'all' || level !== 'all';
-  // Hero banner rotates daily among featured clubs
-  const featuredList = results.filter((c) => c.featured);
+  // Hero banner rotates daily: paid page-hero clubs if any, else featured clubs
+  const heroList = results.filter((c) => c.featuredHero || placements.hero.has(pid(c)));
+  const featuredList = heroList.length ? heroList : results.filter((c) => c.featured);
   const dayIndex = Math.floor(Date.now() / 86_400_000);
   const featured = !filtering && featuredList.length ? featuredList[dayIndex % featuredList.length] : undefined;
   const grid = featured ? results.filter((c) => c.id !== featured.id) : results;

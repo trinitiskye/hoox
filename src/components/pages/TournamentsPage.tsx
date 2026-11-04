@@ -8,10 +8,10 @@ import {
 import ClubsMap from '@/components/clubs/ClubsMap';
 import {
   STATE_NAMES, INK, CONTROL, type Status, StatusChip, FilterSelect, LocationSelect, ViewToggle, type ListingView,
-  statusFor, fmtRange,
-} from '@/components/listing/ListingUI';
+  statusFor, fmtRange, FeaturedChip } from '@/components/listing/ListingUI';
 import { Tournament } from '@/types';
 import { useSpeciesList } from '@/lib/useSpeciesList';
+import { useFeaturedPlacements, dailyPick } from '@/lib/useFeaturedPlacements';
 
 interface TournamentsPageProps {
   /** null while loading; [] falls back to demo tournaments */
@@ -202,6 +202,7 @@ function Meta({ t, size = 'card' }: { t: TItem; size?: 'card' | 'list' }) {
 /* -------------------------------- page ------------------------------- */
 
 export default function TournamentsPage({ tournaments, onNavigate }: TournamentsPageProps) {
+  const placements = useFeaturedPlacements('tournament');
   const [q, setQ] = useState('');
   const [state, setState] = useState('all');
   const [species, setSpecies] = useState('all');
@@ -249,6 +250,9 @@ export default function TournamentsPage({ tournaments, onNavigate }: Tournaments
   const results = useMemo(() => {
     const list = matchingOtherFilters.filter((t) => state === 'all' || t.stateCode === state);
     return list.sort((a, b) => {
+      // Paid Featured listings first
+      const fa = placements.badge.has(a.id) ? 1 : 0, fb = placements.badge.has(b.id) ? 1 : 0;
+      if (fa !== fb) return fb - fa;
       if (sort === 'name') return a.name.localeCompare(b.name);
       if (sort === 'start') return a.start.localeCompare(b.start);
       const sa = statusById[a.id];
@@ -257,10 +261,11 @@ export default function TournamentsPage({ tournaments, onNavigate }: Tournaments
       // Completed: most recent first; otherwise soonest first
       return sa === 'Completed' ? b.end.localeCompare(a.end) : a.start.localeCompare(b.start);
     });
-  }, [matchingOtherFilters, state, sort, statusById]);
+  }, [matchingOtherFilters, state, sort, statusById, placements]);
 
   const filtering = q.trim() !== '' || state !== 'all' || species !== 'all' || status !== 'all';
-  const featured = items.find((t) => t.featured);
+  // Page hero: a paid hero placement (rotates daily if several), else the demo featured one
+  const featured = dailyPick(items.filter((t) => placements.hero.has(t.id))) ?? items.find((t) => t.featured);
   const grid = featured && !filtering ? results.filter((t) => t.id !== featured.id) : results;
   const reset = () => { setQ(''); setState('all'); setSpecies('all'); setStatus('all'); };
   const mapped = results.filter((t) => t.lat !== undefined && t.lng !== undefined);
@@ -416,7 +421,7 @@ export default function TournamentsPage({ tournaments, onNavigate }: Tournaments
                   <img src={t.image} alt="" loading="lazy" className="h-full w-full object-cover" />
                 </div>
                 <div className="min-w-0">
-                  <StatusChip status={statusById[t.id]} />
+                  <span className="flex flex-wrap gap-1.5"><StatusChip status={statusById[t.id]} />{placements.badge.has(t.id) && <FeaturedChip />}</span>
                   <h3 className={`mt-1.5 font-montserrat text-[18px] font-bold leading-tight ${INK}`}>{t.name}</h3>
                   <PresentedBy t={t} className="mt-1 w-fit text-[14px] font-medium text-[#0E7C7B]" />
                   <p className="mt-1.5 hidden text-[14px] leading-[20px] text-[#536B84] sm:line-clamp-2">{t.about}</p>
@@ -444,6 +449,7 @@ export default function TournamentsPage({ tournaments, onNavigate }: Tournaments
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={t.image} alt="" loading="lazy" className="h-full w-full object-cover" />
                   <StatusChip status={statusById[t.id]} className="absolute left-2.5 top-2.5 shadow-sm" />
+                  {placements.badge.has(t.id) && <FeaturedChip className="absolute right-2.5 top-2.5" />}
                 </div>
                 <div className="flex flex-1 flex-col px-[12px] pb-[12px] pt-[14px]">
                   <h3 className={`font-montserrat text-[19px] font-bold leading-tight ${INK}`}>{t.name}</h3>

@@ -5,10 +5,10 @@ import {
   Search, MapPin, Fish, Trophy, CalendarDays, ChevronDown, ArrowUpDown, ArrowRight, Star, X, Flag, ExternalLink,
 } from 'lucide-react';
 import ClubsMap from '@/components/clubs/ClubsMap';
+import { useFeaturedPlacements, dailyPick } from '@/lib/useFeaturedPlacements';
 import {
   STATE_NAMES, INK, CONTROL, type Status, StatusChip, FilterSelect, LocationSelect, ViewToggle, type ListingView,
-  day, fmtRange, fmtDay,
-} from '@/components/listing/ListingUI';
+  day, fmtRange, fmtDay, FeaturedChip } from '@/components/listing/ListingUI';
 
 interface SeriesPageProps {
   onNavigate: (view: string) => void;
@@ -286,6 +286,7 @@ export function SeriesDialog({ s, status, onClose, onNavigate }: { s: SeriesItem
 const STATUS_ORDER: Record<Status, number> = { 'In progress': 0, Upcoming: 1, Completed: 2 };
 
 export default function SeriesPage({ onNavigate }: SeriesPageProps) {
+  const placements = useFeaturedPlacements('series');
   const [q, setQ] = useState('');
   const [state, setState] = useState('all');
   const [style, setStyle] = useState('all');
@@ -328,17 +329,21 @@ export default function SeriesPage({ onNavigate }: SeriesPageProps) {
   const results = useMemo(() => {
     const list = matchingOtherFilters.filter((s) => state === 'all' || inState(s, state));
     return list.sort((a, b) => {
+      // Paid Featured listings first
+      const fa = placements.badge.has(a.id) ? 1 : 0, fb = placements.badge.has(b.id) ? 1 : 0;
+      if (fa !== fb) return fb - fa;
       if (sort === 'name') return a.name.localeCompare(b.name);
       if (sort === 'events') return b.stops.length - a.stops.length;
       if (sort === 'start') return a.start.localeCompare(b.start);
       return STATUS_ORDER[statusById[a.id]] - STATUS_ORDER[statusById[b.id]] || a.start.localeCompare(b.start);
     });
-  }, [matchingOtherFilters, state, sort, statusById]);
+  }, [matchingOtherFilters, state, sort, statusById, placements]);
 
   const filtering = q.trim() !== '' || state !== 'all' || style !== 'all' || status !== 'all';
   // Featured series sits under the page intro and stays put while filtering;
   // it's left out of the grid only when no filters are applied.
-  const featured = SERIES.find((s) => s.featured);
+  // Page hero: a paid hero placement (rotates daily if several), else the demo featured one
+  const featured = dailyPick(SERIES.filter((s) => placements.hero.has(s.id))) ?? SERIES.find((s) => s.featured);
   const grid = featured && !filtering ? results.filter((s) => s.id !== featured.id) : results;
   const reset = () => { setQ(''); setState('all'); setStyle('all'); setStatus('all'); };
 
@@ -485,7 +490,7 @@ export default function SeriesPage({ onNavigate }: SeriesPageProps) {
                   <img src={s.image} alt="" loading="lazy" className="h-full w-full object-cover" />
                 </div>
                 <div className="min-w-0">
-                  <StatusChip status={statusById[s.id]} />
+                  <span className="flex flex-wrap gap-1.5"><StatusChip status={statusById[s.id]} />{placements.badge.has(s.id) && <FeaturedChip />}</span>
                   <h3 className={`mt-1.5 font-montserrat text-[18px] font-bold leading-tight ${INK}`}>{s.name}</h3>
                   <PresentedBy s={s} className="mt-1 w-fit text-[14px] font-medium text-[#0E7C7B]" />
                   <p className="mt-1.5 hidden text-[14px] leading-[20px] text-[#536B84] sm:line-clamp-2">{s.about}</p>
@@ -517,6 +522,7 @@ export default function SeriesPage({ onNavigate }: SeriesPageProps) {
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={s.image} alt="" loading="lazy" className="h-full w-full object-cover" />
                   <StatusChip status={statusById[s.id]} className="absolute left-2.5 top-2.5 shadow-sm" />
+                  {placements.badge.has(s.id) && <FeaturedChip className="absolute right-2.5 top-2.5" />}
                 </div>
                 <div className="flex flex-1 flex-col px-[12px] pb-[12px] pt-[14px]">
                   <h3 className={`font-montserrat text-[19px] font-bold leading-tight ${INK}`}>{s.name}</h3>

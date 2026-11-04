@@ -15,6 +15,7 @@ import { ChevronLeft, ChevronRight, CalendarDays, MapPin, ArrowRight, Ticket } f
 import { INK, fmtRange, statusFor, StatusChip } from '@/components/listing/ListingUI';
 import { EXPOS, admissionFrom, type Expo, type ExpoType } from '@/lib/demoExpos';
 import { FeaturedCarousel, featuredExpos } from '@/components/pages/EventsPage';
+import { useFeaturedPlacements } from '@/lib/useFeaturedPlacements';
 
 const TYPE_STYLE: Record<ExpoType, { bar: string; dot: string; chip: string }> = {
   Expo: { bar: 'bg-[#0E7C7B] hover:bg-[#0B6766] text-white', dot: 'bg-[#0E7C7B]', chip: 'bg-[#E6F4F5] text-[#0B6564]' },
@@ -78,7 +79,8 @@ export default function EventCalendarPage() {
   });
 
   const upcoming = useMemo(() => events.filter((e) => statusFor(e.start, e.end, today) !== 'Completed'), [events, today]);
-  const featured = useMemo(() => featuredExpos(upcoming), [upcoming]);
+  const placements = useFeaturedPlacements('event');
+  const featured = useMemo(() => featuredExpos(upcoming, placements.hero), [upcoming, placements]);
 
   // Month grid (Sunday-first, padded with neighbouring days)
   const weeks = useMemo(() => {
@@ -220,6 +222,7 @@ export default function EventCalendarPage() {
                               ${s.toNext ? 'mr-0 rounded-r-none' : 'mr-0.5 rounded-r-[5px] sm:mr-1'}`}
                           >
                             {s.fromPrev && <span aria-hidden className="mr-1 opacity-80">‹</span>}
+                            {placements.badge.has(s.e.id) && <span aria-label="Featured" className="mr-1">★</span>}
                             <span className="truncate">{s.e.name}</span>
                             {s.toNext && <span aria-hidden className="ml-auto pl-1 opacity-80">›</span>}
                           </Link>

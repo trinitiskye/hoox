@@ -30,6 +30,7 @@ function toPublic(s: DbClubSubmission) {
     about: s.about,
     website: s.website || undefined,
     featured: isFeaturedNow(s.featured, s.featured_until),
+    featuredHero: isFeaturedNow(s.featured_hero, s.featured_hero_until),
     lat: Number.isFinite(s.lat) ? s.lat : null,
     lng: Number.isFinite(s.lng) ? s.lng : null,
   };

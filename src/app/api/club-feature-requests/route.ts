@@ -9,7 +9,8 @@ import { getAuthenticatedUser } from '@/lib/serverSession';
 import { getClubSubmissionAdmin, createClubFeatureRequestAdmin } from '@/lib/supabaseAdmin';
 import { CLUB_SUBMIT_ROLES } from '@/lib/clubSubmission';
 import { planIn, type FeaturePlanId, type FeaturePlan } from '@/lib/clubFeature';
-import { loadFeaturePricing } from '@/lib/featurePricing';
+import { loadTypePricing } from '@/lib/featurePricing';
+import type { Placement } from '@/lib/featured';
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const fail = (error: string, code: string, status = 400) => Response.json({ ok: false, error, code }, { status });
@@ -38,12 +39,13 @@ export async function POST(request: Request) {
     let clubId: string | null = null;
     let plan: FeaturePlanId;
     let chosen: FeaturePlan;
+    const placement: Placement = body.placement === 'hero' ? 'hero' : 'badge';
     let start: string | null;
     let phone: string, promo: string, notes: string;
     try {
       const planRaw = str('plan', 20);
-      const { pricing } = await loadFeaturePricing();
-      const found = planIn(pricing, planRaw);
+      const { pricing } = await loadTypePricing('club');
+      const found = planIn(pricing[placement], planRaw);
       if (!found || !found.enabled) return fail('That plan isn’t available. Please choose another plan.', 'invalid');
       plan = found.id;
       chosen = found;
@@ -89,7 +91,14 @@ export async function POST(request: Request) {
       notes: notes || null,
     };
     // Record the price and length quoted right now, so later pricing edits don't change this request.
-    let { error } = await createClubFeatureRequestAdmin({ ...row, price_quoted: chosen.price, term_months: chosen.months, plan_name: chosen.name });
+    let { error } = await createClubFeatureRequestAdmin({
+      ...row, price_quoted: chosen.price, term_months: chosen.months, plan_name: chosen.name,
+      ...({ listing_type: 'club', listing_id: clubId, placement, source: 'web' } as object),
+    });
+    if (error && /listing_type|listing_id|placement|source/i.test(error)) {
+      // Placements migration not run yet: save without the new columns
+      ({ error } = await createClubFeatureRequestAdmin({ ...row, price_quoted: chosen.price, term_months: chosen.months, plan_name: chosen.name }));
+    }
     if (error && /price_quoted|term_months|plan_name/i.test(error)) {
       ({ error } = await createClubFeatureRequestAdmin(row)); // pricing migration not run yet
     }

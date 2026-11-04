@@ -10,9 +10,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight, Star, CalendarDays, MapPin, ArrowRight, Search, Ticket, Store, Tag, ArrowUpDown, ChevronDown } from 'lucide-react';
 import {
-  STATE_NAMES, INK, CONTROL, StatusChip, FilterSelect, LocationSelect, statusFor, fmtRange,
-} from '@/components/listing/ListingUI';
+  STATE_NAMES, INK, CONTROL, StatusChip, FilterSelect, LocationSelect, statusFor, fmtRange, FeaturedChip } from '@/components/listing/ListingUI';
 import { EXPOS, admissionFrom, type Expo, type ExpoType } from '@/lib/demoExpos';
+import { useFeaturedPlacements } from '@/lib/useFeaturedPlacements';
 
 interface EventsPageProps {
   onNavigate?: (view: string) => void;
@@ -132,13 +132,16 @@ export function FeaturedCarousel({ expos, className = 'mt-6' }: { expos: Expo[];
   );
 }
 
-/** Upcoming/in-progress expos marked featured (soonest first); falls back to the next show. */
-export function featuredExpos(items: Expo[]) {
+/** Hero carousel: paid hero placements if any, else expos marked featured (soonest first); falls back to the next show. */
+export function featuredExpos(items: Expo[], heroIds?: Set<string>) {
+  const paid = heroIds?.size ? items.filter((e) => heroIds.has(e.id)).sort((a, b) => a.start.localeCompare(b.start)) : [];
+  if (paid.length) return paid;
   const f = items.filter((e) => e.featured).sort((a, b) => a.start.localeCompare(b.start));
   return f.length ? f : [...items].sort((a, b) => a.start.localeCompare(b.start)).slice(0, 1);
 }
 
 export default function EventsPage(_props: EventsPageProps) {
+  const placements = useFeaturedPlacements('event');
   const [q, setQ] = useState('');
   const [state, setState] = useState('all');
   const [type, setType] = useState<'all' | ExpoType>('all');
@@ -147,7 +150,7 @@ export default function EventsPage(_props: EventsPageProps) {
 
   // Past shows drop off the page
   const items = useMemo(() => EXPOS.filter((e) => statusFor(e.start, e.end, today) !== 'Completed'), [today]);
-  const featured = useMemo(() => featuredExpos(items), [items]);
+  const featured = useMemo(() => featuredExpos(items, placements.hero), [items, placements]);
 
   const matchingOtherFilters = useMemo(() => {
     const s = q.trim().toLowerCase();
@@ -174,8 +177,11 @@ export default function EventsPage(_props: EventsPageProps) {
     () =>
       matchingOtherFilters
         .filter((e) => state === 'all' || e.state === state)
-        .sort((a, b) => (sort === 'name' ? a.name.localeCompare(b.name) : a.start.localeCompare(b.start))),
-    [matchingOtherFilters, state, sort],
+        .sort((a, b) =>
+          // Paid Featured listings first
+          (placements.badge.has(b.id) ? 1 : 0) - (placements.badge.has(a.id) ? 1 : 0) ||
+          (sort === 'name' ? a.name.localeCompare(b.name) : a.start.localeCompare(b.start))),
+    [matchingOtherFilters, state, sort, placements],
   );
 
   const filtering = q.trim() !== '' || state !== 'all' || type !== 'all';
@@ -257,6 +263,7 @@ export default function EventsPage(_props: EventsPageProps) {
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={e.image} alt="" loading="lazy" className="h-full w-full object-cover transition duration-300 hover:scale-[1.03]" />
                   <StatusChip status={statusFor(e.start, e.end, today)} className="absolute left-2.5 top-2.5 shadow-sm" />
+                  {placements.badge.has(e.id) && <FeaturedChip className="absolute right-2.5 top-2.5" />}
                 </Link>
                 <div className="flex flex-1 flex-col px-[12px] pb-[12px] pt-[14px]">
                   <p className="text-[12px] font-bold uppercase tracking-[0.06em] text-[#0E7C7B]">{e.type}</p>

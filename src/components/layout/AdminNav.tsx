@@ -47,7 +47,14 @@ export const ADMIN_MENU: AdminItem[] = [
       },
       {
         label: 'Featured Marketing', href: '/admin/marketing/featured',
-        children: [{ label: 'Customer Accounts', href: '/admin/marketing/featured/accounts' }, { label: 'Featured Content Revenue', href: '/admin/marketing/featured/revenue' }],
+        children: [
+          { label: 'Tournaments', href: '/admin/marketing/featured/tournaments' },
+          { label: 'Series', href: '/admin/marketing/featured/series' },
+          { label: 'Clubs', href: '/admin/marketing/featured/clubs' },
+          { label: 'Tradeshows & Expos', href: '/admin/marketing/featured/expos' },
+          { label: 'Customer Accounts', href: '/admin/marketing/featured/accounts' },
+          { label: 'Featured Content Revenue', href: '/admin/marketing/featured/revenue' },
+        ],
       },
       {
         label: 'Sponsor Programs', href: '/admin/marketing/sponsors',

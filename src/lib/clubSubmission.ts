@@ -57,6 +57,8 @@ export interface DbClubSubmission {
   /** Added by migration_2026_11_club_feature_requests.sql */
   featured?: boolean;
   featured_until?: string | null;
+  featured_hero?: boolean;
+  featured_hero_until?: string | null;
   admin_notes: string | null;
   reviewed_at: string | null;
   created_at: string;
@@ -65,7 +67,7 @@ export interface DbClubSubmission {
 
 export type DbClubSubmissionInsert = Omit<
   DbClubSubmission,
-  'id' | 'status' | 'admin_notes' | 'reviewed_at' | 'created_at' | 'updated_at' | 'lat' | 'lng' | 'featured' | 'featured_until'
+  'id' | 'status' | 'admin_notes' | 'reviewed_at' | 'created_at' | 'updated_at' | 'lat' | 'lng' | 'featured' | 'featured_until' | 'featured_hero' | 'featured_hero_until'
 >;
 
 /** Club fields only; the submitter_* fields are filled in by the API route. */

@@ -56,7 +56,8 @@ export function savingsPercent(plan: FeaturePlan, pricing: FeaturePricing) {
 
 export const planIn = (pricing: FeaturePricing, id: string) => pricing.plans.find((p) => p.id === id);
 export const enabledPlans = (pricing: FeaturePricing) => pricing.plans.filter((p) => p.enabled);
-export const formatMoney = (n: number) => (Number.isInteger(n) ? `$${n}` : `$${n.toFixed(2)}`);
+export const formatMoney = (n: number) =>
+  `$${n.toLocaleString('en-US', Number.isInteger(n) ? { maximumFractionDigits: 0 } : { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 /** Last featured day for a term of `months` that starts on `start` (YYYY-MM-DD, defaults to today). */
 export function featuredUntil(months: number, start?: string | null): string {

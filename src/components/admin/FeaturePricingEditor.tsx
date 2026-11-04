@@ -7,9 +7,10 @@ import {
   formatMoney, perMonth, savingsPercent,
   type FeaturePlan, type FeaturePricing,
 } from '@/lib/clubFeature';
+import { PLACEMENTS, PLACEMENT_META, TYPE_META, type ListingType, type Placement, type TypePricing } from '@/lib/featured';
 
 /* ------------------------------------------------------------------ */
-/* Admin → Clubs → Feature your Club pricing                           */
+/* Admin → Featured Marketing → <type> → Pricing (both products)      */
 /* Edits what /clubs/feature shows and what new requests are quoted.   */
 /* Saved via /api/admin/feature-pricing (admin session required).      */
 /* ------------------------------------------------------------------ */
@@ -42,10 +43,24 @@ async function api<T>(url: string, init?: RequestInit): Promise<T> {
   return json as T;
 }
 
-export default function FeaturePricingEditor() {
-  const [draft, setDraft] = useState<Draft | null>(null);
+type TypeDraft = Record<Placement, Draft>;
+const toTypeDraft = (p: TypePricing): TypeDraft => ({ badge: toDraft(p.badge), hero: toDraft(p.hero) });
+const fromTypeDraft = (d: TypeDraft): TypePricing => ({ badge: fromDraft(d.badge), hero: fromDraft(d.hero) });
+/** Where each type's public pricing lives (only clubs have a public page so far) */
+const PUBLIC_PRICING: Partial<Record<ListingType, string>> = { club: '/clubs/feature#pricing' };
+
+export default function FeaturePricingEditor({ type = 'club' }: { type?: ListingType }) {
+  const [product, setProduct] = useState<Placement>('badge');
+  const [drafts, setDrafts] = useState<TypeDraft | null>(null);
+  const draft = drafts?.[product] ?? null;
+  const setDraft = (v: Draft | null | ((d: Draft | null) => Draft | null)) =>
+    setDrafts((ds) => {
+      if (!ds) return ds;
+      const next = typeof v === 'function' ? v(ds[product]) : v;
+      return next ? { ...ds, [product]: next } : ds;
+    });
   const [savedJson, setSavedJson] = useState('');
-  const [defaults, setDefaults] = useState<FeaturePricing | null>(null);
+  const [defaults, setDefaults] = useState<TypePricing | null>(null);
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
   const [isCustom, setIsCustom] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -56,13 +71,13 @@ export default function FeaturePricingEditor() {
   const load = useCallback(async () => {
     setLoadError(null);
     try {
-      const j = await api<{ pricing: FeaturePricing; defaults: FeaturePricing; saved: boolean; updatedAt: string | null }>('/api/admin/feature-pricing');
-      const d = toDraft(j.pricing);
-      setDraft(d); setSavedJson(JSON.stringify(d)); setDefaults(j.defaults); setIsCustom(j.saved); setUpdatedAt(j.updatedAt);
+      const j = await api<{ pricing: TypePricing; defaults: TypePricing; saved: boolean; updatedAt: string | null }>(`/api/admin/feature-pricing?type=${type}`);
+      const d = toTypeDraft(j.pricing);
+      setDrafts(d); setSavedJson(JSON.stringify(d)); setDefaults(j.defaults); setIsCustom(j.saved); setUpdatedAt(j.updatedAt);
     } catch (e) {
       setLoadError((e as Error).message);
     }
-  }, []);
+  }, [type]);
   useEffect(() => { load(); }, [load]);
 
   if (loadError) {
@@ -72,11 +87,12 @@ export default function FeaturePricingEditor() {
       </div>
     );
   }
-  if (!draft) {
+  if (!draft || !drafts) {
     return <div className="mb-6 flex items-center gap-2 rounded-lg border border-[#E8EEF4] bg-white px-5 py-8 text-sm text-[#5F6F86]"><Loader2 className="h-4 w-4 animate-spin" /> Loading pricing…</div>;
   }
 
-  const dirty = JSON.stringify(draft) !== savedJson;
+  const dirty = JSON.stringify(drafts) !== savedJson;
+  const dirtyProduct = (p: Placement) => JSON.stringify(drafts[p]) !== JSON.stringify((JSON.parse(savedJson) as TypeDraft)[p]);
   const preview = fromDraft(draft);
   const setPlan = (i: number, patch: Partial<PlanDraft>) =>
     setDraft((d) => d && { ...d, plans: d.plans.map((p, j) => (j === i ? { ...p, ...patch } : patch.highlight ? { ...p, highlight: false } : p)) });
@@ -84,12 +100,12 @@ export default function FeaturePricingEditor() {
   const save = async () => {
     setSaving(true); setError(null);
     try {
-      const j = await api<{ pricing: FeaturePricing; updatedAt: string }>('/api/admin/feature-pricing', {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pricing: fromDraft(draft) }),
+      const j = await api<{ pricing: TypePricing; updatedAt: string }>(`/api/admin/feature-pricing?type=${type}`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pricing: fromTypeDraft(drafts) }),
       });
-      const d = toDraft(j.pricing);
-      setDraft(d); setSavedJson(JSON.stringify(d)); setIsCustom(true); setUpdatedAt(j.updatedAt);
-      success('Pricing saved. The Feature your Club page is updated.');
+      const d = toTypeDraft(j.pricing);
+      setDrafts(d); setSavedJson(JSON.stringify(d)); setIsCustom(true); setUpdatedAt(j.updatedAt);
+      success(`${TYPE_META[type].plural} pricing saved.`);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -102,20 +118,34 @@ export default function FeaturePricingEditor() {
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#EEF3F8] px-5 py-3.5">
         <div className="flex items-center gap-2">
           <DollarSign className="h-4 w-4 text-[#0E7C7B]" />
-          <span className="font-semibold text-[#0D1B4C]">Feature your Club pricing</span>
+          <span className="font-semibold text-[#0D1B4C]">{TYPE_META[type].plural} featured pricing</span>
           <span className="text-xs text-[#5F6F86]">
             {isCustom && updatedAt ? `Last saved ${new Date(updatedAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}` : 'Using recommended pricing'}
           </span>
         </div>
-        <a href="/clubs/feature#pricing" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm font-medium text-[#0E7C7B] hover:underline">
-          View page <ExternalLink className="h-3.5 w-3.5" />
-        </a>
+        {PUBLIC_PRICING[type] && (
+          <a href={PUBLIC_PRICING[type]} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm font-medium text-[#0E7C7B] hover:underline">
+            View public page <ExternalLink className="h-3.5 w-3.5" />
+          </a>
+        )}
+      </div>
+
+      {/* Product switch */}
+      <div className="flex gap-1 border-b border-[#EEF3F8] px-5" role="tablist" aria-label="Product">
+        {PLACEMENTS.map((p) => (
+          <button key={p} type="button" role="tab" aria-selected={product === p} onClick={() => setProduct(p)}
+            className={`-mb-px flex items-center gap-1.5 border-b-2 px-3 py-2.5 text-sm font-semibold transition ${product === p ? 'border-[#0E7C7B] text-[#0E7C7B]' : 'border-transparent text-[#5F6F86] hover:text-[#2E3F5C]'}`}>
+            {PLACEMENT_META[p].label}
+            {dirtyProduct(p) && <span className="h-1.5 w-1.5 rounded-full bg-amber-500" aria-label="Unsaved changes" />}
+          </button>
+        ))}
       </div>
 
       <div className="space-y-6 p-5">
+        <p className="-mb-2 text-xs text-[#5F6F86]">{PLACEMENT_META[product].blurb}</p>
         <div>
-          <label htmlFor="pricing-perks" className={label}>Included with every plan (one per line)</label>
-          <textarea id="pricing-perks" rows={4} value={draft.perks} onChange={(e) => setDraft({ ...draft, perks: e.target.value })} className={input} />
+           <label htmlFor={`pricing-perks-${product}`} className={label}>Included with every {PLACEMENT_META[product].label.toLowerCase()} plan (one per line)</label>
+          <textarea id={`pricing-perks-${product}`} rows={4} value={draft.perks} onChange={(e) => setDraft({ ...draft, perks: e.target.value })} className={input} />
         </div>
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
@@ -195,11 +225,11 @@ export default function FeaturePricingEditor() {
           <p className="text-xs text-[#5F6F86]">Changes apply to the public page and to new requests. Requests already sent keep the price they were quoted.</p>
           <div className="flex gap-2">
             {defaults && (
-              <button type="button" onClick={() => setDraft(toDraft(defaults))} className="flex items-center gap-1.5 rounded-lg border border-[#D3DEE8] px-3 py-2 text-sm font-medium text-[#2E3F5C] hover:bg-[#F5F8FB]">
-                <RotateCcw className="h-3.5 w-3.5" /> Recommended pricing
+              <button type="button" onClick={() => setDraft(toDraft(defaults[product]))} className="flex items-center gap-1.5 rounded-lg border border-[#D3DEE8] px-3 py-2 text-sm font-medium text-[#2E3F5C] hover:bg-[#F5F8FB]">
+                <RotateCcw className="h-3.5 w-3.5" /> Recommended {PLACEMENT_META[product].short.toLowerCase()} pricing
               </button>
             )}
-            <button type="button" disabled={!dirty || saving} onClick={() => { setDraft(JSON.parse(savedJson)); setError(null); }}
+            <button type="button" disabled={!dirty || saving} onClick={() => { setDrafts(JSON.parse(savedJson)); setError(null); }}
               className="rounded-lg border border-[#D3DEE8] px-3 py-2 text-sm font-medium text-[#2E3F5C] hover:bg-[#F5F8FB] disabled:opacity-50">
               Discard changes
             </button>

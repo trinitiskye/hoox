@@ -12,18 +12,23 @@ import { Star, CalendarDays, Trophy, MapPin, ArrowRight, ExternalLink } from 'lu
 import { fmtRange } from '@/components/listing/ListingUI';
 import { DEMO as DEMO_TOURNAMENTS, fromTournament } from '@/components/pages/TournamentsPage';
 import { Tournament } from '@/types';
+import { useFeaturedPlacements, dailyPick } from '@/lib/useFeaturedPlacements';
 
 export default function FeaturedTournamentHero({ tournaments, className = '' }: { tournaments: Tournament[] | null; className?: string }) {
+  const placements = useFeaturedPlacements('tournament');
   const t = useMemo(() => {
     if (tournaments === null) return null;
-    const list = tournaments.length ? tournaments.map(fromTournament) : DEMO_TOURNAMENTS;
+    const all = tournaments.length ? tournaments.map(fromTournament) : DEMO_TOURNAMENTS;
+    // Paid hero placements can point at any tournament, including demo ones
+    const list = [...all, ...DEMO_TOURNAMENTS.filter((d) => !all.some((x) => x.id === d.id))];
     const now = new Date();
     return (
-      list.find((x) => x.featured) ??
-      list.filter((x) => !x.completed && new Date(`${x.end}T23:59:59`) >= now).sort((a, b) => a.start.localeCompare(b.start))[0] ??
+      dailyPick(list.filter((x) => placements.hero.has(x.id))) ??
+      all.find((x) => x.featured) ??
+      all.filter((x) => !x.completed && new Date(`${x.end}T23:59:59`) >= now).sort((a, b) => a.start.localeCompare(b.start))[0] ??
       null
     );
-  }, [tournaments]);
+  }, [tournaments, placements]);
 
   if (tournaments === null) return <div className={`h-[292px] animate-pulse rounded-lg bg-[#DCE6EE] ${className}`} aria-hidden />;
   if (!t) return null;

@@ -15,6 +15,7 @@ import {
   DEFAULT_FEATURE_PRICING, enabledPlans, formatMoney as money, perMonth, planIn,
   type FeaturePlanId, type FeaturePricing, type MyClub,
 } from '@/lib/clubFeature';
+import { DEFAULT_TYPE_PRICING, PLACEMENTS, PLACEMENT_META, type Placement, type TypePricing } from '@/lib/featured';
 import type { User } from '@/types';
 
 /* ------------------------------------------------------------------ */
@@ -60,22 +61,24 @@ const FAQ = [
 
 /* ============================== page =============================== */
 
-/** Live pricing from Admin → Clubs → Feature your Club pricing (null while loading). */
+/** Live club pricing for both products, from Admin → Featured Marketing → Clubs → Pricing (null while loading). */
 function usePricing() {
-  const [pricing, setPricing] = useState<FeaturePricing | null>(null);
+  const [pricing, setPricing] = useState<TypePricing | null>(null);
   useEffect(() => {
     let cancelled = false;
-    fetch('/api/feature-pricing')
+    fetch('/api/feature-pricing?type=club')
       .then((r) => (r.ok ? r.json() : null))
-      .then((j) => { if (!cancelled) setPricing(j?.pricing ?? DEFAULT_FEATURE_PRICING); })
-      .catch(() => { if (!cancelled) setPricing(DEFAULT_FEATURE_PRICING); });
+      .then((j) => { if (!cancelled) setPricing(j?.pricing?.badge ? j.pricing : DEFAULT_TYPE_PRICING.club); })
+      .catch(() => { if (!cancelled) setPricing(DEFAULT_TYPE_PRICING.club); });
     return () => { cancelled = true; };
   }, []);
   return pricing;
 }
 
 export default function FeatureClubPage() {
-  const pricing = usePricing();
+  const allPricing = usePricing();
+  const [product, setProduct] = useState<Placement>('badge');
+  const pricing: FeaturePricing | null = allPricing ? allPricing[product] : null;
   const plans = pricing ? enabledPlans(pricing) : [];
   const [plan, setPlan] = useState<FeaturePlanId>('annual');
   // Default selection: the highlighted plan, else the first one shown
@@ -83,7 +86,7 @@ export default function FeatureClubPage() {
     if (!pricing) return;
     const shown = enabledPlans(pricing);
     setPlan((cur) => (shown.some((p) => p.id === cur) ? (shown.find((p) => p.highlight)?.id ?? cur) : (shown.find((p) => p.highlight) ?? shown[0]).id));
-  }, [pricing]);
+  }, [pricing]); // eslint-disable-line react-hooks/exhaustive-deps
   const lowestPerMonth = plans.length ? Math.min(...plans.map(perMonth)) : null;
 
   const choosePlan = (id: FeaturePlanId) => {
@@ -158,7 +161,16 @@ export default function FeatureClubPage() {
           <div className="mx-auto max-w-[640px] text-center">
             <p className="text-[13px] font-semibold uppercase tracking-[0.08em] text-[#14889A]">Pricing</p>
             <h2 id="pricing-heading" className={`mt-2 font-montserrat text-[28px] font-bold leading-tight sm:text-[36px] ${INK}`}>Simple plans for every club</h2>
-            <p className="mt-3 text-[17px] leading-[26px] text-[#536B84]">Every plan includes the same features.</p>
+            <p className="mt-3 text-[17px] leading-[26px] text-[#536B84]">Two ways to stand out. Choose one, or both.</p>
+            <div className="mt-6 inline-flex rounded-full bg-[#E3EAF1] p-1" role="tablist" aria-label="Product">
+              {PLACEMENTS.map((p) => (
+                <button key={p} type="button" role="tab" aria-selected={product === p} onClick={() => setProduct(p)}
+                  className={`rounded-full px-5 py-2 text-[15px] font-semibold transition ${product === p ? 'bg-white text-[#0D1B4C] shadow-sm' : 'text-[#4A5B76] hover:text-[#0D1B4C]'}`}>
+                  {p === 'badge' ? 'Featured listing' : 'Clubs page hero'}
+                </button>
+              ))}
+            </div>
+            <p className="mt-3 text-[14.5px] text-[#5F7896]">{product === 'badge' ? 'A Featured badge and the top spot in the directory, search and map, plus the home page Featured Clubs row.' : 'Your club in the large banner at the top of the Clubs page.'}</p>
           </div>
           <ul className={`mx-auto mt-10 grid max-w-[1100px] grid-cols-1 gap-5 ${plans.length === 2 ? 'md:max-w-[740px] md:grid-cols-2' : plans.length === 1 ? 'md:max-w-[380px]' : 'md:grid-cols-3'}`} aria-busy={!pricing}>
             {!pricing && [0, 1, 2].map((i) => <li key={i} className="h-[520px] animate-pulse rounded-xl border border-[#E8EEF4] bg-white" />)}
@@ -230,7 +242,7 @@ export default function FeatureClubPage() {
                 first. It’s free.
               </p>
             </div>
-            <RequestPanel plan={plan} setPlan={setPlan} pricing={pricing} />
+            <RequestPanel plan={plan} setPlan={setPlan} pricing={pricing} product={product} setProduct={setProduct} />
           </div>
         </section>
 
@@ -256,7 +268,7 @@ export default function FeatureClubPage() {
 
 /* ====================== Sign in + request form ====================== */
 
-function RequestPanel({ plan, setPlan, pricing }: { plan: FeaturePlanId; setPlan: (p: FeaturePlanId) => void; pricing: FeaturePricing | null }) {
+function RequestPanel({ plan, setPlan, pricing, product, setProduct }: { plan: FeaturePlanId; setPlan: (p: FeaturePlanId) => void; pricing: FeaturePricing | null; product: Placement; setProduct: (p: Placement) => void }) {
   const { currentUser, login, logout, loading: authLoading } = useAuth();
   const allowed = canRequest(currentUser);
 
@@ -337,7 +349,7 @@ function RequestPanel({ plan, setPlan, pricing }: { plan: FeaturePlanId; setPlan
         body: JSON.stringify({
           clubSubmissionId: clubId !== 'other' ? clubId : '',
           clubName: clubId === 'other' ? clubName.trim() : '',
-          plan, startDate, contactPhone: phone, promoCode: promo, notes,
+          plan, placement: product, startDate, contactPhone: phone, promoCode: promo, notes,
         }),
       });
       const j = await res.json().catch(() => ({}));
@@ -473,6 +485,21 @@ function RequestPanel({ plan, setPlan, pricing }: { plan: FeaturePlanId; setPlan
           </div>
 
           <fieldset>
+            <legend className={labelClass}>Product<span className="text-[#B42318]"> *</span></legend>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {PLACEMENTS.map((p) => (
+                <label key={p} className={`flex cursor-pointer items-start gap-2 rounded-md border p-4 transition ${product === p ? 'border-[#0E7C7B] bg-[#F1F9F9] ring-1 ring-[#0E7C7B]' : 'border-[#D9E3EC] hover:border-[#9FB3C6]'}`}>
+                  <input type="radio" name="product" value={p} checked={product === p} onChange={() => setProduct(p)} className="mt-0.5 h-[18px] w-[18px] accent-[#0E7C7B]" />
+                  <span>
+                    <span className="block text-[15px] font-semibold text-[#0D1B4C]">{p === 'badge' ? 'Featured listing' : 'Clubs page hero'}</span>
+                    <span className="block text-[13px] text-[#5F6F86]">{PLACEMENT_META[p].blurb}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+
+          <fieldset>
             <legend className={labelClass}>Plan<span className="text-[#B42318]"> *</span></legend>
             <div className={`grid grid-cols-1 gap-3 ${shownPlans.length >= 3 ? 'sm:grid-cols-3' : shownPlans.length === 2 ? 'sm:grid-cols-2' : ''}`}>
               {shownPlans.map((p) => (
@@ -513,7 +540,7 @@ function RequestPanel({ plan, setPlan, pricing }: { plan: FeaturePlanId; setPlan
           <div className="border-t border-[#EDF1F5] pt-6">
             <button type="submit" disabled={sending || clubs === null || !chosen}
               className="flex h-[50px] w-full items-center justify-center gap-3 rounded-md bg-[#0E7C7B] text-[16px] font-semibold text-white shadow-[0_4px_12px_rgba(14,124,123,0.25)] transition hover:bg-[#0B6766] disabled:opacity-60">
-              {sending ? 'Sending…' : chosen ? <>Request {chosen.name} plan · {money(chosen.price)} <ArrowRight className="h-5 w-5" strokeWidth={2} /></> : 'Loading plans…'}
+              {sending ? 'Sending…' : chosen ? <>Request {product === 'hero' ? 'page hero' : 'featured listing'} · {chosen.name} · {money(chosen.price)} <ArrowRight className="h-5 w-5" strokeWidth={2} /></> : 'Loading plans…'}
             </button>
             <p className="mt-3 text-center text-[13px] text-[#6B7D93]">You won’t be charged now. We’ll email an invoice after review.</p>
           </div>

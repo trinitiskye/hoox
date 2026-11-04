@@ -9,6 +9,7 @@ import type { DbEventSubmission, DbEventSubmissionInsert } from './eventSubmissi
 import type { DbClubSubmission, DbClubSubmissionInsert } from './clubSubmission';
 import type { DbClubFeatureRequest, DbClubFeatureRequestInsert } from './clubFeature';
 import type { DbFishSpecies } from './species';
+import type { DbFeaturedRequest } from './featured';
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -384,5 +385,40 @@ export async function setTournamentFishTypesAdmin(id: string, fishTypes: string[
   return supabaseAdminFetch<unknown[]>(`tournaments?id=eq.${encodeURIComponent(id)}`, {
     method: 'PATCH',
     body: JSON.stringify({ fish_types: fishTypes }),
+  });
+}
+
+// ============================================================
+// FEATURED PLACEMENTS — all listing types (rows in club_feature_requests)
+// ============================================================
+
+export async function listFeaturedRequestsAdmin(type?: string) {
+  const t = type ? `&listing_type=eq.${encodeURIComponent(type)}` : '';
+  return supabaseAdminFetch<DbFeaturedRequest[]>(`club_feature_requests?select=*${t}&order=created_at.desc&limit=2000`);
+}
+
+/** Approved placements live today for a listing type (public pages) */
+export async function listActivePlacementsAdmin(type: string, today: string) {
+  return supabaseAdminFetch<Pick<DbFeaturedRequest, 'listing_id' | 'club_name' | 'placement' | 'featured_from' | 'featured_until'>[]>(
+    `club_feature_requests?select=listing_id,club_name,placement,featured_from,featured_until&status=eq.approved&listing_type=eq.${encodeURIComponent(type)}&featured_until=gte.${today}&limit=500`
+  );
+}
+
+export async function createFeaturedRequestAdmin(r: Partial<DbFeaturedRequest>) {
+  return supabaseAdminFetch<DbFeaturedRequest[]>('club_feature_requests', { method: 'POST', body: JSON.stringify(r) });
+}
+
+export async function getFeaturedRequestAdmin(id: string) {
+  return supabaseAdminFetch<DbFeaturedRequest[]>(`club_feature_requests?id=eq.${encodeURIComponent(id)}&select=*`);
+}
+
+export async function updateFeaturedRequestAdmin(id: string, patch: Partial<DbFeaturedRequest>) {
+  return supabaseAdminFetch<DbFeaturedRequest[]>(`club_feature_requests?id=eq.${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify(patch) });
+}
+
+export async function setClubHeroAdmin(id: string, on: boolean, until: string | null) {
+  return supabaseAdminFetch<DbClubSubmission[]>(`club_submissions?id=eq.${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ featured_hero: on, featured_hero_until: until }),
   });
 }

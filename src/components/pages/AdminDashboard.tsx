@@ -21,8 +21,7 @@ import HeroSlidesManager from '@/components/admin/HeroSlidesManager';
 import HomeBannersManager from '@/components/admin/HomeBannersManager';
 import EventSubmissionsManager from '@/components/admin/EventSubmissionsManager';
 import ClubSubmissionsManager from '@/components/admin/ClubSubmissionsManager';
-import ClubFeatureRequestsManager from '@/components/admin/ClubFeatureRequestsManager';
-import FeaturePricingEditor from '@/components/admin/FeaturePricingEditor';
+import { FeaturedOverview, FeaturedTypePage, FeaturedRevenuePage, FeaturedCustomers } from '@/components/admin/FeaturedAdmin';
 import SpeciesManager from '@/components/admin/SpeciesManager';
 import SupportInbox from '@/components/admin/SupportInbox';
 
@@ -54,6 +53,10 @@ const TAB_TO_PATH: Record<string, string> = {
   'Display Banner Accounts':      '/admin/marketing/banners/accounts',
   'Ad Revenue':                   '/admin/marketing/banners/revenue',
   'Featured Marketing':           '/admin/marketing/featured',
+  'Featured Tournaments':         '/admin/marketing/featured/tournaments',
+  'Featured Series':              '/admin/marketing/featured/series',
+  'Featured Clubs':               '/admin/marketing/featured/clubs',
+  'Featured Expos':               '/admin/marketing/featured/expos',
   'Featured Marketing Accounts':  '/admin/marketing/featured/accounts',
   'Featured Content Revenue':     '/admin/marketing/featured/revenue',
   'Sponsor Programs':             '/admin/marketing/sponsors',
@@ -116,13 +119,19 @@ export default function AdminDashboard({ currentUser, onNavigate, initialTab, us
         {activeTab === 'CMS' && <CMSTab />}
         {activeTab === 'Settings' && <SettingsTab />}
         {activeTab === 'Support' && <SupportInbox />}
-        {activeTab === 'Featured Marketing' && <FeaturedMarketingTab />}
+        {activeTab === 'Featured Marketing' && <FeaturedOverview />}
+        {activeTab === 'Featured Tournaments' && <FeaturedTypePage type="tournament" />}
+        {activeTab === 'Featured Series' && <FeaturedTypePage type="series" />}
+        {activeTab === 'Featured Clubs' && <FeaturedTypePage type="club" />}
+        {activeTab === 'Featured Expos' && <FeaturedTypePage type="event" />}
+        {activeTab === 'Featured Marketing Accounts' && <FeaturedCustomers />}
+        {activeTab === 'Featured Content Revenue' && <FeaturedRevenuePage />}
         {activeTab === 'Ad Revenue' && <MonetizationTab initial="Ad Revenue" />}
         {activeTab !== 'Dashboard' && activeTab !== 'Users' && activeTab !== 'Tournaments' &&
          activeTab !== 'Catch Submissions' && activeTab !== 'Partners' && activeTab !== 'Clubs' &&
          activeTab !== 'Series' && activeTab !== 'Events' && activeTab !== 'Advertising' &&
          activeTab !== 'Monetization' && activeTab !== 'CMS' && activeTab !== 'Settings' && activeTab !== 'Support' &&
-         activeTab !== 'Featured Marketing' && activeTab !== 'Ad Revenue' && (
+         activeTab !== 'Ad Revenue' && !(activeTab.startsWith('Featured ')) && (
           <ComingSoonTab tab={activeTab} />
         )}
       </div>
@@ -2211,20 +2220,6 @@ function AdvertisingTab() {
 // ============================================================
 // MONETIZATION TAB
 // ============================================================
-/** Digital Marketing → Featured Marketing: club feature requests and pricing */
-function FeaturedMarketingTab() {
-  return (
-    <div>
-      <div className="mb-6">
-        <h2 className="font-montserrat text-2xl font-bold text-[#0D1B4C]">Featured Marketing</h2>
-        <p className="text-[#5F6F86] text-sm mt-0.5">Featured placements requested from the public “Feature your Club” page, and the prices shown there</p>
-      </div>
-      <ClubFeatureRequestsManager />
-      <FeaturePricingEditor />
-    </div>
-  );
-}
-
 function MonetizationTab({ initial = 'All Revenue' }: { initial?: string }) {
   const [activeTab, setActiveTab] = useState(initial);
   const tabs = ['All Revenue', 'Tournament Registration Revenue', 'Ad Revenue'];

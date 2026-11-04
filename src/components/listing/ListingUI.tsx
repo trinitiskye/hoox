@@ -7,7 +7,7 @@
 /* ------------------------------------------------------------------ */
 
 import { useEffect, useRef, useState } from 'react';
-import { MapPin, ChevronDown, LayoutGrid, List as ListIcon, Map as MapIcon } from 'lucide-react';
+import { MapPin, ChevronDown, LayoutGrid, List as ListIcon, Map as MapIcon, Star } from 'lucide-react';
 
 export type Status = 'In progress' | 'Upcoming' | 'Completed';
 export type ListingView = 'grid' | 'list' | 'map';
@@ -56,6 +56,15 @@ const STATUS_CHIP: Record<Status, string> = {
   Upcoming: 'bg-[#E6F0FB] text-[#1048A5]',
   Completed: 'bg-[#EEF1F5] text-[#5F7896]',
 };
+
+/** "Featured" badge for listings with a paid Featured listing placement */
+export function FeaturedChip({ className = '' }: { className?: string }) {
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full bg-[#0A2A47]/90 px-2.5 py-[3px] text-[11.5px] font-bold uppercase tracking-[0.03em] text-[#3FD6D0] shadow-sm ${className}`}>
+      <Star className="h-3 w-3" fill="currentColor" strokeWidth={1.5} aria-hidden /> Featured
+    </span>
+  );
+}
 
 export function StatusChip({ status, className = '' }: { status: Status; className?: string }) {
   return (
