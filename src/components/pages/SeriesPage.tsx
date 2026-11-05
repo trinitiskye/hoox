@@ -2,8 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Search, MapPin, Fish, Trophy, CalendarDays, ChevronDown, ArrowUpDown, ArrowRight, Star, X, Flag, ExternalLink,
+  Search, MapPin, Fish, Trophy, CalendarDays, ChevronDown, ArrowUpDown, ArrowRight, Star, X, Flag, ExternalLink, Ship,
 } from 'lucide-react';
+import { VESSEL_TYPES, matchesVessel, type VesselType } from '@/lib/vessels';
 import ClubsMap from '@/components/clubs/ClubsMap';
 import { useFeaturedPlacements, dailyPick } from '@/lib/useFeaturedPlacements';
 import {
@@ -19,7 +20,7 @@ interface SeriesPageProps {
 /* Demo data until series dates, locations and stops are in Supabase.  */
 /* ------------------------------------------------------------------ */
 
-type Style = 'Bass' | 'Inshore' | 'Saltwater' | 'Freshwater' | 'Fly Fishing' | 'Kayak' | 'Offshore' | 'Crappie';
+type Style = 'Bass' | 'Inshore' | 'Saltwater' | 'Freshwater' | 'Fly Fishing' | 'Offshore' | 'Crappie';
 
 interface Stop {
   date: string; // ISO
@@ -40,6 +41,7 @@ export interface SeriesItem {
   lng: number;
   states: string[]; // used by the Location filter
   styles: Style[];
+  vessels: VesselType[]; // Kayak, Powerboat … (src/lib/vessels.ts)
   start: string; // ISO
   end: string; // ISO
   image: string;
@@ -52,7 +54,7 @@ export const SERIES: SeriesItem[] = [
   {
     id: 'hoox-pro-bass', featured: true, name: 'HOOX Pro Bass Series', sponsor: 'TidalGear', sponsorUrl: 'https://example.com',
     city: 'Guntersville', lat: 34.3582, lng: -86.2947, state: 'Alabama', country: 'United States',
-    region: 'Tennessee, Alabama & Georgia', states: ['TN', 'AL', 'GA'], styles: ['Bass'],
+    region: 'Tennessee, Alabama & Georgia', states: ['TN', 'AL', 'GA'], styles: ['Bass'], vessels: ['Powerboat'],
     start: '2026-03-14', end: '2026-11-15', image: '/home/summer-slam.jpg',
     about: 'Eight stops across the Southeast’s best bass lakes, with points carrying through to a championship weigh-in on Lake Guntersville.',
     stops: [
@@ -69,7 +71,7 @@ export const SERIES: SeriesItem[] = [
   {
     id: 'gulf-coast-inshore', name: 'Gulf Coast Inshore Trail', sponsor: 'Coastal Outfitters', sponsorUrl: 'https://example.com',
     city: 'Galveston', lat: 29.3013, lng: -94.7977, state: 'Texas', country: 'United States',
-    region: 'Texas, Louisiana & Florida', states: ['TX', 'LA', 'FL'], styles: ['Inshore', 'Saltwater'],
+    region: 'Texas, Louisiana & Florida', states: ['TX', 'LA', 'FL'], styles: ['Inshore', 'Saltwater'], vessels: ['Kayak', 'Powerboat'],
     start: '2026-04-04', end: '2026-10-10', image: '/home/coastal-open.jpg',
     about: 'Redfish and speckled trout from Galveston to the Florida Panhandle. Two-angler teams, total-weight format.',
     stops: [
@@ -83,7 +85,7 @@ export const SERIES: SeriesItem[] = [
   {
     id: 'pine-creek-kayak', name: 'Pine Creek Kayak Series',
     city: 'Mooresville', lat: 35.5849, lng: -80.8101, state: 'North Carolina', country: 'United States',
-    region: 'North Carolina', states: ['NC'], styles: ['Kayak', 'Freshwater'],
+    region: 'North Carolina', states: ['NC'], styles: ['Freshwater'], vessels: ['Kayak'],
     start: '2026-08-01', end: '2026-12-05', image: '/home/pine-creek.jpg',
     about: 'Catch-photo-release kayak events on Carolina rivers and reservoirs, judged in the HOOX app.',
     stops: [
@@ -96,7 +98,7 @@ export const SERIES: SeriesItem[] = [
   {
     id: 'fall-classic-crappie', name: 'Fall Classic Crappie Circuit', sponsor: 'Lakeside Tackle', sponsorUrl: 'https://example.com',
     city: 'Warsaw', lat: 38.2431, lng: -93.3819, state: 'Missouri', country: 'United States',
-    region: 'Missouri, Arkansas & Oklahoma', states: ['MO', 'AR', 'OK'], styles: ['Crappie', 'Freshwater'],
+    region: 'Missouri, Arkansas & Oklahoma', states: ['MO', 'AR', 'OK'], styles: ['Crappie', 'Freshwater'], vessels: ['Powerboat'],
     start: '2026-10-03', end: '2026-12-12', image: '/home/fall-classic.jpg',
     about: 'A short fall circuit for crappie teams, with seven-fish limits and a big-fish side pot at every stop.',
     stops: [
@@ -108,7 +110,7 @@ export const SERIES: SeriesItem[] = [
   {
     id: 'bayou-bass-classic', name: 'Bayou Bass Classic Series',
     city: 'Morgan City', lat: 29.6994, lng: -91.2068, state: 'Louisiana', country: 'United States',
-    region: 'Louisiana', states: ['LA'], styles: ['Bass'],
+    region: 'Louisiana', states: ['LA'], styles: ['Bass'], vessels: ['Powerboat'],
     start: '2026-11-07', end: '2027-02-20', image: '/home/bayou-bash.jpg',
     about: 'Winter bass fishing in the Atchafalaya Basin and Louisiana’s big reservoirs. Open to solo anglers and teams.',
     stops: [
@@ -121,7 +123,7 @@ export const SERIES: SeriesItem[] = [
   {
     id: 'mountain-lakes-trout', name: 'Mountain Lakes Trout Series',
     city: 'Bozeman', lat: 45.677, lng: -111.0429, state: 'Montana', country: 'United States',
-    region: 'Montana & Idaho', states: ['MT', 'ID'], styles: ['Fly Fishing', 'Freshwater'],
+    region: 'Montana & Idaho', states: ['MT', 'ID'], styles: ['Fly Fishing', 'Freshwater'], vessels: ['Kayak'],
     start: '2026-05-16', end: '2026-09-26', image: '/home/mountain-lake.jpg',
     about: 'High-country lake and river events for fly anglers, scored by total length of measured trout.',
     stops: [
@@ -134,7 +136,7 @@ export const SERIES: SeriesItem[] = [
   {
     id: 'pacific-offshore', name: 'Pacific Offshore Challenge', sponsor: 'Bluewater Marine', sponsorUrl: 'https://example.com',
     city: 'San Diego', lat: 32.7157, lng: -117.1611, state: 'California', country: 'United States',
-    region: 'California', states: ['CA'], styles: ['Offshore', 'Saltwater'],
+    region: 'California', states: ['CA'], styles: ['Offshore', 'Saltwater'], vessels: ['Powerboat'],
     start: '2027-03-20', end: '2027-09-11', image: '/clubs/demo/deep-sea-explorers.jpg',
     about: 'Tuna, yellowtail and dorado off the Southern California coast, with live leaderboards for every stop.',
     stops: [
@@ -148,7 +150,7 @@ export const SERIES: SeriesItem[] = [
     // Demo: a short series that runs over three consecutive days
     id: 'lanier-holiday-shootout', name: 'Lanier Holiday Shootout Series',
     city: 'Gainesville', lat: 34.2979, lng: -83.8241, state: 'Georgia', country: 'United States',
-    region: 'Georgia', states: ['GA'], styles: ['Bass'],
+    region: 'Georgia', states: ['GA'], styles: ['Bass'], vessels: ['Kayak', 'Powerboat'],
     start: '2026-11-27', end: '2026-11-29', image: '/clubs/demo/lakeview-bass-club.jpg',
     about: 'Three one-day bass tournaments over Thanksgiving weekend on Lake Lanier. Fish one day or all three for the series title.',
     stops: [
@@ -159,7 +161,7 @@ export const SERIES: SeriesItem[] = [
   },
 ];
 
-const STYLES: Style[] = ['Bass', 'Crappie', 'Freshwater', 'Fly Fishing', 'Inshore', 'Kayak', 'Offshore', 'Saltwater'];
+const STYLES: Style[] = ['Bass', 'Crappie', 'Freshwater', 'Fly Fishing', 'Inshore', 'Offshore', 'Saltwater'];
 const STATUSES: Status[] = ['In progress', 'Upcoming', 'Completed'];
 type Sort = 'season' | 'start' | 'name' | 'events';
 const SORTS: Record<Sort, string> = { season: 'Current Season', start: 'Start Date', name: 'Name (A–Z)', events: 'Most Events' };
@@ -245,6 +247,7 @@ export function SeriesDialog({ s, status, onClose, onNavigate }: { s: SeriesItem
             <div><dt className="text-[#5F7896]">Events</dt><dd className={`font-semibold ${INK}`}>{s.stops.length}</dd></div>
             <div><dt className="text-[#5F7896]">Location</dt><dd className={`font-semibold ${INK}`}>{s.region}<span className="block font-normal text-[#536B84]">{place(s)}</span></dd></div>
             <div><dt className="text-[#5F7896]">Fishing style</dt><dd className={`font-semibold ${INK}`}>{s.styles.join(', ')}</dd></div>
+            <div><dt className="text-[#5F7896]">Vessel</dt><dd className={`font-semibold ${INK}`}>{s.vessels.join(', ') || 'Any'}</dd></div>
           </dl>
 
           <h3 className={`mt-6 font-montserrat text-[17px] font-bold ${INK}`}>Schedule</h3>
@@ -290,6 +293,7 @@ export default function SeriesPage({ onNavigate }: SeriesPageProps) {
   const [q, setQ] = useState('');
   const [state, setState] = useState('all');
   const [style, setStyle] = useState('all');
+  const [vessel, setVessel] = useState('all');
   const [status, setStatus] = useState('all');
   const [sort, setSort] = useState<Sort>('season');
   const [open, setOpen] = useState<SeriesItem | null>(null);
@@ -311,12 +315,13 @@ export default function SeriesPage({ onNavigate }: SeriesPageProps) {
     const term = q.trim().toLowerCase();
     return SERIES.filter((s) => {
       if (style !== 'all' && !s.styles.includes(style as Style)) return false;
+      if (!matchesVessel(s.vessels, vessel)) return false;
       if (status !== 'all' && statusById[s.id] !== status) return false;
       if (!term) return true;
-      return [s.name, s.sponsor ?? '', s.region, s.about, ...s.styles, s.city, s.state, s.country, ...s.states.map((x) => STATE_NAMES[x] ?? x), ...s.stops.flatMap((st) => [st.name, st.place])]
+      return [s.name, s.sponsor ?? '', s.region, s.about, ...s.styles, ...s.vessels, s.city, s.state, s.country, ...s.states.map((x) => STATE_NAMES[x] ?? x), ...s.stops.flatMap((st) => [st.name, st.place])]
         .some((v) => v.toLowerCase().includes(term));
     });
-  }, [q, style, status, statusById]);
+  }, [q, style, vessel, status, statusById]);
 
   const locationOptions = useMemo(
     () => [
@@ -339,13 +344,13 @@ export default function SeriesPage({ onNavigate }: SeriesPageProps) {
     });
   }, [matchingOtherFilters, state, sort, statusById, placements]);
 
-  const filtering = q.trim() !== '' || state !== 'all' || style !== 'all' || status !== 'all';
+  const filtering = q.trim() !== '' || state !== 'all' || style !== 'all' || vessel !== 'all' || status !== 'all';
   // Featured series sits under the page intro and stays put while filtering;
   // it's left out of the grid only when no filters are applied.
   // Page hero: a paid hero placement (rotates daily if several), else the demo featured one
   const featured = dailyPick(SERIES.filter((s) => placements.hero.has(s.id))) ?? SERIES.find((s) => s.featured);
   const grid = featured && !filtering ? results.filter((s) => s.id !== featured.id) : results;
-  const reset = () => { setQ(''); setState('all'); setStyle('all'); setStatus('all'); };
+  const reset = () => { setQ(''); setState('all'); setStyle('all'); setVessel('all'); setStatus('all'); };
 
   return (
     <div className="font-roboto">
@@ -391,8 +396,8 @@ export default function SeriesPage({ onNavigate }: SeriesPageProps) {
         )}
 
         {/* Filters */}
-        <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 min-[1440px]:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)_minmax(0,1.15fr)_minmax(0,1fr)_auto_220px_auto] min-[1440px]:items-center min-[1440px]:gap-[16px]" role="search" aria-label="Find series">
-          <label className="relative block sm:col-span-2 lg:col-span-3 min-[1440px]:col-span-1">
+        <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 min-[1440px]:grid-cols-[minmax(0,1.5fr)_repeat(4,minmax(0,1fr))] min-[1440px]:items-center min-[1440px]:gap-[16px]" role="search" aria-label="Find series">
+          <label className="relative block sm:col-span-2 lg:col-span-4 min-[1440px]:col-span-1">
             <span className="sr-only">Search series</span>
             <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#5F7896]" strokeWidth={2} />
             <input
@@ -412,21 +417,30 @@ export default function SeriesPage({ onNavigate }: SeriesPageProps) {
             options={[{ value: 'all', label: 'All Fishing Styles' }, ...STYLES.map((s) => ({ value: s, label: s }))]}
           />
           <FilterSelect
+            label="Vessel"
+            icon={<Ship className="h-[18px] w-[18px]" strokeWidth={2} />}
+            value={vessel}
+            onChange={setVessel}
+            options={[{ value: 'all', label: 'All Vessels' }, ...VESSEL_TYPES.map((v) => ({ value: v, label: v }))]}
+          />
+          <FilterSelect
             label="Status"
             icon={<Flag className="h-[18px] w-[18px]" strokeWidth={2} />}
             value={status}
             onChange={setStatus}
             options={[{ value: 'all', label: 'All Seasons' }, ...STATUSES.map((s) => ({ value: s, label: s }))]}
           />
-          <p className="flex items-center whitespace-nowrap text-[14px] text-[#7D8BA0] lg:justify-end" aria-live="polite">
+          {/* Results count, sort and view: their own row under the filters */}
+          <div className="flex flex-wrap items-center gap-3 sm:col-span-2 lg:col-span-4 min-[1440px]:col-span-5">
+          <p className="mr-auto flex items-center whitespace-nowrap text-[14px] text-[#7D8BA0]" aria-live="polite">
             {results.length} series found
           </p>
-          <label className="relative block">
+          <label className="relative block w-full sm:w-[272px]">
             <span className="sr-only">Sort series</span>
             <span className="pointer-events-none absolute left-4 top-1/2 flex -translate-y-1/2 items-center gap-2 text-[14px] text-[#5F7896]">
-              <ArrowUpDown className="h-4 w-4 text-[#0D1B4C]" strokeWidth={2} /> <span className="min-[1440px]:sr-only">Sort by</span>
+              <ArrowUpDown className="h-4 w-4 text-[#0D1B4C]" strokeWidth={2} /> <span>Sort by</span>
             </span>
-            <select value={sort} onChange={(e) => setSort(e.target.value as Sort)} className={`${CONTROL} pl-[100px] pr-9 min-[1440px]:pl-11 text-[14px] font-semibold ${INK}`}>
+            <select value={sort} onChange={(e) => setSort(e.target.value as Sort)} className={`${CONTROL} pl-[100px] pr-9 text-[14px] font-semibold ${INK}`}>
               {(Object.keys(SORTS) as Sort[]).map((k) => <option key={k} value={k}>{SORTS[k]}</option>)}
             </select>
             <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#0D1B4C]" strokeWidth={2.25} />
@@ -434,6 +448,7 @@ export default function SeriesPage({ onNavigate }: SeriesPageProps) {
 
           {/* View toggle — right of the sorter */}
           <ViewToggle view={view} onChange={setView} />
+          </div>
         </div>
 
         {/* Series: map, list or grid */}
@@ -463,7 +478,7 @@ export default function SeriesPage({ onNavigate }: SeriesPageProps) {
             <h2 className={`mt-4 font-montserrat text-[22px] font-bold ${INK}`}>No tournament series found</h2>
             <p className="mt-2 max-w-[460px] text-[15px] leading-[22px] text-[#536B84]">
               {state !== 'all'
-                ? `There are no tournament series in ${STATE_NAMES[state]}${q.trim() || style !== 'all' || status !== 'all' ? ' that match your filters' : ''} yet. Try a nearby state or check back soon.`
+                ? `There are no tournament series in ${STATE_NAMES[state]}${q.trim() || style !== 'all' || vessel !== 'all' || status !== 'all' ? ' that match your filters' : ''} yet. Try a nearby state or check back soon.`
                 : 'No tournament series match your search. Try different filters or check back soon.'}
             </p>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
@@ -503,6 +518,7 @@ export default function SeriesPage({ onNavigate }: SeriesPageProps) {
                     <span>{s.region}<span className="block">{place(s)}</span></span>
                   </li>
                   <li className="flex items-center gap-3 text-[#5F7896]"><Trophy className="h-[16px] w-[16px] flex-shrink-0 text-[#0D1B4C]" strokeWidth={2} />{s.stops.length} events · {s.styles.join(' • ')}</li>
+                  {s.vessels.length > 0 && <li className="flex items-center gap-3 text-[#5F7896]"><Ship className="h-[16px] w-[16px] flex-shrink-0 text-[#0D1B4C]" strokeWidth={2} aria-hidden /><span><span className="sr-only">Vessel: </span>{s.vessels.join(' • ')}</span></li>}
                 </ul>
                 <button
                   onClick={() => setOpen(s)}
@@ -535,6 +551,7 @@ export default function SeriesPage({ onNavigate }: SeriesPageProps) {
                       <span>{s.region}<span className="block">{place(s)}</span></span>
                     </li>
                     <li className="flex items-center gap-3 text-[#5F7896]"><Fish className="h-[17px] w-[17px] flex-shrink-0 text-[#0D1B4C]" strokeWidth={2} />{s.styles.join(' • ')}</li>
+                    {s.vessels.length > 0 && <li className="flex items-center gap-3 text-[#5F7896]"><Ship className="h-[17px] w-[17px] flex-shrink-0 text-[#0D1B4C]" strokeWidth={2} aria-hidden /><span><span className="sr-only">Vessel: </span>{s.vessels.join(' • ')}</span></li>}
                     <li className="flex items-center gap-3 text-[#5F7896]"><Trophy className="h-[17px] w-[17px] flex-shrink-0 text-[#0D1B4C]" strokeWidth={2} />{s.stops.length} events</li>
                   </ul>
                   <div className="mt-auto pt-[18px]">

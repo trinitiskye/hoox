@@ -156,6 +156,7 @@ export function dbTournamentToApp(t: DbTournament): Tournament {
     state: t.state ?? undefined,
     species: t.species ?? undefined,
     fishTypes: t.fish_types ?? undefined,
+    vesselTypes: t.vessel_types ?? undefined,
     startDate: t.start_date,
     startTime: t.start_time,
     endDate: t.end_date,
@@ -181,6 +182,7 @@ export function appTournamentToDb(t: Partial<Tournament>): Partial<DbTournamentI
   if (t.state !== undefined) out.state = t.state;
   if (t.species !== undefined) out.species = t.species;
   if (t.fishTypes !== undefined) out.fish_types = t.fishTypes;
+  if (t.vesselTypes !== undefined) out.vessel_types = t.vesselTypes;
   if (t.startDate !== undefined) out.start_date = t.startDate;
   if (t.startTime !== undefined) out.start_time = t.startTime;
   if (t.endDate !== undefined) out.end_date = t.endDate;
@@ -275,6 +277,7 @@ export function dbSeriesToApp(s: DbSeries): Series {
     createdBy: s.created_by,
     createdAt: s.created_at,
     tournaments: s.tournament_ids?.map(String) ?? undefined,
+    vesselTypes: s.vessel_types ?? undefined,
   };
 }
 
@@ -291,6 +294,7 @@ export interface DbTournament {
   state: string | null;
   species: string | null;
   fish_types: string[] | null;
+  vessel_types?: string[] | null; // migration_2026_11_vessel_types.sql
   start_date: string;
   start_time: string;
   end_date: string;
@@ -415,6 +419,7 @@ export interface DbSeries {
   description: string | null;
   created_by: string;
   tournament_ids: string[] | null;
+  vessel_types?: string[] | null;
   created_at: string;
 }
 

@@ -20,7 +20,7 @@ async function call<T>(url: string, method: string, body?: unknown, key?: string
 
 export interface TournamentInput {
   name?: string; description?: string; location?: string; city?: string; state?: string;
-  species?: string; fishTypes?: string[]; startDate?: string; endDate?: string; startTime?: string; endTime?: string;
+  species?: string; fishTypes?: string[]; vesselTypes?: ('Kayak' | 'Powerboat')[]; startDate?: string; endDate?: string; startTime?: string; endTime?: string;
   timezone?: string; entryFee?: number | string | null; registrationFee?: number | string | null;
   maxParticipants?: number | string | null; image?: string; status?: 'upcoming' | 'active' | 'completed';
 }
@@ -30,8 +30,8 @@ export const createTournament = (t: TournamentInput) => call<Tournament>('/api/t
 export const updateTournament = (id: string, t: TournamentInput) => call<Tournament>(`/api/tournaments/${encodeURIComponent(id)}`, 'PATCH', t, 'tournament');
 export const deleteTournament = (id: string) => call<{ ok: true }>(`/api/tournaments/${encodeURIComponent(id)}`, 'DELETE');
 
-export const createSeries = (s: { name: string; description?: string; tournamentIds?: string[] }) => call<Series>('/api/series', 'POST', s, 'series');
-export const updateSeries = (id: string, s: { name?: string; description?: string; tournamentIds?: string[] }) => call<Series>(`/api/series/${encodeURIComponent(id)}`, 'PATCH', s, 'series');
+export const createSeries = (s: { name: string; description?: string; tournamentIds?: string[]; vesselTypes?: string[] }) => call<Series>('/api/series', 'POST', s, 'series');
+export const updateSeries = (id: string, s: { name?: string; description?: string; tournamentIds?: string[]; vesselTypes?: string[] }) => call<Series>(`/api/series/${encodeURIComponent(id)}`, 'PATCH', s, 'series');
 export const deleteSeries = (id: string) => call<{ ok: true }>(`/api/series/${encodeURIComponent(id)}`, 'DELETE');
 
 /** Register the signed-in angler (or, for the tournament's director, `anglerId`) */

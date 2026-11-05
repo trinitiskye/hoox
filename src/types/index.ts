@@ -63,6 +63,8 @@ export interface Tournament {
   state?: string;
   species?: string;
   fishTypes?: string[];
+  /** Kayak, Powerboat … (src/lib/vessels.ts) */
+  vesselTypes?: string[];
   startDate: string;
   startTime: string;
   endDate: string;
@@ -85,6 +87,7 @@ export interface Series {
   createdBy: string;
   createdAt: string;
   tournaments?: string[];
+  vesselTypes?: string[];
 }
 
 export interface Submission {

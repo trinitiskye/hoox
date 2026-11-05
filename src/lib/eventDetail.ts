@@ -45,6 +45,7 @@ export interface EventDetail {
   prizePool?: string;
   entries?: number; // boat / angler limit
   primarySpecies?: string;
+  vessels?: string[]; // Kayak, Powerboat …
   skillLevel?: string;
   schedule: ScheduleItem[];
   species: SpeciesItem[];
@@ -98,6 +99,7 @@ export const DEMO_EVENT: EventDetail = {
   prizePool: '$150,000',
   entries: 200,
   primarySpecies: 'Largemouth Bass',
+  vessels: ['Powerboat'],
   skillLevel: 'All Skill Levels',
   schedule: [
     { date: '2025-05-16', title: 'Registration & Check-In', time: '2:00 PM – 6:00 PM', place: 'Hartwell Marina' },
@@ -209,6 +211,7 @@ export function eventFromTournament(t: Tournament, host?: User | null, registrat
     overview: t.description || 'More details about this tournament will be posted by the tournament director.',
     entries: total,
     primarySpecies: fishes[0],
+    vessels: t.vesselTypes ?? [],
     schedule: days.map((d, i) => ({
       date: d,
       title: days.length === 1 ? 'Tournament Day' : i === days.length - 1 ? 'Final Day' : `Tournament Day ${i + 1}`,

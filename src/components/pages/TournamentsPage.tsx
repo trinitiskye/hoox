@@ -3,8 +3,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
-  Search, MapPin, Fish, Trophy, CalendarDays, ChevronDown, ArrowUpDown, ArrowRight, Star, Flag, ExternalLink, Users, Ticket,
+  Search, MapPin, Fish, Trophy, CalendarDays, ChevronDown, ArrowUpDown, ArrowRight, Star, Flag, ExternalLink, Users, Ticket, Ship,
 } from 'lucide-react';
+import { VESSEL_TYPES, matchesVessel } from '@/lib/vessels';
 import ClubsMap from '@/components/clubs/ClubsMap';
 import {
   STATE_NAMES, INK, CONTROL, type Status, StatusChip, FilterSelect, LocationSelect, ViewToggle, type ListingView,
@@ -39,6 +40,7 @@ export interface TItem {
   state?: string; // full name
   country: string;
   species: string[];
+  vessels?: string[]; // Kayak, Powerboat … (src/lib/vessels.ts)
   image: string;
   fee?: string;
   anglers?: number;
@@ -57,55 +59,55 @@ export const DEMO: TItem[] = [
     id: 'lakefront-classic', href: DEMO_HREF, featured: true, name: 'Lakefront Classic', sponsor: 'TidalGear', sponsorUrl: 'https://example.com',
     about: 'Three days of competitive bass fishing on Lake Hartwell, open to anglers of all skill levels, with a $150,000 total prize pool.',
     start: '2026-11-14', end: '2026-11-16', venue: 'Lake Hartwell', city: 'Hartwell', stateCode: 'GA', state: 'Georgia', country: 'United States',
-    species: ['Largemouth Bass', 'Spotted Bass'], image: '/events/demo/hero.jpg', fee: '$250', anglers: 200, prizePool: '$150,000', lat: 34.3529, lng: -82.9321,
+    species: ['Largemouth Bass', 'Spotted Bass'], vessels: ['Powerboat'], image: '/events/demo/hero.jpg', fee: '$250', anglers: 200, prizePool: '$150,000', lat: 34.3529, lng: -82.9321,
   },
   {
     id: 'coastal-open', href: DEMO_HREF, name: 'Coastal Open', sponsor: 'Coastal Outfitters', sponsorUrl: 'https://example.com',
     about: 'Inshore slam on Charleston Harbor — redfish, trout and flounder, with daily weigh-ins at the waterfront park.',
     start: '2026-10-24', end: '2026-10-27', venue: 'Charleston Harbor', city: 'Charleston', stateCode: 'SC', state: 'South Carolina', country: 'United States',
-    species: ['Redfish', 'Speckled Trout'], image: IMAGES[0], fee: '$200', anglers: 200, prizePool: '$100,000', lat: 32.7765, lng: -79.9311,
+    species: ['Redfish', 'Speckled Trout'], vessels: ['Kayak', 'Powerboat'], image: IMAGES[0], fee: '$200', anglers: 200, prizePool: '$100,000', lat: 32.7765, lng: -79.9311,
   },
   {
     id: 'pine-creek-challenge', href: DEMO_HREF, name: 'Pine Creek Challenge',
     about: 'A two-day team event on Toledo Bend with a big-bass bonus for the heaviest fish of the weekend.',
     start: '2026-11-21', end: '2026-11-22', venue: 'Toledo Bend Reservoir', city: 'Hemphill', stateCode: 'TX', state: 'Texas', country: 'United States',
-    species: ['Largemouth Bass'], image: IMAGES[1], fee: '$180', anglers: 180, prizePool: '$75,000', lat: 31.3402, lng: -93.8463,
+    species: ['Largemouth Bass'], vessels: ['Kayak'], image: IMAGES[1], fee: '$180', anglers: 180, prizePool: '$75,000', lat: 31.3402, lng: -93.8463,
   },
   {
     id: 'bayou-bash', href: DEMO_HREF, name: 'Bayou Bash', sponsor: 'Cypress Boats', sponsorUrl: 'https://example.com',
     about: 'Fish the backwaters of the Atchafalaya Basin for bass and crappie, with a fish fry at the final weigh-in.',
     start: '2026-11-07', end: '2026-11-08', venue: 'Atchafalaya Basin', city: 'Morgan City', stateCode: 'LA', state: 'Louisiana', country: 'United States',
-    species: ['Largemouth Bass', 'Crappie'], image: IMAGES[4], fee: '$150', anglers: 175, prizePool: '$70,000', lat: 29.6994, lng: -91.2068,
+    species: ['Largemouth Bass', 'Crappie'], vessels: ['Powerboat'], image: IMAGES[4], fee: '$150', anglers: 175, prizePool: '$70,000', lat: 29.6994, lng: -91.2068,
   },
   {
     id: 'mountain-lake-invitational', href: DEMO_HREF, name: 'Mountain Lake Invitational',
     about: 'An invitational on Lake Guntersville for the region’s top-ranked anglers, with live leaderboards in the HOOX app.',
     start: '2026-12-05', end: '2026-12-06', venue: 'Lake Guntersville', city: 'Guntersville', stateCode: 'AL', state: 'Alabama', country: 'United States',
-    species: ['Largemouth Bass', 'Smallmouth Bass'], image: IMAGES[3], fee: '$300', anglers: 160, prizePool: '$80,000', lat: 34.3582, lng: -86.2947,
+    species: ['Largemouth Bass', 'Smallmouth Bass'], vessels: ['Kayak', 'Powerboat'], image: IMAGES[3], fee: '$300', anglers: 160, prizePool: '$80,000', lat: 34.3582, lng: -86.2947,
   },
   {
     id: 'big-sky-trout-open', href: DEMO_HREF, name: 'Big Sky Trout Open', sponsor: 'High Country Fly Co.', sponsorUrl: 'https://example.com',
     about: 'Catch-photo-release fly fishing on Hebgen Lake, scored by total length of measured trout.',
     start: '2027-06-12', end: '2027-06-13', venue: 'Hebgen Lake', city: 'West Yellowstone', stateCode: 'MT', state: 'Montana', country: 'United States',
-    species: ['Rainbow Trout', 'Brown Trout'], image: '/clubs/demo/high-country-fly-fishers.jpg', fee: '$120', anglers: 90, lat: 44.662, lng: -111.104,
+    species: ['Rainbow Trout', 'Brown Trout'], vessels: ['Kayak'], image: '/clubs/demo/high-country-fly-fishers.jpg', fee: '$120', anglers: 90, lat: 44.662, lng: -111.104,
   },
   {
     id: 'catalina-tuna-shootout', href: DEMO_HREF, name: 'Catalina Tuna Shootout', sponsor: 'Bluewater Marine', sponsorUrl: 'https://example.com',
     about: 'Offshore teams chase bluefin and yellowtail around Catalina Island, with weigh-ins at Avalon’s Green Pleasure Pier.',
     start: '2027-07-17', end: '2027-07-18', venue: 'Catalina Island', city: 'Avalon', stateCode: 'CA', state: 'California', country: 'United States',
-    species: ['Bluefin Tuna', 'Yellowtail'], image: '/clubs/demo/deep-sea-explorers.jpg', fee: '$500', anglers: 60, prizePool: '$60,000', lat: 33.3428, lng: -118.3282,
+    species: ['Bluefin Tuna', 'Yellowtail'], vessels: ['Powerboat'], image: '/clubs/demo/deep-sea-explorers.jpg', fee: '$500', anglers: 60, prizePool: '$60,000', lat: 33.3428, lng: -118.3282,
   },
   {
     id: 'fall-classic', href: DEMO_HREF, name: 'Fall Classic', sponsor: 'Lakeside Tackle', sponsorUrl: 'https://example.com',
     about: 'Striper season opener on Lake Murray. Two-angler teams, five-fish limits.',
     start: '2026-10-17', end: '2026-10-18', venue: 'Lake Murray', city: 'Lexington', stateCode: 'SC', state: 'South Carolina', country: 'United States',
-    species: ['Striped Bass'], image: IMAGES[5], fee: '$175', anglers: 190, prizePool: '$90,000', lat: 33.9815, lng: -81.2362,
+    species: ['Striped Bass'], vessels: ['Powerboat'], image: IMAGES[5], fee: '$175', anglers: 190, prizePool: '$90,000', lat: 33.9815, lng: -81.2362,
   },
   {
     id: 'summer-slam', href: DEMO_HREF, name: 'Summer Slam',
     about: 'Florida’s biggest summer bass event on Lake Okeechobee, with payouts through 30th place.',
     start: '2026-07-11', end: '2026-07-12', venue: 'Lake Okeechobee', city: 'Clewiston', stateCode: 'FL', state: 'Florida', country: 'United States',
-    species: ['Largemouth Bass'], image: IMAGES[2], fee: '$225', anglers: 220, prizePool: '$125,000', lat: 26.7542, lng: -80.9337,
+    species: ['Largemouth Bass'], vessels: ['Kayak', 'Powerboat'], image: IMAGES[2], fee: '$225', anglers: 220, prizePool: '$125,000', lat: 26.7542, lng: -80.9337,
   },
 ];
 
@@ -146,6 +148,7 @@ export function fromTournament(t: Tournament, i: number): TItem {
     state: code ? STATE_NAMES[code] : t.state,
     country: 'United States',
     species,
+    vessels: t.vesselTypes ?? [],
     image: t.image || IMAGES[i % IMAGES.length],
     fee: fee ? (/^\$/.test(fee) ? fee : `$${fee}`) : undefined,
     anglers: t.maxParticipants ? Number(t.maxParticipants) || undefined : undefined,
@@ -189,6 +192,9 @@ function Meta({ t, size = 'card' }: { t: TItem; size?: 'card' | 'list' }) {
       {t.species.length > 0 && (
         <li className="flex items-center gap-3 text-[#5F7896]"><Fish className={`${ic} flex-shrink-0 text-[#0D1B4C]`} strokeWidth={2} />{t.species.join(' • ')}</li>
       )}
+      {!!t.vessels?.length && (
+        <li className="flex items-center gap-3 text-[#5F7896]"><Ship className={`${ic} flex-shrink-0 text-[#0D1B4C]`} strokeWidth={2} aria-hidden /><span><span className="sr-only">Vessel: </span>{t.vessels.join(' • ')}</span></li>
+      )}
       {(t.anglers || t.prizePool) && (
         <li className="flex flex-wrap items-center gap-x-5 gap-y-1 text-[#5F7896]">
           {t.anglers && <span className="flex items-center gap-3"><Users className={`${ic} flex-shrink-0 text-[#0D1B4C]`} fill="currentColor" strokeWidth={1.5} />{t.anglers.toLocaleString()} anglers</span>}
@@ -206,6 +212,7 @@ export default function TournamentsPage({ tournaments, onNavigate }: Tournaments
   const [q, setQ] = useState('');
   const [state, setState] = useState('all');
   const [species, setSpecies] = useState('all');
+  const [vessel, setVessel] = useState('all');
   const [status, setStatus] = useState('all');
   const [sort, setSort] = useState<Sort>('soonest');
   const [view, setView] = useState<ListingView>('grid');
@@ -233,11 +240,12 @@ export default function TournamentsPage({ tournaments, onNavigate }: Tournaments
     const term = q.trim().toLowerCase();
     return items.filter((t) => {
       if (species !== 'all' && !t.species.includes(species)) return false;
+      if (!matchesVessel(t.vessels, vessel)) return false;
       if (status !== 'all' && statusById[t.id] !== status) return false;
       if (!term) return true;
-      return [t.name, t.sponsor ?? '', t.about, t.venue ?? '', t.city ?? '', t.state ?? '', ...t.species].some((v) => v.toLowerCase().includes(term));
+      return [t.name, t.sponsor ?? '', t.about, t.venue ?? '', t.city ?? '', t.state ?? '', ...t.species, ...(t.vessels ?? [])].some((v) => v.toLowerCase().includes(term));
     });
-  }, [items, q, species, status, statusById]);
+  }, [items, q, species, vessel, status, statusById]);
 
   const locationOptions = useMemo(
     () => [
@@ -263,11 +271,11 @@ export default function TournamentsPage({ tournaments, onNavigate }: Tournaments
     });
   }, [matchingOtherFilters, state, sort, statusById, placements]);
 
-  const filtering = q.trim() !== '' || state !== 'all' || species !== 'all' || status !== 'all';
+  const filtering = q.trim() !== '' || state !== 'all' || species !== 'all' || vessel !== 'all' || status !== 'all';
   // Page hero: a paid hero placement (rotates daily if several), else the demo featured one
   const featured = dailyPick(items.filter((t) => placements.hero.has(t.id))) ?? items.find((t) => t.featured);
   const grid = featured && !filtering ? results.filter((t) => t.id !== featured.id) : results;
-  const reset = () => { setQ(''); setState('all'); setSpecies('all'); setStatus('all'); };
+  const reset = () => { setQ(''); setState('all'); setSpecies('all'); setVessel('all'); setStatus('all'); };
   const mapped = results.filter((t) => t.lat !== undefined && t.lng !== undefined);
 
   return (
@@ -314,8 +322,8 @@ export default function TournamentsPage({ tournaments, onNavigate }: Tournaments
         )}
 
         {/* Filters */}
-        <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 min-[1440px]:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)_minmax(0,1.15fr)_minmax(0,1fr)_auto_220px_auto] min-[1440px]:items-center min-[1440px]:gap-[16px]" role="search" aria-label="Find tournaments">
-          <label className="relative block sm:col-span-2 lg:col-span-3 min-[1440px]:col-span-1">
+        <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 min-[1440px]:grid-cols-[minmax(0,1.5fr)_repeat(4,minmax(0,1fr))] min-[1440px]:items-center min-[1440px]:gap-[16px]" role="search" aria-label="Find tournaments">
+          <label className="relative block sm:col-span-2 lg:col-span-4 min-[1440px]:col-span-1">
             <span className="sr-only">Search tournaments</span>
             <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#5F7896]" strokeWidth={2} />
             <input
@@ -335,26 +343,36 @@ export default function TournamentsPage({ tournaments, onNavigate }: Tournaments
             options={[{ value: 'all', label: 'All Species' }, ...speciesList.map((s) => ({ value: s, label: s }))]}
           />
           <FilterSelect
+            label="Vessel"
+            icon={<Ship className="h-[18px] w-[18px]" strokeWidth={2} />}
+            value={vessel}
+            onChange={setVessel}
+            options={[{ value: 'all', label: 'All Vessels' }, ...VESSEL_TYPES.map((v) => ({ value: v, label: v }))]}
+          />
+          <FilterSelect
             label="Status"
             icon={<Flag className="h-[18px] w-[18px]" strokeWidth={2} />}
             value={status}
             onChange={setStatus}
             options={[{ value: 'all', label: 'Any Status' }, ...STATUSES.map((s) => ({ value: s, label: s }))]}
           />
-          <p className="flex items-center whitespace-nowrap text-[14px] text-[#7D8BA0] lg:justify-end" aria-live="polite">
+          {/* Results count, sort and view: their own row under the filters */}
+          <div className="flex flex-wrap items-center gap-3 sm:col-span-2 lg:col-span-4 min-[1440px]:col-span-5">
+          <p className="mr-auto flex items-center whitespace-nowrap text-[14px] text-[#7D8BA0]" aria-live="polite">
             {loading ? 'Loading…' : `${results.length} ${results.length === 1 ? 'result' : 'results'}`}
           </p>
-          <label className="relative block">
+          <label className="relative block w-full sm:w-[272px]">
             <span className="sr-only">Sort tournaments</span>
             <span className="pointer-events-none absolute left-4 top-1/2 flex -translate-y-1/2 items-center gap-2 text-[14px] text-[#5F7896]">
-              <ArrowUpDown className="h-4 w-4 text-[#0D1B4C]" strokeWidth={2} /> <span className="min-[1440px]:sr-only">Sort by</span>
+              <ArrowUpDown className="h-4 w-4 text-[#0D1B4C]" strokeWidth={2} /> <span>Sort by</span>
             </span>
-            <select value={sort} onChange={(e) => setSort(e.target.value as Sort)} className={`${CONTROL} pl-[100px] pr-9 text-[14px] font-semibold min-[1440px]:pl-11 ${INK}`}>
+            <select value={sort} onChange={(e) => setSort(e.target.value as Sort)} className={`${CONTROL} pl-[100px] pr-9 text-[14px] font-semibold ${INK}`}>
               {(Object.keys(SORTS) as Sort[]).map((k) => <option key={k} value={k}>{SORTS[k]}</option>)}
             </select>
             <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#0D1B4C]" strokeWidth={2.25} />
           </label>
           <ViewToggle view={view} onChange={setView} />
+          </div>
         </div>
 
         {/* Tournaments: loading, map, empty, list or grid */}
@@ -397,7 +415,7 @@ export default function TournamentsPage({ tournaments, onNavigate }: Tournaments
             <h2 className={`mt-4 font-montserrat text-[22px] font-bold ${INK}`}>No tournaments found</h2>
             <p className="mt-2 max-w-[460px] text-[15px] leading-[22px] text-[#536B84]">
               {state !== 'all'
-                ? `There are no tournaments in ${STATE_NAMES[state]}${q.trim() || species !== 'all' || status !== 'all' ? ' that match your filters' : ''} yet. Try a nearby state or check back soon.`
+                ? `There are no tournaments in ${STATE_NAMES[state]}${q.trim() || species !== 'all' || vessel !== 'all' || status !== 'all' ? ' that match your filters' : ''} yet. Try a nearby state or check back soon.`
                 : 'No tournaments match your search. Try different filters or check back soon.'}
             </p>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">

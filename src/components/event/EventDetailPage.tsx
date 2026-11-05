@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import {
-  Trophy, CalendarDays, MapPin, ArrowRight, Users, Fish, LifeBuoy, Mail, Phone, Globe, ChevronRight,
+  Trophy, CalendarDays, MapPin, ArrowRight, Users, Fish, LifeBuoy, Ship, Mail, Phone, Globe, ChevronRight,
   Navigation, ListChecks, Medal,
 } from 'lucide-react';
 import {
@@ -325,6 +325,7 @@ export default function EventDetailPage({ e, onNavigate }: { e: EventDetail; onN
     e.entries && { icon: <Users className="h-[38px] w-[38px]" fill="currentColor" strokeWidth={1.25} />, value: String(e.entries), label: 'Entries' },
     // eslint-disable-next-line @next/next/no-img-element
     e.primarySpecies && { icon: <img src="/home/live-fish.png" alt="" className="h-[40px] w-[52px] object-contain" />, value: e.primarySpecies, label: 'Primary Species' },
+    !!e.vessels?.length && { icon: <Ship className="h-[38px] w-[38px]" strokeWidth={1.75} />, value: e.vessels.join(' & '), label: e.vessels.length > 1 ? 'Vessel Types' : 'Vessel Type' },
     e.skillLevel && { icon: <LifeBuoy className="h-[38px] w-[38px]" strokeWidth={2} />, value: e.skillLevel, label: 'Welcome' },
   ].filter(Boolean) as { icon: React.ReactNode; value: string; label: string }[];
 
@@ -425,12 +426,12 @@ export default function EventDetailPage({ e, onNavigate }: { e: EventDetail; onN
                   <h2 id="overview-heading" className={`text-[22px] font-bold ${INK}`}>Event Overview</h2>
                   <p className="mt-1 max-w-[700px] text-[14.5px] leading-[20px] text-[#68819B]">{e.overview}</p>
                   {stats.length > 0 && (
-                    <dl className="mt-[18px] grid grid-cols-1 gap-y-4 sm:grid-cols-2 md:flex md:justify-between">
+                    <dl className={`mt-[18px] grid grid-cols-1 gap-y-4 sm:grid-cols-2 ${stats.length > 4 ? 'xl:grid-cols-3' : 'md:flex md:justify-between'}`}>
                       {stats.map((s, i) => (
-                        <div key={s.label} className={`flex items-center gap-[18px] px-4 md:flex-none md:pr-6 xl:pr-10 ${i > 0 ? 'md:border-l md:border-[#E0EDF5]' : ''} ${i === stats.length - 1 ? 'md:pr-4 xl:pr-6' : ''}`}>
+                        <div key={s.label} className={`flex items-center gap-[18px] px-4 ${stats.length > 4 ? '' : `md:flex-none md:pr-6 xl:pr-10 ${i > 0 ? 'md:border-l md:border-[#E0EDF5]' : ''} ${i === stats.length - 1 ? 'md:pr-4 xl:pr-6' : ''}`}`}>
                           <span className="flex-shrink-0 text-[#157878]">{s.icon}</span>
                           <span className="min-w-0">
-                            <dd className={`text-[19px] font-bold leading-tight md:whitespace-nowrap ${INK}`}>{s.value}</dd>
+                            <dd className={`text-[19px] font-bold leading-tight ${stats.length > 4 ? '' : 'md:whitespace-nowrap'} ${INK}`}>{s.value}</dd>
                             <dt className="text-[15px] text-[#56728F]">{s.label}</dt>
                           </span>
                         </div>

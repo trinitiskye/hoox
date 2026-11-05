@@ -17,6 +17,7 @@ import { supabaseAdminFetch, getUserByIdAdmin } from './supabaseAdmin';
 import { todayIso } from './featured';
 import type { DbTournament, DbSeries, DbRegistration, DbSubmission, DbTournamentInsert } from './supabase';
 import type { User } from '@/types';
+import { cleanVessels, VESSEL_TYPES } from './vessels';
 
 export const TOURNAMENT_STATUSES = ['upcoming', 'active', 'completed'] as const;
 export const SUBMISSION_REVIEW = ['pending', 'approved', 'denied'] as const;
@@ -75,6 +76,10 @@ export function tournamentFromBody(b: Body, prev?: DbTournament): { value: Parti
     if (!Array.isArray(b.fishTypes)) return fail('Fish types must be a list.');
     v.fish_types = (b.fishTypes as unknown[]).map((x) => String(x).trim().slice(0, 60)).filter(Boolean).slice(0, 30);
   }
+  if (has(b, 'vesselTypes')) {
+    if (!Array.isArray(b.vesselTypes)) return fail(`Vessel types must be a list (${VESSEL_TYPES.join(', ')}).`);
+    v.vessel_types = cleanVessels(b.vesselTypes);
+  }
   for (const [k, col] of [['startDate', 'start_date'], ['endDate', 'end_date']] as const) {
     if (!prev || has(b, k)) { const d = str(b, k, 10); if (!DATE_RE.test(d)) return fail(k === 'startDate' ? 'Choose a start date.' : 'Choose an end date.'); (v as Record<string, unknown>)[col] = d; }
   }
@@ -103,6 +108,10 @@ export function seriesFromBody(b: Body, partial: boolean): { value: Partial<DbSe
   const v: Partial<DbSeries> = {};
   if (!partial || has(b, 'name')) { const n = str(b, 'name', 160); if (!n) return { value: null, error: 'Enter the series name.' }; v.name = n; }
   if (has(b, 'description')) v.description = str(b, 'description', 8000) || null;
+  if (has(b, 'vesselTypes')) {
+    if (!Array.isArray(b.vesselTypes)) return { value: null, error: 'Vessel types must be a list.' };
+    v.vessel_types = cleanVessels(b.vesselTypes);
+  }
   if (has(b, 'tournamentIds')) {
     if (!Array.isArray(b.tournamentIds)) return { value: null, error: 'Tournaments must be a list.' };
     v.tournament_ids = [...new Set((b.tournamentIds as unknown[]).map(String))].slice(0, 100);
