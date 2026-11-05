@@ -39,6 +39,12 @@ drop policy if exists "Anyone can submit"             on public.submissions;
 drop policy if exists "Anyone can update submissions" on public.submissions;
 drop policy if exists "Anyone can delete submissions" on public.submissions;
 
+-- Supabase's default grants also give the public key TRUNCATE, REFERENCES and
+-- TRIGGER on every table. The app never needs them; remove them everywhere,
+-- including on tables created later.
+revoke truncate, references, trigger on all tables in schema public from anon, authenticated;
+alter default privileges in schema public revoke truncate, references, trigger on tables from anon, authenticated;
+
 -- Leftover from the original schema (users writes were closed by the secure-passwords migration)
 drop policy if exists "Anyone can delete users" on public.users;
 
