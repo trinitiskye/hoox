@@ -13,7 +13,7 @@
 export const runtime = 'edge';
 
 import { getUserByIdAdmin, updateUserAdmin } from '@/lib/supabaseAdmin';
-import { hashPassword, verifyPassword } from '@/lib/passwordHash';
+import { hashPasswordServer, checkPasswordServer, passwordProblem } from '@/lib/passwordServer';
 import { getAuthenticatedUser } from '@/lib/serverSession';
 
 export async function POST(request: Request) {
@@ -33,9 +33,8 @@ export async function POST(request: Request) {
   if (!userId || !newPassword) {
     return Response.json({ success: false, error: 'Missing required fields.' }, { status: 400 });
   }
-  if (newPassword.length < 6) {
-    return Response.json({ success: false, error: 'New password must be at least 6 characters.' });
-  }
+  const pwErr = passwordProblem(newPassword);
+  if (pwErr) return Response.json({ success: false, error: pwErr.replace(/^Password/, 'New password') });
 
   const isOwnAccount = userId === caller.id;
   const isAdminOverride = !isOwnAccount;
@@ -52,12 +51,16 @@ export async function POST(request: Request) {
     }
     const { data } = await getUserByIdAdmin(userId);
     if (!data?.[0]) return Response.json({ success: false, error: 'User not found.' });
-    if (!verifyPassword(currentPassword, data[0].password_hash || '')) {
+    const check = await checkPasswordServer(currentPassword, data[0].password_hash).catch(() => ({ ok: false }));
+    if (!check.ok) {
       return Response.json({ success: false, error: 'Current password is incorrect.' });
     }
   }
 
-  const { error } = await updateUserAdmin(userId, { password_hash: hashPassword(newPassword) });
+  let password_hash: string;
+  try { password_hash = await hashPasswordServer(newPassword); }
+  catch (e) { return Response.json({ success: false, error: (e as Error).message }); }
+  const { error } = await updateUserAdmin(userId, { password_hash });
   if (error) return Response.json({ success: false, error });
 
   return Response.json({ success: true, error: null });

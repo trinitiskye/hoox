@@ -22,7 +22,7 @@ export const CLUB_LOGO_MAX_BYTES = 2 * 1024 * 1024;
 export const CLUB_COVER_MAX_BYTES = 5 * 1024 * 1024;
 export const CLUB_COVER_MIN_WIDTH = 1200;
 export const CLUB_ABOUT_MAX = 600;
-export const PASSWORD_MIN = 6;
+export const PASSWORD_MIN = 8;
 
 export interface DbClubSubmission {
   id: string;

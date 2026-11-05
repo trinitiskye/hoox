@@ -7,8 +7,8 @@
 
 export const runtime = 'edge';
 
-import { getUserByEmailAdmin } from '@/lib/supabaseAdmin';
-import { verifyPassword } from '@/lib/passwordHash';
+import { getUserByEmailAdmin, updateUserAdmin } from '@/lib/supabaseAdmin';
+import { checkPasswordServer } from '@/lib/passwordServer';
 import { dbUserToApp } from '@/lib/supabase';
 import { createSessionToken, sessionCookieOptions, AUTH_COOKIE_NAME } from '@/lib/serverSession';
 
@@ -40,9 +40,14 @@ export async function POST(request: Request) {
     return Response.json({ user: null, error: 'Account not set up correctly. Please contact support.', code: 'unknown' });
   }
 
-  if (!verifyPassword(password, dbUser.password_hash)) {
+  let check: { ok: boolean; upgrade: string | null };
+  try { check = await checkPasswordServer(password, dbUser.password_hash); }
+  catch { return Response.json({ user: null, error: 'Connection error. Please try again.', code: 'connection_error' }, { status: 502 }); }
+  if (!check.ok) {
     return Response.json({ user: null, error: 'Incorrect password.', code: 'wrong_password' });
   }
+  // Old password format → save it as bcrypt now that we know the password
+  if (check.upgrade) await updateUserAdmin(dbUser.id, { password_hash: check.upgrade }).catch(() => null);
 
   if (dbUser.status === 'paused') {
     return Response.json({ user: null, error: 'paused', code: 'account_paused' });

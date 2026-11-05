@@ -90,38 +90,25 @@ export async function deleteTournament(id: string) {
 // USERS
 // ============================================================
 
+// Public pages read public.users_public: every user row without the private
+// columns (password_hash, email, phone, address, zip, message). Creating,
+// editing and deleting users only happens on the server (src/app/api/**),
+// and the admin reads full user records through /api/admin/users.
+// Until supabase/migration_2026_11_secure_passwords.sql has been run the view
+// doesn't exist yet, so these fall back to the users table.
+
+const missingView = (error: string | null) => !!error && /users_public|PGRST205|schema cache|does not exist/i.test(error);
+
 export async function getUsers() {
+  const res = await supabaseFetch<DbUser[]>('users_public?select=*&order=created_at.desc');
+  if (!missingView(res.error)) return res;
   return supabaseFetch<DbUser[]>('users?select=*&order=created_at.desc');
 }
 
-export async function getUserByEmail(email: string) {
-  return supabaseFetch<DbUser[]>(
-    `users?email=eq.${encodeURIComponent(email)}&select=*`
-  );
-}
-
 export async function getUserById(id: string) {
-  return supabaseFetch<DbUser[]>(`users?id=eq.${id}&select=*`);
-}
-
-export async function createUser(u: Omit<DbUserInsert, 'id' | 'created_at'>) {
-  return supabaseFetch<DbUser[]>('users', {
-    method: 'POST',
-    body: JSON.stringify(u),
-  });
-}
-
-export async function updateUser(id: string, updates: Partial<DbUserInsert>) {
-  return supabaseFetch<DbUser[]>(`users?id=eq.${id}`, {
-    method: 'PATCH',
-    body: JSON.stringify(updates),
-  });
-}
-
-export async function deleteUser(id: string) {
-  return supabaseFetch<null>(`users?id=eq.${id}`, {
-    method: 'DELETE',
-  });
+  const res = await supabaseFetch<DbUser[]>(`users_public?id=eq.${encodeURIComponent(id)}&select=*`);
+  if (!missingView(res.error)) return res;
+  return supabaseFetch<DbUser[]>(`users?id=eq.${encodeURIComponent(id)}&select=*`);
 }
 
 // ============================================================

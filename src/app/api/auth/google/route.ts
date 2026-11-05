@@ -12,7 +12,7 @@ import { verifyGoogleIdToken } from '@/lib/googleIdToken';
 import { getUserByEmailAdmin, createUserAdmin } from '@/lib/supabaseAdmin';
 import { creditReferral } from '@/lib/affiliateServer';
 import { dbUserToApp } from '@/lib/supabase';
-import { hashPassword } from '@/lib/passwordHash';
+import { hashPasswordServer } from '@/lib/passwordServer';
 import { createSessionToken, sessionCookieOptions, AUTH_COOKIE_NAME } from '@/lib/serverSession';
 
 const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID || '';
@@ -56,7 +56,7 @@ export async function POST(request: Request) {
     const res = await createUserAdmin({
       name: g.name,
       email: g.email,
-      password_hash: hashPassword(random),
+      password_hash: await hashPasswordServer(random),
       role,
       status: 'active',
       organization: null,

@@ -13,7 +13,7 @@ import {
   Award, UserCheck, Star, AlertCircle
 } from 'lucide-react';
 import { User, Tournament, Series, Submission } from '@/types';
-import { fetchUsers, fetchTournaments, fetchSeries, fetchSubmissions } from '@/lib/storage';
+import { fetchUsersForAdmin as fetchUsers, fetchTournaments, fetchSeries, fetchSubmissions } from '@/lib/storage';
 import { createAllDemoAccounts, changePassword, type DemoAccountResult } from '@/lib/auth';
 import AddressSelector from '@/components/ui/AddressSelector';
 import { Toast, useToast } from '@/components/ui/Toast';
@@ -534,7 +534,7 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
   const changePasswordForUser = async () => {
     if (!selectedUser) return;
     if (!pwForm.newPw) { toastError('Please enter a new password.'); return; }
-    if (pwForm.newPw.length < 6) { toastError('Password must be at least 6 characters.'); return; }
+    if (pwForm.newPw.length < 8) { toastError('Password must be at least 8 characters.'); return; }
     if (pwForm.newPw !== pwForm.confirm) { toastError('New passwords do not match.'); return; }
 
     // Admin changing their own password requires current password
@@ -1195,7 +1195,7 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
                     type={showPwNew ? 'text' : 'password'}
                     value={pwForm.newPw}
                     onChange={e => setPwForm(f => ({ ...f, newPw: e.target.value }))}
-                    placeholder="Min. 6 characters"
+                    placeholder="Min. 8 characters"
                     className="w-full px-4 py-2.5 border border-[#D3DEE8] rounded-lg text-sm focus:ring-2 focus:ring-[#22B3B5] focus:border-transparent pr-10"
                   />
                   <button type="button" onClick={() => setShowPwNew(s => !s)}

@@ -1,11 +1,8 @@
 // src/lib/auth.ts
 // Authentication utilities for HOOX
-// Simple password-based auth stored in Supabase
-// NOTE: For production, migrate to Supabase Auth for proper security
+// Sign-in, sign-up and password changes all run on the server (src/app/api/auth/*).
+// Passwords are hashed with bcrypt in the database (src/lib/passwordServer.ts).
 
-import { getUserByEmail, createUser } from './supabase';
-import { dbUserToApp } from './supabase';
-import { hashPassword } from './passwordHash';
 import type { User, UserRole } from '@/types';
 
 const SESSION_KEY = 'hoox_session';
@@ -37,15 +34,6 @@ export function clearSession(): void {
   // Clear the cookie too
   document.cookie = 'hoox_session=; path=/; max-age=0';
 }
-
-// ============================================================
-// PASSWORD UTILITIES
-// Moved to ./passwordHash so server-only route handlers (src/app/api/**)
-// can reuse the exact same logic without importing this client module.
-// Re-exported here too, in case any existing code imports them from '@/lib/auth'.
-// ============================================================
-
-export { hashPassword } from './passwordHash';
 
 // ============================================================
 // LOGIN
@@ -106,9 +94,12 @@ export async function loginAdmin(email: string, password: string): Promise<{ use
 
 // ============================================================
 // REGISTRATION
+// Accounts are created on the server (src/app/api/auth/register), which
+// hashes the password with bcrypt and signs the person in. The browser never
+// writes to the users table or sees a password hash.
 // ============================================================
 
-export async function registerAngler(data: {
+interface BaseSignup {
   name: string;
   email: string;
   password: string;
@@ -119,87 +110,31 @@ export async function registerAngler(data: {
   zip?: string;
   phone?: string;
   country?: string;
-}): Promise<{ user: User | null; error: string | null }> {
-  // Check if email exists
-  const { data: existing } = await getUserByEmail(data.email.toLowerCase().trim());
-  if (existing && existing.length > 0) {
-    return { user: null, error: 'An account with this email already exists.' };
-  }
-
-  const { data: created, error } = await createUser({
-    name: data.name,
-    email: data.email.toLowerCase().trim(),
-    password_hash: hashPassword(data.password),
-    role: 'angler',
-    status: 'active',
-    organization: data.organization || null,
-    address: data.address || null,
-    city: data.city || null,
-    state: data.state || null,
-    zip: data.zip || null,
-    phone: data.phone || null,
-    website: null,
-    avatar: null,
-    message: null,
-    banner_image: null,
-    banner_start_date: null,
-    banner_end_date: null,
-    country: null,
-  });
-
-  if (error || !created?.[0]) return { user: null, error: error || 'Registration failed.' };
-  const user = dbUserToApp(created[0]);
-  setSession(user);
-  return { user, error: null };
 }
 
-export async function registerDirector(data: {
-  name: string;
-  email: string;
-  password: string;
-  organization?: string;
-  address?: string;
-  city?: string;
-  state?: string;
-  zip?: string;
-  phone?: string;
-  website?: string;
-  country?: string;
-}): Promise<{ user: User | null; error: string | null }> {
-  const { data: existing } = await getUserByEmail(data.email.toLowerCase().trim());
-  if (existing && existing.length > 0) {
-    return { user: null, error: 'An account with this email already exists.' };
+async function register(body: Record<string, unknown>): Promise<{ user: User | null; error: string | null; outcome?: JudgeRegistrationOutcome; directorName?: string }> {
+  let res: Response;
+  try {
+    res = await fetch('/api/auth/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  } catch {
+    return { user: null, error: 'Connection error. Please try again.' };
   }
+  const j = (await res.json().catch(() => null)) as { user: User | null; error: string | null; outcome?: JudgeRegistrationOutcome; directorName?: string } | null;
+  if (!j) return { user: null, error: 'Connection error. Please try again.' };
+  return j;
+}
 
-  const { data: created, error } = await createUser({
-    name: data.name,
-    email: data.email.toLowerCase().trim(),
-    password_hash: hashPassword(data.password),
-    role: 'director',
-    status: 'active',
-    organization: data.organization || null,
-    address: data.address || null,
-    city: data.city || null,
-    state: data.state || null,
-    zip: data.zip || null,
-    phone: data.phone || null,
-    website: data.website || null,
-    avatar: null,
-    message: null,
-    banner_image: null,
-    banner_start_date: null,
-    banner_end_date: null,
-    country: null,
-  });
+export async function registerAngler(data: BaseSignup): Promise<{ user: User | null; error: string | null }> {
+  const r = await register({ ...data, role: 'angler' });
+  if (r.user) setSession(r.user);
+  return { user: r.user, error: r.error };
+}
 
-  if (error || !created?.[0]) return { user: null, error: error || 'Registration failed.' };
-  const user = dbUserToApp(created[0]);
-  setSession(user);
-  // Signed up through an affiliate's referral link? Credit the affiliate (server checks the hoox_ref cookie).
-  if (typeof window !== 'undefined') {
-    fetch('/api/affiliates/credit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ directorId: user.id }) }).catch(() => {});
-  }
-  return { user, error: null };
+export async function registerDirector(data: BaseSignup & { website?: string }): Promise<{ user: User | null; error: string | null }> {
+  // Affiliate referrals (hoox_ref cookie) are credited on the server during sign-up
+  const r = await register({ ...data, role: 'director' });
+  if (r.user) setSession(r.user);
+  return { user: r.user, error: r.error };
 }
 
 export type JudgeRegistrationOutcome =
@@ -207,117 +142,22 @@ export type JudgeRegistrationOutcome =
   | 'invite_sent'        // director not found, invitation email would be sent
   | 'error';
 
-export async function registerJudge(data: {
-  name: string;
-  email: string;
-  password: string;
-  directorEmail: string;
-  organization?: string;
-  address?: string;
-  city?: string;
-  state?: string;
-  zip?: string;
-  country?: string;
-  phone?: string;
-}): Promise<{ user: User | null; outcome: JudgeRegistrationOutcome; directorName?: string; error: string | null }> {
-  // Check if judge email already exists
-  const { data: existing } = await getUserByEmail(data.email.toLowerCase().trim());
-  if (existing && existing.length > 0) {
-    return { user: null, outcome: 'error', error: 'An account with this email already exists.' };
-  }
-
-  // Check if director exists
-  const { data: directorData } = await getUserByEmail(data.directorEmail.toLowerCase().trim());
-  const directorExists = directorData && directorData.length > 0 && directorData[0].role === 'director';
-  const directorName = directorExists ? directorData![0].name : undefined;
-
-  // Status depends on whether director exists:
-  // - If director exists: judge is 'pending' until director approves
-  // - If director doesn't exist: judge is created 'active' but unconnected; director gets invite
-  const status = directorExists ? 'pending' : 'active';
-
-  const { data: created, error } = await createUser({
-    name: data.name,
-    email: data.email.toLowerCase().trim(),
-    password_hash: hashPassword(data.password),
-    role: 'judge',
-    status,
-    organization: data.organization || null,
-    address: data.address || null,
-    city: data.city || null,
-    state: data.state || null,
-    zip: data.zip || null,
-    phone: data.phone || null,
-    website: null,
-    avatar: null,
-    country: data.country || null,
-    // Store director email in message field so director can find their judges
-    message: data.directorEmail.toLowerCase().trim(),
-    banner_image: null,
-    banner_start_date: null,
-    banner_end_date: null,
-  });
-
-  if (error || !created?.[0]) {
-    return { user: null, outcome: 'error', error: error || 'Registration failed.' };
-  }
-
-  const user = dbUserToApp(created[0]);
-
-  // Only set session if not pending approval
-  if (status === 'active') setSession(user);
-
+export async function registerJudge(data: BaseSignup & { directorEmail: string }): Promise<{ user: User | null; outcome: JudgeRegistrationOutcome; directorName?: string; error: string | null }> {
+  const r = await register({ ...data, role: 'judge' });
+  if (r.error || !r.user) return { user: null, outcome: 'error', error: r.error || 'Registration failed.' };
+  const outcome = r.outcome || 'invite_sent';
+  // Only signed in when not waiting for the director's approval
+  if (outcome !== 'pending_approval') setSession(r.user);
   // In production, send emails here via an edge function:
-  // - If directorExists: email director at data.directorEmail notifying them of pending judge approval
-  // - If !directorExists: email data.directorEmail inviting them to register as a Tournament Director
-  // For now we return the outcome so the UI can show the right message.
-
-  const outcome: JudgeRegistrationOutcome = directorExists ? 'pending_approval' : 'invite_sent';
-  return { user, outcome, directorName, error: null };
+  // - pending_approval: email the director about the judge waiting for approval
+  // - invite_sent: email data.directorEmail inviting them to register as a Tournament Director
+  return { user: r.user, outcome, directorName: r.directorName, error: null };
 }
 
-export async function registerPartner(data: {
-  name: string;
-  email: string;
-  password: string;
-  organization?: string;
-  address?: string;
-  city?: string;
-  state?: string;
-  zip?: string;
-  phone?: string;
-  website?: string;
-  message?: string;
-}): Promise<{ user: User | null; error: string | null }> {
-  const { data: existing } = await getUserByEmail(data.email.toLowerCase().trim());
-  if (existing && existing.length > 0) {
-    return { user: null, error: 'An account with this email already exists.' };
-  }
-
-  const { data: created, error } = await createUser({
-    name: data.name,
-    email: data.email.toLowerCase().trim(),
-    password_hash: hashPassword(data.password),
-    role: 'sponsor',
-    status: 'pending', // partners need approval
-    organization: data.organization || null,
-    address: data.address || null,
-    city: data.city || null,
-    state: data.state || null,
-    zip: data.zip || null,
-    phone: data.phone || null,
-    website: data.website || null,
-    avatar: null,
-    message: data.message || null,
-    banner_image: null,
-    banner_start_date: null,
-    banner_end_date: null,
-    country: null,
-  });
-
-  if (error || !created?.[0]) return { user: null, error: error || 'Registration failed.' };
-  // Don't set session for partners - they need approval
-  return { user: dbUserToApp(created[0]), error: null };
+export async function registerPartner(data: BaseSignup & { website?: string; message?: string }): Promise<{ user: User | null; error: string | null }> {
+  // Partners need HOOX approval, so they aren't signed in
+  const r = await register({ ...data, role: 'partner' });
+  return { user: r.user, error: r.error };
 }
 
 // ============================================================

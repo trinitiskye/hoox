@@ -34,7 +34,7 @@ export default function RegisterJudgePage({ onNavigate, onLogin }: RegisterJudge
     setError('');
     if (!form.directorEmail) { setError('Tournament Director email is required.'); return; }
     if (!form.name || !form.email || !form.password) { setError('Name, email, and password are required.'); return; }
-    if (form.password.length < 6) { setError('Password must be at least 6 characters.'); return; }
+    if (form.password.length < 8) { setError('Password must be at least 8 characters.'); return; }
     if (form.password !== form.confirmPassword) { setError('Passwords do not match.'); return; }
     setLoading(true);
     const { user, outcome, directorName, error: err } = await registerJudge(form);
@@ -208,7 +208,7 @@ export default function RegisterJudgePage({ onNavigate, onLogin }: RegisterJudge
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Password *</label>
             <div className="relative">
-              <input type={showPassword ? 'text' : 'password'} value={form.password} onChange={set('password')} placeholder="Min. 6 characters"
+              <input type={showPassword ? 'text' : 'password'} value={form.password} onChange={set('password')} placeholder="Min. 8 characters"
                 className="w-full px-4 py-3 bg-gray-100 rounded-xl border-0 text-sm focus:ring-2 focus:ring-green-500 focus:bg-white transition pr-10" />
               <button type="button" onClick={() => setShowPassword(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
                 {showPassword ? <Eye className="w-4 h-4" /> : <Eye className="w-4 h-4" />}

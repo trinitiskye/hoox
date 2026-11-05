@@ -24,7 +24,8 @@ import {
   CLUB_SUBMISSION_BUCKET,
 } from '@/lib/supabaseAdmin';
 import { dbUserToApp, type DbUser } from '@/lib/supabase';
-import { hashPassword, verifyPassword } from '@/lib/passwordHash';
+import { hashPasswordServer, checkPasswordServer } from '@/lib/passwordServer';
+import { updateUserAdmin } from '@/lib/supabaseAdmin';
 import {
   getAuthenticatedUser,
   createSessionToken,
@@ -160,7 +161,7 @@ async function handle(request: Request) {
       const res = await createUserAdmin({
         name,
         email,
-        password_hash: hashPassword(password),
+        password_hash: await hashPasswordServer(password),
         role: role as 'angler' | 'director',
         status: 'active',
         organization: null,
@@ -181,9 +182,9 @@ async function handle(request: Request) {
       dbUser = res.data[0];
       created = true;
     } else {
-      if (!dbUser.password_hash || !verifyPassword(password, dbUser.password_hash)) {
-        return fail('Incorrect password for this email.', 'wrong_password', 401);
-      }
+      const check = await checkPasswordServer(password, dbUser.password_hash).catch(() => ({ ok: false, upgrade: null }));
+      if (!check.ok) return fail('Incorrect password for this email.', 'wrong_password', 401);
+      if (check.upgrade) await updateUserAdmin(dbUser.id, { password_hash: check.upgrade }).catch(() => null);
     }
 
     const sp = statusProblem(dbUser);

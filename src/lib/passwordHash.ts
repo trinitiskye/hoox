@@ -2,12 +2,11 @@
 // Pure, isomorphic password hashing helpers — safe to import from both
 // client components and server-only route handlers (no window/DOM access).
 //
-// NOTE: this is a simple, non-cryptographic, reversible scheme kept from an
-// earlier demo build (see the comment in hashPassword). It is NOT a
-// substitute for a real password hashing algorithm (bcrypt/scrypt/argon2).
-// Moving password verification server-side (src/app/api/auth/login) stops
-// every hash from being publicly readable via the anon Supabase key, but
-// the hashes themselves should still be migrated to a real KDF eventually.
+// LEGACY ONLY. This is the original reversible demo scheme. New passwords are
+// hashed with bcrypt by src/lib/passwordServer.ts; these helpers are only used
+// to recognise old 'h_…' hashes until they're upgraded (on sign-in, or all at
+// once by supabase/migration_2026_11_secure_passwords.sql). Don't use them for
+// anything new.
 
 export function hashPassword(password: string): string {
   // Simple deterministic hash for demo purposes

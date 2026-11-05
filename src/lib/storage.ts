@@ -9,15 +9,12 @@ import {
   getSubmissions,
   getSeries,
   createTournament,
-  createUser,
   createRegistration,
   createSubmission,
   createSeries,
   updateTournament,
-  updateUser,
   updateSubmission,
   deleteTournament,
-  deleteUser,
   deleteRegistration,
   deleteSubmission,
   deleteSeries,
@@ -57,49 +54,25 @@ export async function removeTournament(id: string): Promise<boolean> {
   return true;
 }
 
+/** Admin pages: full user records (email, phone …) through the admin API */
+export async function fetchUsersForAdmin(): Promise<User[]> {
+  try {
+    const res = await fetch('/api/admin/users', { cache: 'no-store' });
+    const j = await res.json();
+    if (!res.ok || j.error) { console.error('fetchUsersForAdmin:', j.error); return []; }
+    return j.users as User[];
+  } catch (e) { console.error('fetchUsersForAdmin:', e); return []; }
+}
+
+/** Public pages: users without private fields */
 export async function fetchUsers(): Promise<User[]> {
   const { data, error } = await getUsers();
   if (error || !data) { console.error('fetchUsers:', error); return []; }
   return data.map(dbUserToApp);
 }
 
-export async function saveUser(u: Omit<User, 'id' | 'createdAt'>): Promise<User | null> {
-  const { data, error } = await createUser({
-    name: u.name, email: u.email, role: u.role, status: u.status ?? 'active',
-    organization: u.organization ?? null, address: u.address ?? null,
-    city: u.city ?? null, state: u.state ?? null, zip: u.zip ?? null,
-    phone: u.phone ?? null, website: u.website ?? null, avatar: u.avatar ?? null,
-    message: u.message ?? null, banner_image: u.bannerImage ?? null,
-    banner_start_date: u.bannerStartDate ?? null, banner_end_date: u.bannerEndDate ?? null,
-    country: (u as any).country ?? null,
-    password_hash: null,
-  });
-  if (error || !data?.[0]) { console.error('saveUser:', error); return null; }
-  return dbUserToApp(data[0]);
-}
-
-export async function editUser(id: string, updates: Partial<User>): Promise<User | null> {
-  const db: any = {};
-  const map: Record<string, string> = {
-    name: 'name', email: 'email', role: 'role', status: 'status',
-    organization: 'organization', address: 'address', city: 'city',
-    state: 'state', zip: 'zip', phone: 'phone', website: 'website',
-    avatar: 'avatar', message: 'message', bannerImage: 'banner_image',
-    bannerStartDate: 'banner_start_date', bannerEndDate: 'banner_end_date',
-  };
-  for (const [appKey, dbKey] of Object.entries(map)) {
-    if ((updates as any)[appKey] !== undefined) db[dbKey] = (updates as any)[appKey];
-  }
-  const { data, error } = await updateUser(id, db);
-  if (error || !data?.[0]) { console.error('editUser:', error); return null; }
-  return dbUserToApp(data[0]);
-}
-
-export async function removeUser(id: string): Promise<boolean> {
-  const { error } = await deleteUser(id);
-  if (error) { console.error('removeUser:', error); return false; }
-  return true;
-}
+// Creating, editing and deleting users happens on the server only:
+// sign-up → /api/auth/register, admin edits → /api/admin/users/[id].
 
 export async function fetchRegistrations(): Promise<Registration[]> {
   const { data, error } = await getRegistrations();

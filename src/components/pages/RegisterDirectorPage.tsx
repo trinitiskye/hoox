@@ -45,7 +45,7 @@ export default function RegisterDirectorPage({ onNavigate, onLogin }: RegisterDi
   const handleSubmit = async () => {
     setError('');
     if (!form.name || !form.email || !form.password) { setError('Name, email, and password are required.'); return; }
-    if (form.password.length < 6) { setError('Password must be at least 6 characters.'); return; }
+    if (form.password.length < 8) { setError('Password must be at least 8 characters.'); return; }
     if (form.password !== form.confirmPassword) { setError('Passwords do not match.'); return; }
     setLoading(true);
     const { user, error: err } = await registerDirector({ ...form, ...address });
@@ -175,7 +175,7 @@ export default function RegisterDirectorPage({ onNavigate, onLogin }: RegisterDi
 
             <Section n={3} title="Password">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {passwordField('password', 'Password', 'At least 6 characters', showPassword, () => setShowPassword((v) => !v))}
+                {passwordField('password', 'Password', 'At least 8 characters', showPassword, () => setShowPassword((v) => !v))}
                 {passwordField('confirmPassword', 'Confirm password', 'Re-enter your password', showConfirm, () => setShowConfirm((v) => !v))}
               </div>
             </Section>

@@ -10,7 +10,7 @@
 export const runtime = 'edge';
 
 import { getUserByEmailAdmin, createUserAdmin, updateUserAdmin } from '@/lib/supabaseAdmin';
-import { hashPassword } from '@/lib/passwordHash';
+import { hashPasswordServer } from '@/lib/passwordServer';
 import { getAuthenticatedAdmin } from '@/lib/serverSession';
 import type { DbUserInsert } from '@/lib/supabase';
 
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
   const admin = await getAuthenticatedAdmin(request);
   if (!admin) return Response.json({ error: 'Forbidden' }, { status: 403 });
 
-  const password = hashPassword('demo123');
+  const password = await hashPasswordServer('demo123');
   const results: DemoAccountResult[] = [];
 
   for (const account of ACCOUNTS) {
