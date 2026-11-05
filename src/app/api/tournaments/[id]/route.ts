@@ -5,7 +5,7 @@ export const runtime = 'edge';
 
 import { getAuthenticatedUser } from '@/lib/serverSession';
 import { dbTournamentToApp, type DbTournament } from '@/lib/supabase';
-import { getTournamentSrv, ownsEvent, tournamentFromBody, patchRow, deleteRow } from '@/lib/tournamentServer';
+import { getTournamentSrv, ownsEvent, tournamentFromBody, patchRow, deleteRow, registrationsFor } from '@/lib/tournamentServer';
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -26,6 +26,10 @@ export async function PATCH(request: Request, { params }: Ctx) {
   try { b = await request.json(); } catch { return Response.json({ error: 'Invalid request.' }, { status: 400 }); }
   const { value, error } = tournamentFromBody(b, t);
   if (!value) return Response.json({ error }, { status: 400 });
+  // Switching individual ↔ team would orphan existing entries
+  if (value.entry_type && value.entry_type !== (t.entry_type || 'individual') && (await registrationsFor(t.id)).length > 0) {
+    return Response.json({ error: 'Anglers have already registered, so the entry type can’t change. Cancel those entries first.' }, { status: 409 });
+  }
   const { data, error: dbErr } = await patchRow<DbTournament>('tournaments', t.id, value);
   if (dbErr || !data?.[0]) return Response.json({ error: 'Couldn’t save the tournament.' }, { status: 500 });
   return Response.json({ tournament: dbTournamentToApp(data[0]), error: null });

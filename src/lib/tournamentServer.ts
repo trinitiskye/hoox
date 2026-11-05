@@ -18,6 +18,7 @@ import { todayIso } from './featured';
 import type { DbTournament, DbSeries, DbRegistration, DbSubmission, DbTournamentInsert } from './supabase';
 import type { User } from '@/types';
 import { cleanVessels, VESSEL_TYPES } from './vessels';
+import { parseFormat, formatFromRow, formatToRow, measuresFor, type TournamentFormat } from './tournamentFormat';
 
 export const TOURNAMENT_STATUSES = ['upcoming', 'active', 'completed'] as const;
 export const SUBMISSION_REVIEW = ['pending', 'approved', 'denied'] as const;
@@ -76,6 +77,13 @@ export function tournamentFromBody(b: Body, prev?: DbTournament): { value: Parti
     if (!Array.isArray(b.fishTypes)) return fail('Fish types must be a list.');
     v.fish_types = (b.fishTypes as unknown[]).map((x) => String(x).trim().slice(0, 60)).filter(Boolean).slice(0, 30);
   }
+  // Format: entry type, judging, prizes, side pots (merged over what's saved)
+  const FORMAT_KEYS = ['entryType', 'teamMin', 'teamMax', 'feeBasis', 'scoring', 'primaryMeasure', 'fishLimit', 'placePrizes', 'sidePots'];
+  if (!prev || FORMAT_KEYS.some((k) => has(b, k))) {
+    const fmt = parseFormat(Object.fromEntries(FORMAT_KEYS.filter((k) => has(b, k)).map((k) => [k, b[k]])), prev ? formatFromRow(prev) : undefined);
+    if (!fmt.value) return fail(fmt.error!);
+    Object.assign(v, formatToRow(fmt.value));
+  }
   if (has(b, 'vesselTypes')) {
     if (!Array.isArray(b.vesselTypes)) return fail(`Vessel types must be a list (${VESSEL_TYPES.join(', ')}).`);
     v.vessel_types = cleanVessels(b.vesselTypes);
@@ -132,17 +140,25 @@ export async function checkSeriesTournaments(u: User, ids: string[] | null | und
 export function submissionFromBody(b: Body, t: DbTournament, partial: boolean): { value: Partial<DbSubmission> | null; error: string | null } {
   const v: Partial<DbSubmission> = {};
   const fail = (error: string) => ({ value: null, error });
+  const f = formatFromRow(t);
+  const needs = measuresFor(f.scoring);
+  // Weight (lb) and/or length (in), as the tournament judges. "size" mirrors the main measure.
+  for (const [k, col, m, label, max] of [['weight', 'weight_lb', 'weight', 'weight in pounds', 300], ['length', 'length_in', 'length', 'length in inches', 200]] as const) {
+    if (!needs.includes(m)) continue;
+    const raw = has(b, k) ? b[k] : (!partial && m === f.primaryMeasure && has(b, 'size') ? b.size : undefined);
+    if (raw === undefined) { if (!partial) return fail(`Enter the catch ${label}.`); continue; }
+    const n = Number(raw);
+    if (!Number.isFinite(n) || n <= 0 || n > max) return fail(`Enter a valid ${label}.`);
+    (v as Record<string, unknown>)[col] = Math.round(n * 100) / 100;
+    if (m === f.primaryMeasure) v.size = Math.round(n * 100) / 100;
+  }
   if (!partial || has(b, 'species')) {
     const sp = str(b, 'species', 80);
     if (!sp) return fail('Choose the species.');
     if (t.fish_types?.length && !t.fish_types.some((f) => f.toLowerCase() === sp.toLowerCase())) return fail('That species isn’t eligible in this tournament.');
     v.species = sp;
   }
-  if (!partial || has(b, 'size')) {
-    const n = Number(b.size);
-    if (!Number.isFinite(n) || n <= 0 || n > 9999) return fail('Enter the catch size.');
-    v.size = Math.round(n * 100) / 100;
-  }
+
   if (!partial || has(b, 'catchDate')) {
     const d = str(b, 'catchDate', 10);
     if (!DATE_RE.test(d)) return fail('Choose the catch date.');

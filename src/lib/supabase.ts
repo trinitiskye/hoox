@@ -295,6 +295,16 @@ export interface DbTournament {
   species: string | null;
   fish_types: string[] | null;
   vessel_types?: string[] | null; // migration_2026_11_vessel_types.sql
+  // Format (migration_2026_11_teams_prizes.sql, see src/lib/tournamentFormat.ts)
+  entry_type?: string | null;
+  team_min?: number | null;
+  team_max?: number | null;
+  fee_basis?: string | null;
+  scoring?: string | null;
+  primary_measure?: string | null;
+  fish_limit?: number | null;
+  place_prizes?: unknown;
+  side_pots?: unknown;
   start_date: string;
   start_time: string;
   end_date: string;
@@ -385,6 +395,10 @@ export interface DbRegistration {
   app_owner_cut: number | null;
   director_receives: number | null;
   registered_at: string;
+  angler_id?: string | null;
+  team_id?: string | null;
+  side_pots?: string[] | null;
+  side_pot_fees?: number | null;
 }
 
 export type DbRegistrationInsert = Omit<DbRegistration, 'id' | 'registered_at'> & {
@@ -406,6 +420,10 @@ export interface DbSubmission {
   status: string;
   reviewed_at: string | null;
   submitted_at: string;
+  weight_lb?: number | null;
+  length_in?: number | null;
+  angler_id?: string | null;
+  team_id?: string | null;
 }
 
 export type DbSubmissionInsert = Omit<DbSubmission, 'id' | 'submitted_at'> & {
