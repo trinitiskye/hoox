@@ -115,7 +115,7 @@ export default function AdminDashboard({ currentUser, onNavigate, initialTab, us
           />
         )}
         {activeTab === 'Users' && <UsersTab key={usersTabKey} users={users} onRefresh={() => { fetchUsers().then(setUsers); }} currentUser={currentUser} onNavigate={onNavigate} subViewProp={usersSubView} selectedUserId={usersSelectedId} initialFilter={usersFilter} />}
-        {activeTab === 'Tournaments' && <TournamentsTab tournaments={tournaments} />}
+        {activeTab === 'Tournaments' && <TournamentsTab tournaments={tournaments} users={users} onNavigate={onNavigate} onRefresh={() => { fetchTournaments().then(setTournaments); }} />}
         {activeTab === 'Catch Submissions' && <SubmissionsTab submissions={submissions} />}
         {activeTab === 'Partners' && <PartnersTab partners={partners} />}
         {activeTab === 'Clubs' && <ClubsTab />}
@@ -1506,8 +1506,19 @@ function UsersTab({ users, onRefresh, currentUser, onNavigate, subViewProp, sele
 // ============================================================
 // TOURNAMENTS TAB
 // ============================================================
-function TournamentsTab({ tournaments }: { tournaments: Tournament[] }) {
+function TournamentsTab({ tournaments, users, onNavigate, onRefresh }: { tournaments: Tournament[]; users: User[]; onNavigate: (v: string) => void; onRefresh: () => void }) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const directorName = (id?: string) => users.find((u) => u.id === id)?.name || (id ? 'Unknown director' : '');
+  const removeTournament = async (t: Tournament) => {
+    if (!window.confirm(`Delete “${t.name}”? Its registrations, teams and catches are deleted too. This can’t be undone.`)) return;
+    setDeleting(t.id);
+    const res = await fetch(`/api/tournaments/${encodeURIComponent(t.id)}`, { method: 'DELETE' });
+    const j = await res.json().catch(() => ({}));
+    setDeleting(null);
+    if (!res.ok || j.error) { window.alert(j.error || 'Couldn’t delete the tournament.'); return; }
+    onRefresh();
+  };
   const stats = [
     { label: 'Total Tournaments', value: tournaments.length, sub: 'All tournaments', icon: Trophy, color: 'text-[#8A9AB0]' },
     { label: 'Upcoming', value: tournaments.filter(t => t.status === 'upcoming').length, sub: 'Not yet started', icon: Clock, color: 'text-[#22B3B5]' },
@@ -1530,7 +1541,7 @@ function TournamentsTab({ tournaments }: { tournaments: Tournament[] }) {
           <p className="text-[#5F6F86] text-sm mt-0.5">Oversee all tournaments, review settings, and monitor activity</p>
         </div>
         <div className="flex gap-2">
-          <button className="flex items-center gap-2 px-4 py-2.5 bg-[#0E7C7B] text-white rounded-lg text-sm font-semibold hover:bg-[#0B6564] transition">
+          <button onClick={() => onNavigate('/admin/tournaments/new')} className="flex items-center gap-2 px-4 py-2.5 bg-[#0E7C7B] text-white rounded-lg text-sm font-semibold hover:bg-[#0B6564] transition">
             <Plus className="w-4 h-4" /> Add a Tournament
           </button>
           <button className="flex items-center gap-2 px-4 py-2.5 border border-[#D3DEE8] text-[#2E3F5C] rounded-lg text-sm font-medium hover:bg-[#F5F8FB] transition">
@@ -1612,14 +1623,14 @@ function TournamentsTab({ tournaments }: { tournaments: Tournament[] }) {
                       <div className="flex items-center gap-1 text-xs text-[#5F6F86] mb-2">
                         <MapPin className="w-3 h-3" /> {t.city}, {t.state}
                       </div>
-                      {t.createdBy && <div className="flex items-center gap-1 text-xs text-[#8A9AB0]"><Users className="w-3 h-3" /> {t.createdBy}</div>}
+                      {t.createdBy && <div className="flex items-center gap-1 text-xs text-[#8A9AB0]"><Users className="w-3 h-3" /> {directorName(t.createdBy)}</div>}
                     </div>
                     <div className="flex items-center gap-2">
                       <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${t.status === 'active' ? 'bg-green-100 text-green-700' : t.status === 'completed' ? 'bg-[#EEF3F8] text-[#4A5B76]' : 'bg-[#E3F4F4] text-[#0B6564]'}`}>
                         {t.status || 'upcoming'}
                       </span>
-                      <button className="p-1.5 text-[#8A9AB0] hover:text-[#0E7C7B] hover:bg-[#EEF8F8] rounded-lg transition"><Edit2 className="w-3.5 h-3.5" /></button>
-                      <button className="p-1.5 text-[#8A9AB0] hover:text-red-500 hover:bg-red-50 rounded-lg transition"><Trash2 className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => onNavigate(`/admin/tournaments/${encodeURIComponent(t.id)}/edit`)} aria-label={`Edit ${t.name}`} title="Edit" className="p-1.5 text-[#8A9AB0] hover:text-[#0E7C7B] hover:bg-[#EEF8F8] rounded-lg transition"><Edit2 className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => removeTournament(t)} disabled={deleting === t.id} aria-label={`Delete ${t.name}`} title="Delete" className="p-1.5 text-[#8A9AB0] hover:text-red-500 hover:bg-red-50 rounded-lg transition disabled:opacity-50"><Trash2 className="w-3.5 h-3.5" /></button>
                     </div>
                   </div>
                 </div>

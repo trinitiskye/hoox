@@ -5,7 +5,8 @@ export const runtime = 'edge';
 
 import { getAuthenticatedUser } from '@/lib/serverSession';
 import { dbTournamentToApp, type DbTournament } from '@/lib/supabase';
-import { getTournamentSrv, ownsEvent, tournamentFromBody, patchRow, deleteRow, registrationsFor } from '@/lib/tournamentServer';
+import { getTournamentSrv, ownsEvent, isAdmin, tournamentFromBody, patchRow, deleteRow, registrationsFor } from '@/lib/tournamentServer';
+import { getAuthenticatedUser as currentUser } from '@/lib/serverSession';
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -26,6 +27,11 @@ export async function PATCH(request: Request, { params }: Ctx) {
   try { b = await request.json(); } catch { return Response.json({ error: 'Invalid request.' }, { status: 400 }); }
   const { value, error } = tournamentFromBody(b, t);
   if (!value) return Response.json({ error }, { status: 400 });
+  // Admins can hand a tournament to a different director
+  if (typeof b.createdBy === 'string' && b.createdBy && b.createdBy !== t.created_by) {
+    if (!isAdmin(await currentUser(request))) return Response.json({ error: 'Only an admin can change the tournament director.' }, { status: 403 });
+    value.created_by = b.createdBy;
+  }
   // Switching individual ↔ team would orphan existing entries
   if (value.entry_type && value.entry_type !== (t.entry_type || 'individual') && (await registrationsFor(t.id)).length > 0) {
     return Response.json({ error: 'Anglers have already registered, so the entry type can’t change. Cancel those entries first.' }, { status: 409 });
