@@ -66,25 +66,8 @@ export async function getTournamentById(id: string) {
   );
 }
 
-export async function createTournament(t: Omit<DbTournamentInsert, 'id' | 'created_at'>) {
-  return supabaseFetch<DbTournament[]>('tournaments', {
-    method: 'POST',
-    body: JSON.stringify(t),
-  });
-}
-
-export async function updateTournament(id: string, updates: Partial<DbTournamentInsert>) {
-  return supabaseFetch<DbTournament[]>(`tournaments?id=eq.${id}`, {
-    method: 'PATCH',
-    body: JSON.stringify(updates),
-  });
-}
-
-export async function deleteTournament(id: string) {
-  return supabaseFetch<null>(`tournaments?id=eq.${id}`, {
-    method: 'DELETE',
-  });
-}
+// Writes to tournaments, series, registrations and submissions go through the
+// HOOX server (src/lib/tournamentApi.ts → src/app/api/**). The public key is read-only.
 
 // ============================================================
 // USERS
@@ -127,19 +110,6 @@ export async function getRegistrationsByTournament(tournamentId: string) {
   );
 }
 
-export async function createRegistration(r: Omit<DbRegistrationInsert, 'id' | 'registered_at'>) {
-  return supabaseFetch<DbRegistration[]>('registrations', {
-    method: 'POST',
-    body: JSON.stringify(r),
-  });
-}
-
-export async function deleteRegistration(id: string) {
-  return supabaseFetch<null>(`registrations?id=eq.${id}`, {
-    method: 'DELETE',
-  });
-}
-
 // ============================================================
 // SUBMISSIONS
 // ============================================================
@@ -156,52 +126,12 @@ export async function getSubmissionsByTournament(tournamentId: string) {
   );
 }
 
-export async function createSubmission(s: Omit<DbSubmissionInsert, 'id' | 'submitted_at'>) {
-  return supabaseFetch<DbSubmission[]>('submissions', {
-    method: 'POST',
-    body: JSON.stringify(s),
-  });
-}
-
-export async function updateSubmission(id: string, updates: Partial<DbSubmissionInsert>) {
-  return supabaseFetch<DbSubmission[]>(`submissions?id=eq.${id}`, {
-    method: 'PATCH',
-    body: JSON.stringify(updates),
-  });
-}
-
-export async function deleteSubmission(id: string) {
-  return supabaseFetch<null>(`submissions?id=eq.${id}`, {
-    method: 'DELETE',
-  });
-}
-
 // ============================================================
 // SERIES
 // ============================================================
 
 export async function getSeries() {
   return supabaseFetch<DbSeries[]>('series?select=*&order=created_at.desc');
-}
-
-export async function createSeries(s: Omit<DbSeriesInsert, 'id' | 'created_at'>) {
-  return supabaseFetch<DbSeries[]>('series', {
-    method: 'POST',
-    body: JSON.stringify(s),
-  });
-}
-
-export async function updateSeries(id: string, updates: Partial<DbSeriesInsert>) {
-  return supabaseFetch<DbSeries[]>(`series?id=eq.${id}`, {
-    method: 'PATCH',
-    body: JSON.stringify(updates),
-  });
-}
-
-export async function deleteSeries(id: string) {
-  return supabaseFetch<null>(`series?id=eq.${id}`, {
-    method: 'DELETE',
-  });
 }
 
 // ============================================================
