@@ -25,14 +25,14 @@ export interface TournamentDetails {
   feeNote: string;               // "Includes 2 anglers per boat"
   prizePool: string;             // display override; blank = add up the place prizes
   payoutNote: string;
-  host: { name: string; email: string; phone: string; website: string };
+  host: { name: string; email: string; phone: string; website: string; clubId: string; logo: string }; // clubId: a HOOX club (club_submissions) chosen as host
   sponsor: { name: string; url: string; logo: string; tagline: string; image: string };
 }
 
 export const DEFAULT_DETAILS: TournamentDetails = {
   badge: 'Official Tournament', summary: '', skillLevel: 'All Skill Levels', address: '', zip: '',
   schedule: [], speciesNotes: {}, rules: [], registrationCloses: '', feeNote: '', prizePool: '', payoutNote: '',
-  host: { name: '', email: '', phone: '', website: '' },
+  host: { name: '', email: '', phone: '', website: '', clubId: '', logo: '' },
   sponsor: { name: '', url: '', logo: '', tagline: '', image: '' },
 };
 
@@ -67,7 +67,7 @@ export function parseDetails(input: Record<string, unknown>, lenient = false): {
     feeNote: s(input.feeNote, 160),
     prizePool: s(input.prizePool, 40),
     payoutNote: s(input.payoutNote, 300),
-    host: { name: s(host.name, 120), email: s(host.email, 254).toLowerCase(), phone: s(host.phone, 40), website: s(host.website, 300) },
+    host: { name: s(host.name, 120), email: s(host.email, 254).toLowerCase(), phone: s(host.phone, 40), website: s(host.website, 300), clubId: s(host.clubId, 64), logo: s(host.logo, 1000) },
     sponsor: { name: s(sp.name, 120), url: s(sp.url, 500), logo: s(sp.logo, 1000), tagline: s(sp.tagline, 120), image: s(sp.image, 1000) },
   };
   for (const raw of (Array.isArray(input.schedule) ? input.schedule : []).slice(0, 40)) {
@@ -87,7 +87,7 @@ export function parseDetails(input: Record<string, unknown>, lenient = false): {
   }
   if (out.registrationCloses && !DT_RE.test(out.registrationCloses)) { const e = fail('Registration closes: choose a date and time.'); if (e) return e; out.registrationCloses = ''; }
   if (out.host.email && !EMAIL_RE.test(out.host.email)) { const e = fail('Host email isn’t valid.'); if (e) return e; out.host.email = ''; }
-  for (const [label, u] of [['Sponsor website', out.sponsor.url], ['Sponsor logo', out.sponsor.logo], ['Sponsor image', out.sponsor.image]] as const) {
+  for (const [label, u] of [['Host logo', out.host.logo], ['Sponsor website', out.sponsor.url], ['Sponsor logo', out.sponsor.logo], ['Sponsor image', out.sponsor.image]] as const) {
     if (!urlOk(u)) { const e = fail(`${label} must be a link starting with https://`); if (e) return e; }
   }
   if (out.host.website && !/^https?:\/\//i.test(out.host.website) && !lenient) out.host.website = `https://${out.host.website.replace(/^\/+/, '')}`;

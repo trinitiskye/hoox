@@ -484,7 +484,7 @@ export default function EventDetailPage({ e, onNavigate }: { e: EventDetail; onN
                 <div className="text-[11px] font-semibold uppercase tracking-[0.04em] text-[#32547B]">Hosted by</div>
                 <div className="mt-3 flex items-start gap-4">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/home/live-fish.png" alt="" className="mt-1 h-[48px] w-[62px] flex-shrink-0 object-contain" />
+                  {e.host.logo ? <img src={e.host.logo} alt="" className="mt-1 h-[48px] w-[62px] flex-shrink-0 rounded object-contain" /> : <img src="/home/live-fish.png" alt="" className="mt-1 h-[48px] w-[62px] flex-shrink-0 object-contain" />}
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
                       <span className={`text-[15px] font-semibold ${INK}`}>{e.host.name}</span>

@@ -21,6 +21,7 @@ import { createTournament, updateTournament, deleteTournament, createSeries, upd
 import { formatFromRow, POT_RULES, POT_RULE_LABEL, ordinal, type PotRule } from '@/lib/tournamentFormat';
 import { getTournamentById, getSeries, type DbTournament, type DbSeries } from '@/lib/supabase';
 import { INPUT, LABEL, CARD, BTN, BTN_GHOST } from '@/components/admin/sponsors/shared';
+import HostPicker from './HostPicker';
 import type { FeaturePricing } from '@/lib/clubFeature';
 
 const TIMEZONES = [
@@ -621,14 +622,9 @@ export default function TournamentEditor({ id }: { id?: string }) {
           </Section>
 
           {/* -------------------------- Host & sponsor -------------------------- */}
-          <Section id="host" title="Host & presenting sponsor" sub="The “Hosted by” and “Presenting sponsor” cards. Leave the host blank to use the director’s public profile.">
-            <span className={LABEL}>Hosted by</span>
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-              <input aria-label="Host name" className={INPUT} value={d.details.host.name} onChange={(e) => setDet({ host: { ...d.details.host, name: e.target.value } })} placeholder="Club or organization name" />
-              <input aria-label="Host website" className={INPUT} value={d.details.host.website} onChange={(e) => setDet({ host: { ...d.details.host, website: e.target.value } })} placeholder="Website" />
-              <input aria-label="Host email" type="email" className={INPUT} value={d.details.host.email} onChange={(e) => setDet({ host: { ...d.details.host, email: e.target.value } })} placeholder="Contact email" />
-              <input aria-label="Host phone" type="tel" className={INPUT} value={d.details.host.phone} onChange={(e) => setDet({ host: { ...d.details.host, phone: e.target.value } })} placeholder="Contact phone" />
-            </div>
+          <Section id="host" title="Host & presenting sponsor" sub="The “Hosted by” and “Presenting sponsor” cards. Pick a HOOX club as host, add a new one, or use the director’s public profile.">
+            <HostPicker host={d.details.host} onChange={(h) => setDet({ host: h })} isAdmin={isAdmin} forUser={owner}
+              defaultCity={d.city} defaultState={d.state} water={d.waterType} />
             <span className={`${LABEL} mt-5`}>Presenting sponsor <span className="font-normal text-[#8A9AB0]">(optional; also shows “Presented by” on tournament cards)</span></span>
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               <input aria-label="Sponsor name" className={INPUT} value={d.details.sponsor.name} onChange={(e) => setDet({ sponsor: { ...d.details.sponsor, name: e.target.value } })} placeholder="Sponsor name" />

@@ -72,6 +72,7 @@ export interface EventDetail {
     email?: string;
     phone?: string;
     website?: string;
+    logo?: string;
   };
   sponsor?: {
     name: string;
@@ -260,7 +261,7 @@ export function eventFromTournament(t: Tournament, host?: User | null, registrat
       feeNote: d.feeNote || undefined,
     },
     host: d.host.name || d.host.email || d.host.phone || d.host.website
-      ? { name: d.host.name || host?.profileOrganization || host?.organization || host?.name || 'Tournament host', email: d.host.email || undefined, phone: d.host.phone || undefined, website: d.host.website || undefined }
+      ? { name: d.host.name || host?.profileOrganization || host?.organization || host?.name || 'Tournament host', email: d.host.email || undefined, phone: d.host.phone || undefined, website: d.host.website || undefined, logo: d.host.logo || undefined }
       : host
         ? {
             name: host.profileOrganization || host.organization || host.profileDisplayName || host.name,
