@@ -11,7 +11,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ChevronRight, Loader2, Plus, Trash2, Check, AlertCircle, ExternalLink, Star, Sparkles } from 'lucide-react';
+import { ChevronRight, Loader2, Plus, Trash2, Check, AlertCircle, ExternalLink, Star, Sparkles, ArrowUp } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 import { useSpeciesList } from '@/lib/useSpeciesList';
 import { STATE_NAMES } from '@/components/listing/ListingUI';
@@ -28,8 +28,8 @@ const TIMEZONES = [
   ['America/New_York', 'Eastern'], ['America/Anchorage', 'Alaska'], ['Pacific/Honolulu', 'Hawaii'],
 ] as const;
 const SECTIONS = [
-  ['basics', 'Basics'], ['where', 'When & where'], ['schedule', 'Schedule'], ['fishing', 'Fishing'], ['entry', 'Entry & registration'],
-  ['judging', 'Judging'], ['rules', 'Rules'], ['prizes', 'Prizes'], ['pots', 'Side pots'], ['host', 'Host & sponsor'], ['series', 'Series'], ['promote', 'Feature'],
+  ['basics', 'Basics'], ['where', 'When & where'], ['schedule', 'Schedule'], ['fishing', 'Fishing'], ['entry', 'Entry'],
+  ['judging', 'Judging'], ['rules', 'Rules'], ['prizes', 'Prizes'], ['pots', 'Side pots'], ['host', 'Host'], ['series', 'Series'], ['promote', 'Feature'],
 ] as const;
 
 interface PotDraft { key: string; name: string; kind: 'pot' | 'award'; rule: PotRule; species: string; fee: string; payout: 'fixed' | 'share'; amount: string; description: string; splits: string }
@@ -118,7 +118,7 @@ const to12 = (t: string) => { if (!t) return ''; const [h, m] = t.split(':').map
 
 function Section({ id, title, sub, children }: { id: string; title: string; sub?: string; children: React.ReactNode }) {
   return (
-    <section id={`sec-${id}`} className={`${CARD} scroll-mt-[150px]`} aria-labelledby={`h-${id}`}>
+    <section id={`sec-${id}`} className={`${CARD} scroll-mt-[190px]`} aria-labelledby={`h-${id}`}>
       <h3 id={`h-${id}`} className="font-montserrat text-[17px] font-bold text-[#0D1B4C]">{title}</h3>
       {sub && <p className="mt-0.5 text-[13px] text-[#6B7D93]">{sub}</p>}
       <div className="mt-4">{children}</div>
@@ -272,6 +272,61 @@ export default function TournamentEditor({ id }: { id?: string }) {
     });
   };
 
+  /** Which sections are filled in, for the progress bar */
+  const done = useMemo<Record<(typeof SECTIONS)[number][0], boolean>>(() => {
+    if (!d) return Object.fromEntries(SECTIONS.map(([sid]) => [sid, false])) as Record<(typeof SECTIONS)[number][0], boolean>;
+    const det = d.details;
+    return {
+      basics: !!d.name.trim() && (!isAdmin || !!d.createdBy) && !!(d.description.trim() || det.summary.trim()),
+      where: !!d.startDate && !!d.location.trim() && !!d.city.trim() && !!d.state,
+      schedule: det.schedule.some((x) => x.title.trim() && x.date),
+      fishing: !!d.waterType && d.vesselTypes.length > 0,
+      entry: d.entryFee.trim() !== '',
+      judging: !!d.scoring,
+      rules: !!d.rulesText.trim(),
+      prizes: d.places.some((x) => x.amount.trim() || x.description.trim()),
+      pots: d.pots.some((x) => x.name.trim()),
+      host: !!(det.host.name.trim() || det.sponsor.name.trim()),
+      series: (seriesChoice.mode === 'existing' && !!seriesChoice.id) || (seriesChoice.mode === 'new' && !!seriesChoice.name.trim()),
+      promote: features.length > 0 || (feature.on && !!(feature.badge || feature.hero)),
+    };
+  }, [d, isAdmin, seriesChoice, features, feature]);
+  const doneCount = Object.values(done).filter(Boolean).length;
+
+  // Keep the progress bar just under the site header (its height changes with screen size)
+  const [headerH, setHeaderH] = useState(0);
+  useEffect(() => {
+    const h = document.querySelector('header');
+    if (!h) return;
+    const measure = () => setHeaderH(h.getBoundingClientRect().height);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(h);
+    return () => ro.disconnect();
+  }, []);
+
+  // Highlight the section on screen
+  const [active, setActive] = useState<string>('basics');
+  const ready = !!d;
+  useEffect(() => {
+    if (!ready) return;
+    const els = SECTIONS.map(([sid]) => document.getElementById(`sec-${sid}`)).filter((x): x is HTMLElement => !!x);
+    const onScroll = () => {
+      const line = headerH + 140;
+      let cur = els[0]?.id;
+      for (const el of els) if (el.getBoundingClientRect().top <= line) cur = el.id;
+      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) cur = els[els.length - 1]?.id;
+      if (cur) setActive(cur.replace('sec-', ''));
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [ready, headerH]);
+  // Keep the active step visible in the scrolling bar
+  useEffect(() => {
+    document.querySelector(`[data-step="${active}"]`)?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }, [active]);
+
   const title = id ? (d?.name || 'Edit tournament') : 'Add a Tournament';
   const planOptions = (p: 'badge' | 'hero') => (pricing?.[p]?.plans || []).filter((x) => x.enabled);
 
@@ -295,13 +350,30 @@ export default function TournamentEditor({ id }: { id?: string }) {
         {id && <a href={`/tournaments/${encodeURIComponent(id)}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm font-semibold text-[#0E7C7B] hover:underline">View on site <ExternalLink className="h-4 w-4" /></a>}
       </div>
 
-      {/* Jump to a section */}
-      <nav aria-label="Form sections" className="sticky top-0 z-20 -mx-1 mb-5 overflow-x-auto rounded-lg border border-[#E3EAF1] bg-white/95 px-2 py-2 backdrop-blur">
-        <ul className="flex min-w-max gap-1">
-          {SECTIONS.map(([sid, label]) => (
-            <li key={sid}><a href={`#sec-${sid}`} className="block whitespace-nowrap rounded-md px-2.5 py-1 text-[13px] font-medium text-[#4A5B76] hover:bg-[#F2F7FA] hover:text-[#0D1B4C]">{label}</a></li>
-          ))}
-        </ul>
+      {/* Progress bar: jump to a section; filled circle = section complete */}
+      <nav aria-label="Form sections" style={{ top: headerH }} className="sticky z-20 -mx-1 mb-5 min-w-0 max-w-[calc(100%+0.5rem)] overflow-hidden rounded-lg border border-[#E3EAF1] bg-white/95 shadow-[0_4px_14px_rgba(10,30,60,0.05)] backdrop-blur">
+        <div className="flex items-center justify-between gap-3 border-b border-[#EEF3F8] px-4 py-1.5 text-xs text-[#6B7D93]">
+          <span className="font-semibold uppercase tracking-wide">Setup progress</span>
+          <span><span className="font-semibold text-[#0E7C7B]">{doneCount}</span> of {SECTIONS.length} sections complete</span>
+        </div>
+        <ol className="flex overflow-x-auto px-2 py-2.5 [scrollbar-width:none]">
+          {SECTIONS.map(([sid, label], i) => {
+            const ok = done[sid];
+            const on = active === sid;
+            return (
+              <li key={sid} data-step={sid} className={`flex items-center ${i > 0 ? 'flex-1' : ''}`}>
+                {i > 0 && <span aria-hidden className={`h-[2px] min-w-[8px] flex-1 ${ok && done[SECTIONS[i - 1][0]] ? 'bg-[#0E7C7B]' : 'bg-[#D3DEE8]'}`} />}
+                <a href={`#sec-${sid}`} aria-current={on ? 'step' : undefined}
+                  className={`flex flex-shrink-0 items-center gap-1 whitespace-nowrap rounded-full py-1 pl-1 pr-1.5 text-[12.5px] transition hover:bg-[#F2F7FA] ${on ? 'bg-[#EEF7F7] font-bold text-[#0D1B4C]' : 'font-medium text-[#4A5B76]'}`}>
+                  <span className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border-2 ${ok ? 'border-[#0E7C7B] bg-[#0E7C7B] text-white' : 'border-[#B9C6D4] bg-white text-[#C9D4DF]'}`}>
+                    <Check className="h-3 w-3" strokeWidth={3} aria-hidden />
+                  </span>
+                  {label}<span className="sr-only">{ok ? ' (complete)' : ' (not complete)'}</span>
+                </a>
+              </li>
+            );
+          })}
+        </ol>
       </nav>
 
       {loadErr ? <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{loadErr}</p> : !d ? (
@@ -646,6 +718,13 @@ export default function TournamentEditor({ id }: { id?: string }) {
             </div>
           </div>
         </form>
+      )}
+      {d && (
+        <div className="mt-8 flex justify-center">
+          <button type="button" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className={BTN_GHOST}>
+            <ArrowUp className="h-4 w-4" />Back to top
+          </button>
+        </div>
       )}
     </div>
   );
