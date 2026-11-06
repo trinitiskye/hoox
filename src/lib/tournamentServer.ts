@@ -73,7 +73,7 @@ export function tournamentFromBody(b: Body, prev?: DbTournament): { value: Parti
   for (const [k, col, max] of [['description', 'description', 8000], ['location', 'location', 200], ['city', 'city', 100], ['state', 'state', 100], ['species', 'species', 200], ['image', 'image', 1000], ['timezone', 'timezone', 60]] as const) {
     if (has(b, k)) (v as Record<string, unknown>)[col] = str(b, k, max) || null;
   }
-  if (v.image && !/^https:\/\//i.test(v.image) && !v.image.startsWith('/')) return fail('Image must be an https:// link.');
+  if (v.image && !/^https:\/\//i.test(v.image) && !v.image.startsWith('/') && !(process.env.NEXT_PUBLIC_SUPABASE_URL && v.image.startsWith(process.env.NEXT_PUBLIC_SUPABASE_URL))) return fail('Image must be an https:// link.');
   if (has(b, 'fishTypes')) {
     if (!Array.isArray(b.fishTypes)) return fail('Fish types must be a list.');
     v.fish_types = (b.fishTypes as unknown[]).map((x) => String(x).trim().slice(0, 60)).filter(Boolean).slice(0, 30);

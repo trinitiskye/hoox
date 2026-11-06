@@ -22,6 +22,7 @@ import { formatFromRow, POT_RULES, POT_RULE_LABEL, ordinal, type PotRule } from 
 import { getTournamentById, getSeries, type DbTournament, type DbSeries } from '@/lib/supabase';
 import { INPUT, LABEL, CARD, BTN, BTN_GHOST } from '@/components/admin/sponsors/shared';
 import HostPicker from './HostPicker';
+import ImageUpload from './ImageUpload';
 import type { FeaturePricing } from '@/lib/clubFeature';
 
 const TIMEZONES = [
@@ -405,7 +406,7 @@ export default function TournamentEditor({ id }: { id?: string }) {
               </label>
               <label className="md:col-span-2"><span className={LABEL}>Banner summary</span><textarea rows={2} maxLength={300} className={`${INPUT} h-auto py-2`} value={d.details.summary} onChange={(e) => setDet({ summary: e.target.value })} placeholder="One or two sentences in the banner, e.g. “A premier two-day bass tournament on Folsom Lake, open to all skill levels.”" /></label>
               <label className="md:col-span-2"><span className={LABEL}>Event overview</span><textarea rows={5} className={`${INPUT} h-auto py-2`} value={d.description} onChange={(e) => set({ description: e.target.value })} placeholder="The full description in the Overview tab." /></label>
-              <label className="md:col-span-2"><span className={LABEL}>Banner image URL</span><input className={INPUT} value={d.image} onChange={(e) => set({ image: e.target.value })} placeholder="https://… (wide photo, at least 1600 px)" /></label>
+              <div className="md:col-span-2"><ImageUpload kind="banner" value={d.image} onChange={(url) => set({ image: url })} /></div>
             </div>
           </Section>
 
@@ -630,8 +631,8 @@ export default function TournamentEditor({ id }: { id?: string }) {
               <input aria-label="Sponsor name" className={INPUT} value={d.details.sponsor.name} onChange={(e) => setDet({ sponsor: { ...d.details.sponsor, name: e.target.value } })} placeholder="Sponsor name" />
               <input aria-label="Sponsor website" className={INPUT} value={d.details.sponsor.url} onChange={(e) => setDet({ sponsor: { ...d.details.sponsor, url: e.target.value } })} placeholder="https://sponsor-website.com" />
               <input aria-label="Sponsor tagline" className={`${INPUT} md:col-span-2`} value={d.details.sponsor.tagline} onChange={(e) => setDet({ sponsor: { ...d.details.sponsor, tagline: e.target.value } })} placeholder="Tagline, e.g. “Built for anglers. Trusted by the water.”" />
-              <input aria-label="Sponsor logo URL" className={INPUT} value={d.details.sponsor.logo} onChange={(e) => setDet({ sponsor: { ...d.details.sponsor, logo: e.target.value } })} placeholder="Logo URL (white or light logo, transparent PNG)" />
-              <input aria-label="Sponsor image URL" className={INPUT} value={d.details.sponsor.image} onChange={(e) => setDet({ sponsor: { ...d.details.sponsor, image: e.target.value } })} placeholder="Product / background image URL" />
+              <ImageUpload kind="sponsor-logo" value={d.details.sponsor.logo} onChange={(url) => setDet({ sponsor: { ...d.details.sponsor, logo: url } })} />
+              <ImageUpload kind="sponsor-image" value={d.details.sponsor.image} onChange={(url) => setDet({ sponsor: { ...d.details.sponsor, image: url } })} dark />
             </div>
           </Section>
 
