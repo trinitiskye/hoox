@@ -8,8 +8,10 @@ import { Loader2, Upload, X, Link2, AlertCircle } from 'lucide-react';
 import { IMAGE_SPECS, mb, type TournamentImageKind } from '@/lib/tournamentImages';
 import { INPUT, LABEL, BTN_GHOST } from '@/components/admin/sponsors/shared';
 
-export default function ImageUpload({ kind, value, onChange, label, dark = false }: {
+export default function ImageUpload({ kind, value, onChange, label, dark = false, uploadOnly = false }: {
   kind: TournamentImageKind; value: string; onChange: (url: string) => void; label?: string; dark?: boolean;
+  /** Hide "Use a link instead" (e.g. club logos, which must be stored by HOOX) */
+  uploadOnly?: boolean;
 }) {
   const spec = IMAGE_SPECS[kind];
   const input = useRef<HTMLInputElement>(null);
@@ -37,6 +39,7 @@ export default function ImageUpload({ kind, value, onChange, label, dark = false
   }
 
   const isLogo = kind === 'sponsor-logo';
+  const isSquareLogo = kind === 'club-logo';
   return (
     <div>
       <span className={LABEL}>{label || spec.label}</span>
@@ -45,10 +48,10 @@ export default function ImageUpload({ kind, value, onChange, label, dark = false
         onDrop={(e) => { e.preventDefault(); setDrag(false); const f = e.dataTransfer.files?.[0]; if (f) upload(f); }}
         className={`flex flex-wrap items-center gap-4 rounded-lg border border-dashed p-3 transition ${drag ? 'border-[#0E7C7B] bg-[#F2FAFA]' : 'border-[#C9D6E2] bg-[#FAFCFD]'}`}
       >
-        <div className={`flex flex-shrink-0 items-center justify-center overflow-hidden rounded-md border border-[#E3EAF1] ${dark || isLogo ? 'bg-[#032430]' : 'bg-white'} ${kind === 'banner' ? 'h-[72px] w-[128px]' : isLogo ? 'h-[72px] w-[150px]' : 'h-[88px] w-[88px]'}`}>
+        <div className={`flex flex-shrink-0 items-center justify-center overflow-hidden rounded-md border border-[#E3EAF1] ${dark || isLogo ? 'bg-[#032430]' : 'bg-white'} ${kind === 'banner' ? 'h-[72px] w-[128px]' : isLogo ? 'h-[72px] w-[150px]' : isSquareLogo ? 'h-[72px] w-[72px]' : 'h-[88px] w-[88px]'}`}>
           {value
             // eslint-disable-next-line @next/next/no-img-element
-            ? <img src={value} alt={`${spec.label} preview`} className={`h-full w-full ${isLogo ? 'object-contain p-2' : 'object-cover'}`} />
+            ? <img src={value} alt={`${spec.label} preview`} className={`h-full w-full ${isLogo || isSquareLogo ? 'object-contain p-2' : 'object-cover'}`} />
             : <Upload className={`h-5 w-5 ${dark || isLogo ? 'text-white/50' : 'text-[#B9C6D4]'}`} aria-hidden />}
         </div>
         <div className="min-w-0 flex-1">
@@ -57,7 +60,7 @@ export default function ImageUpload({ kind, value, onChange, label, dark = false
               {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}{value ? 'Replace' : 'Upload image'}
             </button>
             {value && <button type="button" onClick={() => { onChange(''); setErr(''); }} className={`${BTN_GHOST} text-red-600 hover:bg-red-50`}><X className="h-4 w-4" />Remove</button>}
-            {!linkMode && <button type="button" onClick={() => setLinkMode(true)} className="inline-flex items-center gap-1 px-1 text-[13px] font-semibold text-[#0E7C7B] hover:underline"><Link2 className="h-3.5 w-3.5" />Use a link instead</button>}
+            {!linkMode && !uploadOnly && <button type="button" onClick={() => setLinkMode(true)} className="inline-flex items-center gap-1 px-1 text-[13px] font-semibold text-[#0E7C7B] hover:underline"><Link2 className="h-3.5 w-3.5" />Use a link instead</button>}
           </div>
           <p className="mt-1.5 text-xs text-[#6B7D93]">{busy ? 'Uploading…' : 'Drag an image here, or choose one.'}</p>
           <input ref={input} type="file" accept={accept} className="hidden" aria-label={`Upload ${spec.label.toLowerCase()}`} onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f); }} />

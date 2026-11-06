@@ -10,6 +10,7 @@ import { CLUB_STYLES, CLUB_ABOUT_MAX } from '@/lib/clubSubmission';
 import type { TournamentDetails } from '@/lib/tournamentDetails';
 import type { HostClub } from '@/app/api/tournaments/host-clubs/route';
 import { INPUT, LABEL, BTN, BTN_GHOST } from '@/components/admin/sponsors/shared';
+import ImageUpload from './ImageUpload';
 
 type Host = TournamentDetails['host'];
 type Mode = 'profile' | 'club' | 'new' | 'custom';
@@ -24,7 +25,7 @@ export default function HostPicker({ host, onChange, isAdmin, forUser, defaultCi
   const [clubs, setClubs] = useState<HostClub[] | null>(null);
   const [loadErr, setLoadErr] = useState('');
   const [mode, setMode] = useState<Mode>(modeOf(host));
-  const blankNew = () => ({ name: '', city: defaultCity, state: defaultState, styles: water === 'saltwater' ? ['Saltwater'] : ['Freshwater'], about: '', website: '', email: '', phone: '', authorized: false });
+  const blankNew = () => ({ name: '', city: defaultCity, state: defaultState, styles: water === 'saltwater' ? ['Saltwater'] : ['Freshwater'], about: '', website: '', email: '', phone: '', logo: '', authorized: false });
   const [nc, setNc] = useState(blankNew);
   const [saving, setSaving] = useState(false);
   const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null);
@@ -57,7 +58,7 @@ export default function HostPicker({ host, onChange, isAdmin, forUser, defaultCi
     try {
       const r = await fetch('/api/tournaments/host-clubs', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ clubName: nc.name, city: nc.city, state: nc.state, styles: nc.styles, about: nc.about, website: nc.website, contactEmail: nc.email, contactPhone: nc.phone, agreedAuthorized: nc.authorized, forUser }),
+        body: JSON.stringify({ clubName: nc.name, city: nc.city, state: nc.state, styles: nc.styles, about: nc.about, website: nc.website, contactEmail: nc.email, contactPhone: nc.phone, logoUrl: nc.logo, agreedAuthorized: nc.authorized, forUser }),
       });
       const j = await r.json();
       if (!r.ok || !j.club) { setNote({ ok: false, text: j.error || 'Couldn’t add the club.' }); return; }
@@ -119,6 +120,7 @@ export default function HostPicker({ host, onChange, isAdmin, forUser, defaultCi
             <label className="md:col-span-2"><span className={LABEL}>Website</span><input className={INPUT} value={nc.website} onChange={(e) => setNc({ ...nc, website: e.target.value })} placeholder="norcalbass.org" /></label>
             <label><span className={LABEL}>Contact email</span><input type="email" className={INPUT} value={nc.email} onChange={(e) => setNc({ ...nc, email: e.target.value })} /></label>
             <label><span className={LABEL}>Contact phone</span><input type="tel" className={INPUT} value={nc.phone} onChange={(e) => setNc({ ...nc, phone: e.target.value })} /></label>
+            <div className="md:col-span-2"><ImageUpload kind="club-logo" value={nc.logo} onChange={(url) => setNc({ ...nc, logo: url })} uploadOnly /></div>
           </div>
           {!isAdmin && (
             <label className="mt-3 flex items-start gap-2 text-sm text-[#2E3F5C]">

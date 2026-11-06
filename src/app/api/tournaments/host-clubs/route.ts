@@ -14,10 +14,11 @@ export const runtime = 'edge';
 import { getAuthenticatedUser } from '@/lib/serverSession';
 import {
   listClubSubmissionsAdmin, listApprovedClubsAdmin, listClubSubmissionsByUserAdmin,
-  createClubSubmissionAdmin, updateClubSubmissionAdmin, getUserByIdAdmin,
+  createClubSubmissionAdmin, updateClubSubmissionAdmin, getUserByIdAdmin, publicUrlPrefix,
 } from '@/lib/supabaseAdmin';
 import { parseClubFields, type DbClubSubmission } from '@/lib/clubSubmission';
 import { ensureClubLocation } from '@/lib/clubLocation';
+import { TOURNAMENT_IMAGE_BUCKET } from '@/lib/tournamentImages';
 
 export interface HostClub {
   id: string; name: string; city: string; state: string; website: string; logo: string;
@@ -76,8 +77,13 @@ export async function POST(request: Request) {
     if (u) owner = { ...user, id: u.id, name: u.name, email: u.email, role: u.role as typeof user.role };
   }
 
+  // Logo uploaded through /api/tournaments/upload (only our own storage is accepted)
+  const logo = str('logoUrl').trim();
+  if (logo && !logo.startsWith(`${publicUrlPrefix(TOURNAMENT_IMAGE_BUCKET)}club-logo/`)) return Response.json({ club: null, error: 'Upload the logo again.' }, { status: 400 });
+
   const { data, error: dbErr } = await createClubSubmissionAdmin({
     ...value,
+    logo_url: logo || null,
     contact_email: value.contact_email,
     submitted_by: owner.id,
     submitter_name: owner.name,
