@@ -20,3 +20,21 @@
     text-wrap: balance;
   }
 }
+
+/* Dropdowns: one chevron for every native <select>, inset 12px from the right
+   edge (the browser's own arrow sits flush against the border). Selects that
+   draw their own chevron use `appearance-none` and are left alone.
+   padding-right is !important so it wins over px-* utilities on the field. */
+select:not([multiple]):not([size]):not(.appearance-none) {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%231F2D3D' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px 16px;
+  padding-right: 40px !important;
+  text-overflow: ellipsis;
+}
+select:not([multiple]):not([size]):not(.appearance-none):disabled { opacity: 0.6; cursor: not-allowed; }
+select:not([multiple]):not([size]):not(.appearance-none)::-ms-expand { display: none; }
