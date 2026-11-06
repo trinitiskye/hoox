@@ -2,6 +2,9 @@
 // Supabase client for FishTournament Pro
 // Project: Hoox (iefjracmxpkpwndrksps)
 
+import { detailsFromRow } from './tournamentDetails';
+import { formatFromRow } from './tournamentFormat';
+
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
@@ -157,6 +160,9 @@ export function dbTournamentToApp(t: DbTournament): Tournament {
     species: t.species ?? undefined,
     fishTypes: t.fish_types ?? undefined,
     vesselTypes: t.vessel_types ?? undefined,
+    waterType: t.water_type ?? undefined,
+    details: detailsFromRow(t.details),
+    format: formatFromRow(t),
     startDate: t.start_date,
     startTime: t.start_time,
     endDate: t.end_date,
@@ -295,6 +301,8 @@ export interface DbTournament {
   species: string | null;
   fish_types: string[] | null;
   vessel_types?: string[] | null; // migration_2026_11_vessel_types.sql
+  water_type?: string | null;     // migration_2026_11_tournament_details.sql
+  details?: unknown;              // jsonb, see src/lib/tournamentDetails.ts
   // Format (migration_2026_11_teams_prizes.sql, see src/lib/tournamentFormat.ts)
   entry_type?: string | null;
   team_min?: number | null;

@@ -1,10 +1,10 @@
-// POST /api/series — create a series (active directors and admins). { name, description?, tournamentIds? }
+// POST /api/series — create a series (active directors and admins). { name, description?, tournamentIds?, vesselTypes?, createdBy? (admin) }
 
 export const runtime = 'edge';
 
 import { getAuthenticatedUser } from '@/lib/serverSession';
 import { dbSeriesToApp, type DbSeries } from '@/lib/supabase';
-import { canCreateEvents, seriesFromBody, checkSeriesTournaments, insertRow } from '@/lib/tournamentServer';
+import { canCreateEvents, isAdmin, seriesFromBody, checkSeriesTournaments, insertRow } from '@/lib/tournamentServer';
 
 export async function POST(request: Request) {
   const user = await getAuthenticatedUser(request);
@@ -16,7 +16,9 @@ export async function POST(request: Request) {
   if (!value) return Response.json({ error }, { status: 400 });
   const bad = await checkSeriesTournaments(user, value.tournament_ids);
   if (bad) return Response.json({ error: bad }, { status: 400 });
-  const { data, error: dbErr } = await insertRow<DbSeries>('series', { tournament_ids: [], ...value, created_by: user.id });
+  // Admins can create a series for a director
+  const createdBy = isAdmin(user) && typeof b.createdBy === 'string' && b.createdBy ? b.createdBy : user.id;
+  const { data, error: dbErr } = await insertRow<DbSeries>('series', { tournament_ids: [], ...value, created_by: createdBy });
   if (dbErr || !data?.[0]) return Response.json({ error: 'Couldn’t save the series.' }, { status: 500 });
   return Response.json({ series: dbSeriesToApp(data[0]), error: null });
 }

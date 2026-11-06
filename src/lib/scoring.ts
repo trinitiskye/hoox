@@ -110,7 +110,7 @@ export function computeScoreboard(
   const scored = entries.filter((e) => e.fish > 0).sort((a, b) => cmp(a, b) || a.name.localeCompare(b.name));
   scored.forEach((e, i) => { e.rank = i > 0 && cmp(scored[i - 1], e) === 0 ? scored[i - 1].rank : i + 1; });
   scored.forEach((e) => {
-    const p = f.placePrizes.find((x) => x.place === e.rank);
+    const p = f.placePrizes.find((x) => e.rank !== null && e.rank >= x.place && e.rank <= (x.toPlace ?? x.place));
     if (p) e.prize = [p.amount !== null ? fmtMoney(p.amount) : '', p.description].filter(Boolean).join(' · ');
   });
   const unscored = entries.filter((e) => e.fish === 0).sort((a, b) => a.name.localeCompare(b.name));

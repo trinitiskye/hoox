@@ -6,6 +6,8 @@
 // `DEMO_EVENT` (slug: lakefront-classic) reproduces the design mock.
 
 import type { Tournament, User } from '@/types';
+import { DEFAULT_DETAILS, WATER_LABEL, type WaterType } from './tournamentDetails';
+import { DEFAULT_FORMAT, prizeRows, placePrizeTotal, formatSummary, POT_RULE_LABEL } from './tournamentFormat';
 
 export interface ScheduleItem {
   date: string; // ISO yyyy-mm-dd
@@ -46,7 +48,12 @@ export interface EventDetail {
   entries?: number; // boat / angler limit
   primarySpecies?: string;
   vessels?: string[]; // Kayak, Powerboat …
+  waterType?: string; // Freshwater / Saltwater
   skillLevel?: string;
+  /** Plain-language entry & judging lines (shown above the rules) */
+  formatLines?: string[];
+  /** Side pots and bonus awards (shown under prize payouts) */
+  sidePots?: { name: string; detail: string; prize: string }[];
   schedule: ScheduleItem[];
   species: SpeciesItem[];
   payouts: PayoutItem[];
@@ -68,10 +75,10 @@ export interface EventDetail {
   };
   sponsor?: {
     name: string;
-    logo: string;
-    tagline: string;
-    image: string;
-    url: string;
+    logo?: string;
+    tagline?: string;
+    image?: string;
+    url?: string;
   };
 }
 
@@ -183,20 +190,29 @@ function to12h(t?: string) {
   return `${((h + 11) % 12) + 1}:${String(m || 0).padStart(2, '0')} ${ampm}`;
 }
 
+const TZ_ABBR: Record<string, string> = { 'America/Los_Angeles': 'PT', 'America/Denver': 'MT', 'America/Phoenix': 'MST', 'America/Chicago': 'CT', 'America/New_York': 'ET', 'America/Anchorage': 'AKT', 'Pacific/Honolulu': 'HT' };
+const usd = (n: number) => `$${n.toLocaleString('en-US', Number.isInteger(n) ? { maximumFractionDigits: 0 } : { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
 export function eventFromTournament(t: Tournament, host?: User | null, registrations?: number): EventDetail {
-  const place = [t.city, t.state].filter(Boolean).join(', ');
-  const locationName = t.location ? (place ? `${t.location}, ${t.state || ''}`.replace(/, $/, '') : t.location) : place;
+  const d = t.details ?? DEFAULT_DETAILS;
+  const f = t.format ?? DEFAULT_FORMAT;
+  const place = [t.city, [t.state, d.zip].filter(Boolean).join(' ')].filter(Boolean).join(', ');
+  const locationName = t.location ? (t.state ? `${t.location}, ${t.state}` : t.location) : [t.city, t.state].filter(Boolean).join(', ');
   const now = new Date();
   const end = new Date(`${t.endDate}T23:59:59`);
+  const closes = d.registrationCloses ? new Date(d.registrationCloses) : null;
   const days = dayList(t.startDate, t.endDate);
   const fishes = t.fishTypes?.length ? t.fishTypes : t.species ? [t.species] : [];
   const fee = fmtMoney(t.entryFee || t.registrationFee);
   const total = t.maxParticipants ? Number(t.maxParticipants) : undefined;
+  const per = f.entryType === 'team' ? (f.feeBasis === 'per_angler' ? 'per angler' : 'per team') : 'per angler';
+  const pool = d.prizePool || (placePrizeTotal(f) > 0 ? usd(placePrizeTotal(f)) : undefined);
+  const water = t.waterType && t.waterType in WATER_LABEL ? WATER_LABEL[t.waterType as WaterType] : undefined;
 
   return {
     id: t.id,
     isDemo: false,
-    badge: 'Official Tournament',
+    badge: d.badge || 'Official Tournament',
     name: t.name,
     startDate: t.startDate,
     endDate: t.endDate,
@@ -204,36 +220,57 @@ export function eventFromTournament(t: Tournament, host?: User | null, registrat
     endTime: t.endTime,
     timezone: t.timezone,
     locationName: locationName || 'Location to be announced',
-    address: place || undefined,
-    mapQuery: [t.location, t.city, t.state].filter(Boolean).join(', '),
+    address: [d.address, place].filter(Boolean).join(', ') || undefined,
+    mapQuery: [t.location, d.address, t.city, t.state, d.zip].filter(Boolean).join(', '),
     heroImage: t.image || DEMO_EVENT.heroImage,
-    summary: t.description || `Join us for ${t.name}${locationName ? ` on ${locationName}` : ''}.`,
+    summary: d.summary || t.description || `Join us for ${t.name}${locationName ? ` on ${locationName}` : ''}.`,
     overview: t.description || 'More details about this tournament will be posted by the tournament director.',
+    prizePool: pool,
     entries: total,
     primarySpecies: fishes[0],
     vessels: t.vesselTypes ?? [],
-    schedule: days.map((d, i) => ({
-      date: d,
-      title: days.length === 1 ? 'Tournament Day' : i === days.length - 1 ? 'Final Day' : `Tournament Day ${i + 1}`,
-      time: [to12h(t.startTime), to12h(t.endTime)].filter(Boolean).join(' – '),
-      place: t.location,
+    waterType: water,
+    skillLevel: d.skillLevel || undefined,
+    formatLines: formatSummary(f),
+    schedule: d.schedule.length
+      ? d.schedule.map((x) => ({ date: x.date, title: x.title, time: x.time, place: x.place || undefined }))
+      : days.map((day, i) => ({
+          date: day,
+          title: days.length === 1 ? 'Tournament Day' : i === days.length - 1 ? 'Final Day' : `Tournament Day ${i + 1}`,
+          time: [to12h(t.startTime), to12h(t.endTime)].filter(Boolean).join(' – '),
+          place: t.location,
+        })),
+    species: fishes.map((name, i) => ({ name, note: d.speciesNotes[name] || (i === 0 ? 'Primary Species' : undefined) })),
+    payouts: prizeRows(f),
+    payoutNote: d.payoutNote || undefined,
+    sidePots: f.sidePots.map((p) => ({
+      name: p.name,
+      detail: [p.kind === 'pot' ? `Optional buy-in ${usd(p.fee)}` : 'Free bonus award', POT_RULE_LABEL[p.rule] + (p.species ? ` (${p.species})` : '')].join(' · '),
+      prize: p.payout === 'share' ? p.splits.map((x, i) => `${i + 1}${['st', 'nd', 'rd'][i] || 'th'} ${x}%`).join(', ') + ' of the pot' : [p.amount !== null ? usd(p.amount) : '', p.description].filter(Boolean).join(' + '),
     })),
-    species: fishes.map((name, i) => ({ name, note: i === 0 ? 'Primary Species' : undefined })),
-    payouts: [],
-    rules: [],
+    rules: d.rules,
     registration: {
-      open: now < end && t.status !== 'completed',
+      open: now < end && t.status !== 'completed' && !(closes && !isNaN(closes.getTime()) && now > closes),
       filled: registrations,
       total,
-      fee: fee ? `${fee} per entry` : undefined,
+      closes: closes && !isNaN(closes.getTime())
+        ? `${closes.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} at ${closes.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}${t.timezone && TZ_ABBR[t.timezone] ? ` ${TZ_ABBR[t.timezone]}` : ''}`
+        : undefined,
+      fee: fee ? `${fee} ${per}` : undefined,
+      feeNote: d.feeNote || undefined,
     },
-    host: host
-      ? {
-          name: host.profileOrganization || host.organization || host.profileDisplayName || host.name,
-          email: host.profileEmail || host.email,
-          phone: host.profilePhone || host.phone,
-          website: host.profileWebsite || host.website,
-        }
+    host: d.host.name || d.host.email || d.host.phone || d.host.website
+      ? { name: d.host.name || host?.profileOrganization || host?.organization || host?.name || 'Tournament host', email: d.host.email || undefined, phone: d.host.phone || undefined, website: d.host.website || undefined }
+      : host
+        ? {
+            name: host.profileOrganization || host.organization || host.profileDisplayName || host.name,
+            email: host.profileEmail || host.email,
+            phone: host.profilePhone || host.phone,
+            website: host.profileWebsite || host.website,
+          }
+        : undefined,
+    sponsor: d.sponsor.name
+      ? { name: d.sponsor.name, logo: d.sponsor.logo || undefined, tagline: d.sponsor.tagline || undefined, image: d.sponsor.image || undefined, url: d.sponsor.url || undefined }
       : undefined,
   };
 }

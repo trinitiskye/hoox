@@ -30,7 +30,8 @@ export const POT_RULE_LABEL: Record<PotRule, string> = {
   director_pick: 'Chosen by the director',
 };
 
-export interface PlacePrize { place: number; amount: number | null; description: string }
+/** One prize row: a single place, or a range (6th–10th) where each place gets the amount */
+export interface PlacePrize { place: number; toPlace?: number | null; amount: number | null; description: string }
 
 export interface SidePot {
   id: string;
@@ -131,13 +132,17 @@ export function parseFormat(input: Record<string, unknown>, base: TournamentForm
   const pp = get('placePrizes');
   if (!Array.isArray(pp)) return fail('Place prizes must be a list.');
   const placePrizes: PlacePrize[] = [];
+  let next = 1;
   for (const [i, raw] of pp.slice(0, 50).entries()) {
     const r = (raw || {}) as Record<string, unknown>;
+    const to = r.toPlace === '' || r.toPlace === null || r.toPlace === undefined ? null : Number(r.toPlace);
+    if (to !== null && (!Number.isInteger(to) || to < next || to > 1000)) return fail(`Prize row ${i + 1}: “through place” must be ${next} or higher.`);
     const amount = money(r.amount);
     if (amount !== null && (!Number.isFinite(amount) || amount < 0 || amount > 10_000_000)) return fail(`Place ${i + 1}: enter a valid prize amount.`);
     const description = typeof r.description === 'string' ? r.description.trim().slice(0, 160) : '';
     if (amount === null && !description) return fail(`Place ${i + 1}: enter an amount or a description.`);
-    placePrizes.push({ place: i + 1, amount, description });
+    placePrizes.push({ place: next, toPlace: to !== null && to > next ? to : null, amount, description });
+    next = (to !== null && to > next ? to : next) + 1;
   }
 
   const sp = get('sidePots');
@@ -185,4 +190,39 @@ export function entryCost(f: TournamentFormat, mainFee: number, anglers: number,
   const main = f.feeBasis === 'per_angler' ? mainFee * Math.max(1, anglers) : mainFee;
   const pots = buyInPots(f).filter((p) => potIds.includes(p.id)).reduce((n, p) => n + p.fee, 0);
   return { main: Math.round(main * 100) / 100, pots: Math.round(pots * 100) / 100 };
+}
+
+/* ------------------------------ display helpers ----------------------------- */
+
+const ord = (n: number) => { const t = n % 100; const suffix = t >= 11 && t <= 13 ? 'th' : ({ 1: 'st', 2: 'nd', 3: 'rd' } as Record<number, string>)[n % 10] || 'th'; return `${n}${suffix}`; };
+export const ordinal = ord;
+const usd = (n: number) => `$${n.toLocaleString('en-US', Number.isInteger(n) ? { maximumFractionDigits: 0 } : { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+/** "1st Place" / "6th – 10th" and "$5,000 each" / "Trophy" */
+export function prizeRows(f: TournamentFormat): { place: string; amount: string }[] {
+  return f.placePrizes.map((p) => {
+    const range = p.toPlace && p.toPlace > p.place;
+    return {
+      place: range ? `${ord(p.place)} – ${ord(p.toPlace!)}` : `${ord(p.place)} Place`,
+      amount: [p.amount !== null ? `${usd(p.amount)}${range ? ' each' : ''}` : '', p.description].filter(Boolean).join(' + '),
+    };
+  });
+}
+
+/** Sum of fixed place prizes (ranges count every place) */
+export const placePrizeTotal = (f: TournamentFormat) =>
+  f.placePrizes.reduce((n, p) => n + (p.amount ?? 0) * ((p.toPlace ?? p.place) - p.place + 1), 0);
+
+/** Plain-language format lines for the tournament page */
+export function formatSummary(f: TournamentFormat): string[] {
+  const lines: string[] = [];
+  lines.push(f.entryType === 'team'
+    ? `Team event: ${f.teamMin === f.teamMax ? `${f.teamMax} anglers` : `${f.teamMin}–${f.teamMax} anglers`} per team. The captain registers the team and invites teammates.`
+    : 'Individual event: each angler enters on their own.');
+  const by = f.scoring === 'both'
+    ? `Judged by weight and length. Ranked by total ${f.primaryMeasure}; total ${f.primaryMeasure === 'weight' ? 'length' : 'weight'} breaks ties.`
+    : `Judged by ${f.scoring}: ranked by total ${f.scoring === 'weight' ? 'weight (lb)' : 'length (in)'}.`;
+  lines.push(by);
+  if (f.fishLimit) lines.push(`Fish limit: each ${f.entryType === 'team' ? 'team' : 'angler'}’s best ${f.fishLimit} fish count.`);
+  return lines;
 }

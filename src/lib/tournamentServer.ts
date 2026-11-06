@@ -19,6 +19,7 @@ import type { DbTournament, DbSeries, DbRegistration, DbSubmission, DbTournament
 import type { User } from '@/types';
 import { cleanVessels, VESSEL_TYPES } from './vessels';
 import { parseFormat, formatFromRow, formatToRow, measuresFor, type TournamentFormat } from './tournamentFormat';
+import { parseDetails, detailsFromRow, WATER_TYPES } from './tournamentDetails';
 
 export const TOURNAMENT_STATUSES = ['upcoming', 'active', 'completed'] as const;
 export const SUBMISSION_REVIEW = ['pending', 'approved', 'denied'] as const;
@@ -83,6 +84,19 @@ export function tournamentFromBody(b: Body, prev?: DbTournament): { value: Parti
     const fmt = parseFormat(Object.fromEntries(FORMAT_KEYS.filter((k) => has(b, k)).map((k) => [k, b[k]])), prev ? formatFromRow(prev) : undefined);
     if (!fmt.value) return fail(fmt.error!);
     Object.assign(v, formatToRow(fmt.value));
+  }
+  if (has(b, 'waterType')) {
+    const w = str(b, 'waterType', 20);
+    if (w && !(WATER_TYPES as readonly string[]).includes(w)) return fail('Choose freshwater or saltwater.');
+    v.water_type = w || null;
+  }
+  if (has(b, 'details')) {
+    if (!b.details || typeof b.details !== 'object') return fail('Invalid tournament details.');
+    // Merge over what's saved so partial updates keep the rest
+    const merged = { ...(prev ? detailsFromRow(prev.details) : {}), ...(b.details as Record<string, unknown>) };
+    const d = parseDetails(merged);
+    if (!d.value) return fail(d.error!);
+    v.details = d.value;
   }
   if (has(b, 'vesselTypes')) {
     if (!Array.isArray(b.vesselTypes)) return fail(`Vessel types must be a list (${VESSEL_TYPES.join(', ')}).`);

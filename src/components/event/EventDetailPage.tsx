@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import {
-  Trophy, CalendarDays, MapPin, ArrowRight, Users, Fish, LifeBuoy, Ship, Mail, Phone, Globe, ChevronRight,
+  Trophy, CalendarDays, MapPin, ArrowRight, Users, Fish, LifeBuoy, Ship, Waves, Mail, Phone, Globe, ChevronRight,
   Navigation, ListChecks, Medal,
 } from 'lucide-react';
 import {
@@ -113,7 +113,7 @@ function PrizesCard({ e }: { e: EventDetail }) {
   return (
     <section className={`${CARD} p-4`} aria-label="Prize payouts">
       <CardTitle icon={<Trophy className="h-[20px] w-[20px]" strokeWidth={2} fill="currentColor" />}>Prize Payouts</CardTitle>
-      {e.payouts.length === 0 ? (
+      {e.payouts.length === 0 && !e.sidePots?.length ? (
         <Empty>Prize payouts will be posted by the tournament director.</Empty>
       ) : (
         <>
@@ -128,6 +128,19 @@ function PrizesCard({ e }: { e: EventDetail }) {
           {e.payoutNote && <p className="mt-4 text-[11px] leading-[17px] text-[#8495AA]">{e.payoutNote}</p>}
         </>
       )}
+      {!!e.sidePots?.length && (
+        <div className="mt-4">
+          <h4 className="text-[12px] font-bold uppercase tracking-[0.04em] text-[#0E6E73]">Side pots &amp; bonus awards</h4>
+          <ul className="mt-1">
+            {e.sidePots.map((p) => (
+              <li key={p.name} className="border-b border-[#EEF2F6] py-[6px] text-[12.5px] leading-[18px] last:border-0">
+                <span className="flex items-center justify-between gap-3"><span className={`font-semibold ${INK}`}>{p.name}</span><span className={`text-right font-medium ${INK}`}>{p.prize}</span></span>
+                <span className="block text-[11.5px] text-[#758CA9]">{p.detail}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </section>
   );
 }
@@ -136,6 +149,11 @@ function RulesCard({ e }: { e: EventDetail }) {
   return (
     <section className={`${CARD} p-4`} aria-label="Rules">
       <CardTitle icon={<ListChecks className="h-[20px] w-[20px]" strokeWidth={2} />}>Tournament Rules</CardTitle>
+      {!!e.formatLines?.length && (
+        <ul className="mb-2 mt-1 space-y-1 rounded-md bg-[#F2F7FA] px-3 py-2.5 text-[13px] leading-[19px] text-[#2B466C]">
+          {e.formatLines.map((l) => <li key={l}>{l}</li>)}
+        </ul>
+      )}
       {e.rules.length === 0 ? (
         <Empty>Official rules will be posted by the tournament director.</Empty>
       ) : (
@@ -325,6 +343,7 @@ export default function EventDetailPage({ e, onNavigate }: { e: EventDetail; onN
     e.entries && { icon: <Users className="h-[38px] w-[38px]" fill="currentColor" strokeWidth={1.25} />, value: String(e.entries), label: 'Entries' },
     // eslint-disable-next-line @next/next/no-img-element
     e.primarySpecies && { icon: <img src="/home/live-fish.png" alt="" className="h-[40px] w-[52px] object-contain" />, value: e.primarySpecies, label: 'Primary Species' },
+    e.waterType && { icon: <Waves className="h-[38px] w-[38px]" strokeWidth={1.75} />, value: e.waterType, label: 'Water' },
     !!e.vessels?.length && { icon: <Ship className="h-[38px] w-[38px]" strokeWidth={1.75} />, value: e.vessels.join(' & '), label: e.vessels.length > 1 ? 'Vessel Types' : 'Vessel Type' },
     e.skillLevel && { icon: <LifeBuoy className="h-[38px] w-[38px]" strokeWidth={2} />, value: e.skillLevel, label: 'Welcome' },
   ].filter(Boolean) as { icon: React.ReactNode; value: string; label: string }[];
@@ -507,22 +526,24 @@ export default function EventDetailPage({ e, onNavigate }: { e: EventDetail; onN
             {e.sponsor && (
               <section aria-label={`Presenting sponsor: ${e.sponsor.name}`} className="relative min-h-[206px] overflow-hidden rounded-lg bg-[#032430] shadow-[0_2px_10px_rgba(10,30,60,0.12)]">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                {e.sponsor.image && <img
                   src={e.sponsor.image}
                   alt=""
                   className="absolute inset-y-0 right-0 h-full w-[46%] object-cover [-webkit-mask-image:linear-gradient(90deg,transparent_0%,#000_30%)] [mask-image:linear-gradient(90deg,transparent_0%,#000_30%)]"
-                />
+                />}
                 <div className="relative z-10 px-[18px] pt-[12px] pb-[18px]">
                   <span className="inline-block rounded-full bg-[#F7CF36] px-3 py-[3px] text-[10.5px] font-bold uppercase text-[#1E2126]">Presenting Sponsor</span>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={e.sponsor.logo} alt={e.sponsor.name} className="mt-[10px] w-[230px] max-w-[60%] h-auto" />
-                  <p className="mt-[10px] max-w-[190px] text-[15px] font-semibold leading-[20px] text-white">{e.sponsor.tagline}</p>
-                  <a
-                    href={e.sponsor.url}
+                  {e.sponsor.logo
+                    // eslint-disable-next-line @next/next/no-img-element
+                    ? <img src={e.sponsor.logo} alt={e.sponsor.name} className="mt-[10px] w-[230px] max-w-[60%] h-auto" />
+                    : <p className="mt-[10px] max-w-[60%] font-montserrat text-[24px] font-bold leading-tight text-white">{e.sponsor.name}</p>}
+                  {e.sponsor.tagline && <p className="mt-[10px] max-w-[190px] text-[15px] font-semibold leading-[20px] text-white">{e.sponsor.tagline}</p>}
+                  {e.sponsor.url && <a
+                    href={e.sponsor.url} target={/^https?:/.test(e.sponsor.url) ? '_blank' : undefined} rel="noopener noreferrer sponsored"
                     className="mt-[14px] inline-flex h-[34px] items-center gap-4 rounded-md bg-gradient-to-b from-[#F7C23C] to-[#F2AE24] px-[28px] text-[14px] font-semibold text-[#0B1636] transition hover:brightness-105"
                   >
                     Learn More <ArrowRight className="h-4 w-4" strokeWidth={2.25} />
-                  </a>
+                  </a>}
                 </div>
               </section>
             )}

@@ -65,6 +65,12 @@ export interface Tournament {
   fishTypes?: string[];
   /** Kayak, Powerboat … (src/lib/vessels.ts) */
   vesselTypes?: string[];
+  /** freshwater | saltwater */
+  waterType?: string;
+  /** Tournament page details (src/lib/tournamentDetails.ts) */
+  details?: import('@/lib/tournamentDetails').TournamentDetails;
+  /** Entry, judging, prizes, side pots (src/lib/tournamentFormat.ts) */
+  format?: import('@/lib/tournamentFormat').TournamentFormat;
   startDate: string;
   startTime: string;
   endDate: string;

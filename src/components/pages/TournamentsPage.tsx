@@ -41,6 +41,7 @@ export interface TItem {
   country: string;
   species: string[];
   vessels?: string[]; // Kayak, Powerboat … (src/lib/vessels.ts)
+  water?: string;     // Freshwater / Saltwater
   image: string;
   fee?: string;
   anglers?: number;
@@ -149,6 +150,9 @@ export function fromTournament(t: Tournament, i: number): TItem {
     country: 'United States',
     species,
     vessels: t.vesselTypes ?? [],
+    water: t.waterType === 'saltwater' ? 'Saltwater' : t.waterType === 'freshwater' ? 'Freshwater' : undefined,
+    sponsor: t.details?.sponsor.name || undefined,
+    sponsorUrl: t.details?.sponsor.url || undefined,
     image: t.image || IMAGES[i % IMAGES.length],
     fee: fee ? (/^\$/.test(fee) ? fee : `$${fee}`) : undefined,
     anglers: t.maxParticipants ? Number(t.maxParticipants) || undefined : undefined,
@@ -192,8 +196,8 @@ function Meta({ t, size = 'card' }: { t: TItem; size?: 'card' | 'list' }) {
       {t.species.length > 0 && (
         <li className="flex items-center gap-3 text-[#5F7896]"><Fish className={`${ic} flex-shrink-0 text-[#0D1B4C]`} strokeWidth={2} />{t.species.join(' • ')}</li>
       )}
-      {!!t.vessels?.length && (
-        <li className="flex items-center gap-3 text-[#5F7896]"><Ship className={`${ic} flex-shrink-0 text-[#0D1B4C]`} strokeWidth={2} aria-hidden /><span><span className="sr-only">Vessel: </span>{t.vessels.join(' • ')}</span></li>
+      {(!!t.vessels?.length || t.water) && (
+        <li className="flex items-center gap-3 text-[#5F7896]"><Ship className={`${ic} flex-shrink-0 text-[#0D1B4C]`} strokeWidth={2} aria-hidden /><span><span className="sr-only">Water and vessel: </span>{[t.water, t.vessels?.join(' • ')].filter(Boolean).join(' · ')}</span></li>
       )}
       {(t.anglers || t.prizePool) && (
         <li className="flex flex-wrap items-center gap-x-5 gap-y-1 text-[#5F7896]">
@@ -243,7 +247,7 @@ export default function TournamentsPage({ tournaments, onNavigate }: Tournaments
       if (!matchesVessel(t.vessels, vessel)) return false;
       if (status !== 'all' && statusById[t.id] !== status) return false;
       if (!term) return true;
-      return [t.name, t.sponsor ?? '', t.about, t.venue ?? '', t.city ?? '', t.state ?? '', ...t.species, ...(t.vessels ?? [])].some((v) => v.toLowerCase().includes(term));
+      return [t.name, t.sponsor ?? '', t.about, t.venue ?? '', t.city ?? '', t.state ?? '', ...t.species, ...(t.vessels ?? []), t.water ?? ''].some((v) => v.toLowerCase().includes(term));
     });
   }, [items, q, species, vessel, status, statusById]);
 
