@@ -13,6 +13,8 @@ export const runtime = 'edge';
 
 import { updateUserAdmin, deleteUserAdmin } from '@/lib/supabaseAdmin';
 import { dbUserToApp } from '@/lib/supabase';
+import { sendEmail } from '@/lib/email';
+import { accountApprovedEmail } from '@/lib/emailTemplates';
 import { getAuthenticatedAdmin } from '@/lib/serverSession';
 import type { DbUserInsert } from '@/lib/supabase';
 
@@ -43,6 +45,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
   const { data, error } = await updateUserAdmin(id, { status });
   if (error || !data?.[0]) return Response.json({ error: error || 'Update failed.' }, { status: 500 });
+  if (body.action === 'approve') await sendEmail({ to: data[0].email, kind: 'account_approved', relatedId: id, ...accountApprovedEmail(data[0].name) });
 
   return Response.json({ user: dbUserToApp(data[0]), error: null });
 }

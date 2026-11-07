@@ -61,7 +61,7 @@ export default function LoginPage({ onNavigate, onLogin }: LoginPageProps) {
                 ? 'Your account has been paused. Please contact the HOOX support team to reactivate your account.'
                 : 'Please contact the HOOX support team to discuss your account.'}
             </p>
-            <a href="mailto:support@fishtournament.pro"
+            <a href="mailto:support@hoox.app"
               className="block w-full py-2.5 bg-blue-600 text-white font-semibold rounded-xl text-center hover:bg-blue-700 transition text-sm mb-3">
               Contact Support
             </a>

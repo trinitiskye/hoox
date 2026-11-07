@@ -7,6 +7,7 @@ export const runtime = 'edge';
 
 import { getAuthenticatedAdmin } from '@/lib/serverSession';
 import { getThread, listMessages, addMessage, updateThread, validId, getVisitor } from '@/lib/supportServer';
+import { emailSupportReply } from '@/lib/supportEmail';
 import {
   cleanText, toPublicMessage, MESSAGE_MAX, THREAD_STATUSES, THREAD_PRIORITIES, VISITOR_ONLINE_MS,
   type DbSupportThread, type ThreadStatus, type ThreadPriority,
@@ -52,7 +53,9 @@ export async function POST(request: Request, { params }: Ctx) {
   if (!sent.message) return Response.json({ error: 'Couldn’t send.' }, { status: 500 });
   // Replying to an open ticket marks it as waiting on the visitor
   if (thread.kind === 'ticket' && thread.status === 'open') await updateThread(id, { status: 'pending' });
-  return Response.json({ message: toPublicMessage(sent.message), error: null });
+  // Email the reply (tickets, and chats where we have the visitor's email)
+  const mail = thread.email ? await emailSupportReply(thread, body, sent.message.author_name || 'HOOX Support') : null;
+  return Response.json({ message: toPublicMessage(sent.message), emailed: mail?.ok ?? false, emailError: mail && !mail.ok ? mail.error : null, error: null });
 }
 
 export async function PATCH(request: Request, { params }: Ctx) {

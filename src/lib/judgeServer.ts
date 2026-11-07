@@ -62,7 +62,6 @@ export async function addJudge(tid: string, input: { userId?: string; email?: st
     }),
   });
   if (error || !data?.[0]) return { judge: null, error: /duplicate|unique/i.test(error || '') ? 'That judge is already on this tournament.' : 'Couldn’t add the judge.' };
-  // Invite email goes here once an email service is connected; until then the director shares the invite link.
   return { judge: data[0], error: null, invited: !user };
 }
 

@@ -32,14 +32,15 @@ export async function syncJudges(tid: string, rows: JudgeRow[], removed: string[
   const notes: string[] = [];
   const base = `/api/tournaments/${encodeURIComponent(tid)}/judges`;
   for (const id of removed) await fetch(`${base}?judge=${encodeURIComponent(id)}`, { method: 'DELETE' }).catch(() => {});
-  let invited = 0;
+  let invited = 0, emailed = 0;
   for (const r of rows.filter((x) => !x.id)) {
     const res = await fetch(base, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(r.userId ? { userId: r.userId } : { email: r.email, name: r.name }) });
     const j = await res.json().catch(() => ({}));
     if (j.error) notes.push(`Judge ${r.name || r.email}: ${j.error}`);
-    else if (j.invited) invited++;
+    else { if (j.invited) invited++; if (j.emailed) emailed++; }
   }
-  if (invited) notes.push(`${invited === 1 ? 'Judge invite' : `${invited} judge invites`} saved. Copy the invite link under Judging to send it.`);
+  if (emailed) notes.push(`${emailed === 1 ? 'Judge emailed' : `${emailed} judges emailed`}.`);
+  else if (invited) notes.push(`${invited === 1 ? 'Judge invite' : `${invited} judge invites`} saved, but email isn’t set up yet: copy the invite link under Judging to send it.`);
   return { notes, rows: await loadJudges(tid) };
 }
 
@@ -130,7 +131,7 @@ export default function JudgesPanel({ rows, onChange, onRemoveSaved, isAdmin }: 
               <button type="button" onClick={() => { setPick(''); setErr(''); }} className={BTN_GHOST}>Cancel</button>
             </div>
           </div>
-          <p className="mt-2 text-xs text-[#6B7D93]">They’re invited to create a HOOX judge account with this email. Once they sign up, they’re assigned to this tournament automatically.</p>
+          <p className="mt-2 text-xs text-[#6B7D93]">We’ll email them an invite to create a HOOX judge account with this address. Once they sign up, they’re assigned to this tournament automatically.</p>
         </div>
       )}
       {err && <p className="mt-2 text-sm text-red-600">{err}</p>}

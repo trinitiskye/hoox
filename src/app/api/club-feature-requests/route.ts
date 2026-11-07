@@ -5,6 +5,9 @@
 
 export const runtime = 'edge';
 
+import { notifyAdmins, appLink } from '@/lib/email';
+import { adminAlertEmail } from '@/lib/emailTemplates';
+
 import { getAuthenticatedUser } from '@/lib/serverSession';
 import { getClubSubmissionAdmin, createClubFeatureRequestAdmin } from '@/lib/supabaseAdmin';
 import { CLUB_SUBMIT_ROLES } from '@/lib/clubSubmission';
@@ -103,6 +106,7 @@ export async function POST(request: Request) {
       ({ error } = await createClubFeatureRequestAdmin(row)); // pricing migration not run yet
     }
     if (error) return fail('We couldn’t save your request. Please try again in a moment.', 'unknown', 500);
+    await notifyAdmins({ kind: 'admin_alert', relatedId: clubId, replyTo: row.requester_email || undefined, ...adminAlertEmail({ subject: `Feature request: ${clubName}`, heading: 'New featured club request', lines: [`${row.requester_name} (${row.requester_email}) asked to feature ${clubName}: ${chosen.name} plan, $${chosen.price}.`, 'Send the invoice and approve it in Marketing → Marketing Promotions → Clubs.'], link: appLink('/admin/marketing/featured/clubs') }) });
     return Response.json({ ok: true, error: null, code: null });
   } catch {
     return fail('Something went wrong on our end. Please try again in a moment.', 'unknown', 500);

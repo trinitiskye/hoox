@@ -3,13 +3,16 @@
 // GET    → { judges: [{ id, userId, name, email, status, inviteLink }] }
 // POST   { userId } (an existing judge account) or { email, name } (invite)
 // DELETE ?judge=<row id>
-// Invited judges get an invite link (emailed once an email service is
-// connected; until then the director can copy and send it).
+// Judges are emailed when added: an invite link to sign up, or a note that
+// they've been assigned. The director can also copy the invite link.
 
 export const runtime = 'edge';
 
 import { getAuthenticatedUser } from '@/lib/serverSession';
 import { getTournamentSrv, ownsEvent } from '@/lib/tournamentServer';
+import { sendEmail, appLink, emailEnv } from '@/lib/email';
+import { judgeInviteEmail } from '@/lib/emailTemplates';
+import { getUserByIdAdmin } from '@/lib/supabaseAdmin';
 import { judgesFor, addJudge, removeJudge, judgeInviteLink, type DbTournamentJudge } from '@/lib/judgeServer';
 
 type Ctx = { params: Promise<{ id: string }> };
@@ -44,7 +47,13 @@ export async function POST(request: Request, { params }: Ctx) {
   const s = (k: string) => (typeof b[k] === 'string' ? (b[k] as string) : '');
   const r = await addJudge(l.t.id, { userId: s('userId') || undefined, email: s('email'), name: s('name') }, l.user.id);
   if (!r.judge) return Response.json({ judge: null, error: r.error }, { status: 400 });
-  return Response.json({ judge: out(r.judge, new URL(request.url).origin), invited: !!r.invited, error: null });
+  // Email the judge: an invite to sign up, or a heads-up that they've been assigned
+  const director = (await getUserByIdAdmin(l.t.created_by)).data?.[0];
+  const mail = await sendEmail({
+    to: r.judge.email, kind: 'judge_invite', relatedId: l.t.id, replyTo: director?.email,
+    ...judgeInviteEmail({ name: r.judge.name || '', tournament: l.t.name, director: director?.name || '', link: r.invited ? judgeInviteLink(emailEnv().appUrl, r.judge.id) : appLink('/login'), hasAccount: !r.invited }),
+  });
+  return Response.json({ judge: out(r.judge, new URL(request.url).origin), invited: !!r.invited, emailed: mail.ok, error: null });
 }
 
 export async function DELETE(request: Request, { params }: Ctx) {

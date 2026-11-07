@@ -47,6 +47,8 @@ export interface DbSupportThread {
   user_id: string | null;
   visitor_id: string | null;
   access_hash: string | null;
+  /** Private token for links and reply-by-email in ticket emails (migration_2026_11_email.sql) */
+  email_token?: string | null;
   started_by: 'visitor' | 'admin';
   page_url: string | null;
   admin_notes: string | null;

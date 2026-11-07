@@ -13,6 +13,8 @@
 
 export const runtime = 'edge';
 
+import { sendEmail, notifyAdmins, appLink } from '@/lib/email';
+import { welcomeEmail, judgeAwaitingDirectorEmail, directorInviteFromJudgeEmail, adminAlertEmail } from '@/lib/emailTemplates';
 import { claimJudgeInvites } from '@/lib/judgeServer';
 import { getUserByEmailAdmin, createUserAdmin, supabaseAdminFetch } from '@/lib/supabaseAdmin';
 import { dbUserToApp, type DbUserInsert } from '@/lib/supabase';
@@ -92,6 +94,16 @@ export async function POST(request: Request) {
   const credited = role === 'director' ? (await creditReferral(request, dbUser.id).catch(() => ({ credited: false }))).credited : false;
 
   const outcome = role === 'judge' ? (invited ? 'invite_accepted' : status === 'pending' ? 'pending_approval' : 'invite_sent') : undefined;
+
+  // Emails: welcome (or "waiting for approval"), plus the director / HOOX team when someone needs approving
+  await sendEmail({ to: email, kind: 'welcome', relatedId: dbUser.id, ...welcomeEmail(name, ROLES[role], status === 'pending') });
+  if (role === 'judge' && !invited && directorEmail) {
+    if (status === 'pending') await sendEmail({ to: directorEmail, kind: 'judge_awaiting_director', relatedId: dbUser.id, ...judgeAwaitingDirectorEmail(directorName || '', name, email) });
+    else await sendEmail({ to: directorEmail, kind: 'director_invite', relatedId: dbUser.id, ...directorInviteFromJudgeEmail(name) });
+  }
+  if (role === 'partner') {
+    await notifyAdmins({ kind: 'admin_alert', relatedId: dbUser.id, ...adminAlertEmail({ subject: `New partner application: ${name}`, heading: 'New partner application', lines: [`${name} (${email})${s('organization', 160) ? ` from ${s('organization', 160)}` : ''} applied to become a HOOX partner.`], quote: s('message', 2000) || undefined, link: appLink('/admin/partners') }) });
+  }
   const response = Response.json({ user, error: null, outcome, directorName });
   if (credited) response.headers.append('Set-Cookie', clearRefCookie);
   if (status === 'active') {

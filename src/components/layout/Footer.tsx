@@ -96,7 +96,7 @@ export default function Footer({ onNavigate, flush = false }: FooterProps) {
           <div>
             <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">Contact</h3>
             <ul className="space-y-2.5">
-              <li><a href="mailto:support@fishtournament.pro" className="text-gray-400 hover:text-cyan-400 transition text-sm">support@fishtournament.pro</a></li>
+              <li><a href="mailto:support@hoox.app" className="text-gray-400 hover:text-cyan-400 transition text-sm">support@hoox.app</a></li>
               <li><a href="tel:5551234567" className="text-gray-400 hover:text-cyan-400 transition text-sm">(555) 123-4567</a></li>
               <li>
                 <button onClick={() => onNavigate('admin-login')} className="text-gray-400 hover:text-cyan-400 transition text-sm">

@@ -11,6 +11,8 @@ import { supabaseAdminFetch, getUserByEmailAdmin } from './supabaseAdmin';
 import { todayIso } from './featured';
 import { formatFromRow } from './tournamentFormat';
 import { loadAffiliateSettings } from './affiliateServer';
+import { sendEmail, appLink } from './email';
+import { teamInviteEmail } from './emailTemplates';
 import type { DbTournament, DbRegistration } from './supabase';
 import type { User } from '@/types';
 
@@ -80,7 +82,13 @@ export async function inviteToTeam(t: DbTournament, team: DbTeam, emailRaw: stri
   });
   if (error || !data?.[0]) return { member: null, error: /team_members_one_team_idx|duplicate/i.test(error || '') ? 'That angler is already on a team in this tournament.' : 'Couldn’t save the invite.' };
   if (direct) await syncTeamFee(t, team.id);
-  // Email notification goes here once an email service is connected; until then the invite shows in the angler's account.
+  // Email the teammate (direct adds are already on the team, so no email)
+  if (!direct) {
+    await sendEmail({
+      to: email, kind: 'team_invite', relatedId: t.id, replyTo: by.email,
+      ...teamInviteEmail({ team: team.name, tournament: t.name, captain: by.profileDisplayName || by.displayName || by.name, link: appLink(u ? '/login' : '/register/angler'), hasAccount: !!u }),
+    });
+  }
   return { member: data[0], error: null };
 }
 

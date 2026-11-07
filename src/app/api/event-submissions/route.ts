@@ -6,6 +6,9 @@
 
 export const runtime = 'edge';
 
+import { notifyAdmins, appLink } from '@/lib/email';
+import { adminAlertEmail } from '@/lib/emailTemplates';
+
 import {
   createEventSubmissionAdmin,
   uploadPublicImageAdmin,
@@ -123,6 +126,7 @@ async function handle(request: Request) {
     await cleanup();
     return Response.json({ error: 'We couldn’t save your submission. Please try again in a moment.' }, { status: 500 });
   }
+  await notifyAdmins({ kind: 'admin_alert', replyTo: value.contact_email || undefined, ...adminAlertEmail({ subject: `New event submission: ${value.event_name}`, heading: 'New expo / event submission', lines: [`${value.event_name}, submitted by ${value.contact_name} (${value.contact_email}).`, 'Review it in Event Management → Events.'], link: appLink('/admin/events') }) });
 
   return Response.json({ ok: true, error: null });
 }

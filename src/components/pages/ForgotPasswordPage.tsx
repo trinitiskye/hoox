@@ -10,6 +10,21 @@ interface ForgotPasswordPageProps {
 export default function ForgotPasswordPage({ onNavigate }: ForgotPasswordPageProps) {
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  const submit = async () => {
+    setError('');
+    if (!email.trim()) { setError('Enter your email address.'); return; }
+    setBusy(true);
+    try {
+      const r = await fetch('/api/auth/forgot-password', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok || !j.ok) setError(j.error || 'Something went wrong. Please try again.');
+      else setSubmitted(true);
+    } catch { setError('Couldn’t reach HOOX. Check your connection.'); }
+    finally { setBusy(false); }
+  };
 
   if (submitted) {
     return (
@@ -20,7 +35,7 @@ export default function ForgotPasswordPage({ onNavigate }: ForgotPasswordPagePro
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Check your email</h2>
           <p className="text-gray-500 text-sm mb-6">
-            If an account exists for <span className="font-medium text-gray-700">{email}</span>, you'll receive a password reset link shortly.
+            If an account exists for <span className="font-medium text-gray-700">{email}</span>, you’ll receive a password reset link shortly. It expires in 1 hour. Check your spam folder if you don’t see it.
           </p>
           <button onClick={() => onNavigate('login')} className="w-full py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition">
             Back to Login
@@ -39,18 +54,19 @@ export default function ForgotPasswordPage({ onNavigate }: ForgotPasswordPagePro
           </div>
         </div>
         <h1 className="text-2xl font-bold text-gray-900 text-center mb-1">Forgot password?</h1>
-        <p className="text-gray-500 text-sm text-center mb-7">Enter your email and we'll send you a reset link.</p>
+        <p className="text-gray-500 text-sm text-center mb-7">Enter your email and we’ll send you a reset link.</p>
 
         <div className="mb-5">
           <label className="block text-sm font-semibold text-gray-700 mb-1.5">Email Address</label>
           <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && email && setSubmitted(true)} placeholder="you@example.com"
+            onKeyDown={e => e.key === 'Enter' && submit()} placeholder="you@example.com"
             className="w-full px-4 py-3 bg-gray-100 border-0 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white transition" />
         </div>
 
-        <button onClick={() => email && setSubmitted(true)}
-          className="w-full py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition mb-4">
-          Send Reset Link
+        {error && <p className="mb-3 text-sm text-red-600">{error}</p>}
+        <button onClick={submit} disabled={busy}
+          className="w-full py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition mb-4 disabled:opacity-60">
+          {busy ? 'Sending…' : 'Send Reset Link'}
         </button>
         <p className="text-center text-sm text-gray-500">
           Remember your password?{' '}

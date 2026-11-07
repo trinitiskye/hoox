@@ -10,7 +10,8 @@ import {
   Database, Lock, BarChart2, CreditCard, Tag, Package, Building2,
   Layers, BookOpen, Video, FileText, ChevronLeft, ChevronRight,
   ExternalLink, Activity, PauseCircle, X, Check, Upload,
-  Award, UserCheck, Star, AlertCircle
+  Award, UserCheck, Star, AlertCircle,
+  Mail,
 } from 'lucide-react';
 import { User, Tournament, Series, Submission } from '@/types';
 import { fetchUsersForAdmin as fetchUsers, fetchTournaments, fetchSeries, fetchSubmissions } from '@/lib/storage';
@@ -2452,7 +2453,8 @@ function CMSTab() {
 // SETTINGS TAB
 // ============================================================
 function SettingsTab() {
-  const cards = [
+  const cards: { icon: typeof Settings; color: string; title: string; desc: string; btn: string; href?: string }[] = [
+    { icon: Mail, color: 'bg-[#E3F4F4] text-[#0E7C7B]', title: 'Email', desc: 'Email setup, test sends, and the log of every email HOOX sends and receives', btn: 'Email settings', href: '/admin/settings/email' },
     { icon: BarChart2, color: 'bg-[#E3F4F4] text-[#0E7C7B]', title: 'Reports & Analytics', desc: 'View system analytics, reports, and performance metrics', btn: 'View Analytics' },
     { icon: Settings, color: 'bg-[#EEF3F8] text-[#4A5B76]', title: 'Platform Settings', desc: 'Configure platform-wide settings and preferences', btn: 'Manage Settings' },
     { icon: Database, color: 'bg-[#E3F4F4] text-[#0E7C7B]', title: 'Database Management', desc: 'Manage database, backups, and data integrity', btn: 'Database Tools' },
@@ -2465,7 +2467,7 @@ function SettingsTab() {
         <h2 className="font-montserrat text-2xl font-bold text-[#0D1B4C]">Settings</h2>
         <p className="text-[#5F6F86] text-sm mt-0.5">Manage platform settings, security, analytics, and database</p>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {cards.map(c => (
           <div key={c.title} className="bg-white border border-[#E8EEF4] rounded-lg p-6 shadow-[0_2px_10px_rgba(10,30,60,0.05)]">
             <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-4 ${c.color}`}>
@@ -2473,7 +2475,9 @@ function SettingsTab() {
             </div>
             <h3 className="font-montserrat font-bold text-[#0D1B4C] mb-2">{c.title}</h3>
             <p className="text-[#5F6F86] text-sm mb-6 leading-relaxed">{c.desc}</p>
-            <button className="w-full py-2.5 bg-[#0E7C7B] text-white rounded-lg text-sm font-semibold hover:bg-[#0B6564] transition">{c.btn}</button>
+            {c.href
+              ? <a href={c.href} className="block w-full py-2.5 bg-[#0E7C7B] text-white rounded-lg text-sm font-semibold text-center hover:bg-[#0B6564] transition">{c.btn}</a>
+              : <button className="w-full py-2.5 bg-[#0E7C7B] text-white rounded-lg text-sm font-semibold hover:bg-[#0B6564] transition">{c.btn}</button>}
           </div>
         ))}
       </div>

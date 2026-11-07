@@ -5,6 +5,7 @@ export const runtime = 'edge';
 
 import { getAuthenticatedUser, AUTH_COOKIE_NAME } from '@/lib/serverSession';
 import { authVisitor, createThread, addMessage, randomToken, sha256, missingTables, MIGRATION_MSG } from '@/lib/supportServer';
+import { emailTicketCreated } from '@/lib/supportEmail';
 import { cleanText, isEmail, TICKET_CATEGORIES, MESSAGE_MAX, SUBJECT_MAX } from '@/lib/support';
 
 const fail = (error: string, status = 400) => Response.json({ ok: false, error }, { status });
@@ -39,12 +40,13 @@ export async function POST(request: Request) {
     const { data, error } = await createThread({
       kind: 'ticket', status: 'open', priority: category === 'Report a bug' ? 'high' : 'normal',
       category, subject, name, email, user_id: userId, visitor_id: visitor?.visitor_id ?? null,
-      access_hash: await sha256(token), started_by: 'visitor', page_url: link || null, last_message_from: 'visitor',
+      access_hash: await sha256(token), email_token: randomToken(), started_by: 'visitor', page_url: link || null, last_message_from: 'visitor',
     });
     if (error || !data?.[0]) return fail(missingTables(error) ? MIGRATION_MSG : 'We couldn’t submit your ticket. Please try again.', 500);
     const thread = data[0];
     const sent = await addMessage(thread, 'visitor', link ? `${message}\n\nRelated page: ${link}` : message, name);
     if (!sent.message) return fail('We couldn’t submit your ticket. Please try again.', 500);
+    await emailTicketCreated(thread, message);
     return Response.json({ ok: true, id: thread.id, number: thread.number, token, error: null });
   } catch {
     return fail('Something went wrong on our end. Please try again.', 500);

@@ -9,6 +9,9 @@
 
 export const runtime = 'edge';
 
+import { notifyAdmins, appLink } from '@/lib/email';
+import { adminAlertEmail } from '@/lib/emailTemplates';
+
 import { getAuthenticatedUser } from '@/lib/serverSession';
 import { supabaseAdminFetch, createFeaturedRequestAdmin, updateFeaturedRequestAdmin, getUserByIdAdmin } from '@/lib/supabaseAdmin';
 import { loadTypePricing } from '@/lib/featurePricing';
@@ -64,6 +67,9 @@ export async function POST(request: Request, { params }: Ctx) {
   if (error || !data?.[0]) return Response.json({ error: /listing_type|placement|column/i.test(error || '') ? 'Run supabase/migration_2026_11_featured_placements.sql in Supabase first.' : 'Couldn’t send the request.' }, { status: 500 });
 
   let row = data[0];
+  if (!isAdmin(user)) {
+    await notifyAdmins({ kind: 'admin_alert', relatedId: t.id, replyTo: customer.email, ...adminAlertEmail({ subject: `Feature request: ${t.name}`, heading: 'New featured tournament request', lines: [`${customer.name} (${customer.email}) asked to feature ${t.name}: ${plan.name} ${placement === 'hero' ? 'page hero' : 'featured listing'}, $${plan.price}.`, 'Send the invoice and approve it in Marketing → Marketing Promotions → Tournaments.'], link: appLink('/admin/marketing/featured/tournaments') }) });
+  }
   if (isAdmin(user) && b.approve === true) {
     const { data: upd } = await updateFeaturedRequestAdmin(row.id, { status: 'approved', reviewed_at: new Date().toISOString() });
     row = (await activatePlacement(upd?.[0] ?? { ...row, status: 'approved' })).row;

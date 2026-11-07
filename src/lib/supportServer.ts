@@ -150,8 +150,9 @@ export async function toPublicThread(t: DbSupportThread): Promise<PublicThread> 
 
 /** True when a visitor (by key) or a link-token holder may access this thread */
 export async function canAccessThread(t: DbSupportThread, opts: { visitorId?: unknown; key?: unknown; token?: unknown }) {
-  if (typeof opts.token === 'string' && opts.token.length >= 16 && t.access_hash) {
-    if ((await sha256(opts.token)) === t.access_hash) return true;
+  if (typeof opts.token === 'string' && opts.token.length >= 16) {
+    if (t.access_hash && (await sha256(opts.token)) === t.access_hash) return true;
+    if (t.email_token && opts.token === t.email_token) return true; // link from a ticket email
   }
   if (t.visitor_id && opts.visitorId === t.visitor_id) {
     const v = await authVisitor(opts.visitorId, opts.key);
@@ -162,3 +163,25 @@ export async function canAccessThread(t: DbSupportThread, opts: { visitorId?: un
 
 export const missingTables = (e: string | null | undefined) => !!e && /support_|relation|does not exist/i.test(e);
 export const MIGRATION_MSG = 'Support isn’t set up yet. Run supabase/migration_2026_11_support.sql in Supabase.';
+
+/* ------------------------------------------------------------------ */
+/* Email: ticket links and reply-by-email addresses                    */
+/* ------------------------------------------------------------------ */
+
+/** The thread's email token (created on first use for older tickets) */
+export async function ensureEmailToken(t: DbSupportThread): Promise<string> {
+  if (t.email_token) return t.email_token;
+  const token = randomToken();
+  await updateThread(t.id, { email_token: token });
+  return token;
+}
+
+/** reply+<thread id>.<token>@<EMAIL_REPLY_DOMAIN>, or null when receiving isn't set up */
+export const replyAddress = (t: DbSupportThread, token: string, domain: string) =>
+  domain ? `HOOX Support <reply+${t.id}.${token}@${domain}>` : null;
+
+/** Parse a reply address back into thread id + token */
+export function parseReplyAddress(addr: string): { id: string; token: string } | null {
+  const m = /reply\+([0-9a-f-]{36})\.([0-9a-f]{32,64})@/i.exec(addr);
+  return m ? { id: m[1].toLowerCase(), token: m[2].toLowerCase() } : null;
+}

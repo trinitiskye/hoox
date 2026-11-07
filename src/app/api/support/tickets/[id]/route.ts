@@ -6,6 +6,7 @@ export const runtime = 'edge';
 
 import { getThread, canAccessThread, listMessages, addMessage, updateThread, toPublicThread, validId } from '@/lib/supportServer';
 import { cleanText, toPublicMessage, MESSAGE_MAX } from '@/lib/support';
+import { emailAdminsVisitorReply } from '@/lib/supportEmail';
 
 type Ctx = { params: Promise<{ id: string }> };
 const fail = (error: string, status = 400) => Response.json({ error }, { status });
@@ -38,5 +39,6 @@ export async function POST(request: Request, { params }: Ctx) {
   if (!body) return fail('Type a reply first.');
   const sent = await addMessage(thread, 'visitor', body, thread.name);
   if (!sent.message) return fail('Couldn’t send your reply.', 500);
+  await emailAdminsVisitorReply(thread, body);
   return Response.json({ message: toPublicMessage(sent.message), error: null });
 }

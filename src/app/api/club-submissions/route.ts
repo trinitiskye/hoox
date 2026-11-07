@@ -15,6 +15,9 @@
 
 export const runtime = 'edge';
 
+import { notifyAdmins, appLink } from '@/lib/email';
+import { adminAlertEmail } from '@/lib/emailTemplates';
+
 import {
   getUserByEmailAdmin,
   createUserAdmin,
@@ -226,6 +229,7 @@ async function handle(request: Request) {
     return fail('We couldn’t save your club. Please try again in a moment.', 'unknown', 500);
   }
 
+  await notifyAdmins({ kind: 'admin_alert', replyTo: user.email, ...adminAlertEmail({ subject: `New club submission: ${club.club_name}`, heading: 'New club submission', lines: [`${club.club_name} (${club.city}, ${club.state}), submitted by ${user.name} (${user.email}).`, 'Review it in Event Management → Clubs.'], link: appLink('/admin/clubs') }) });
   const response = Response.json({ ok: true, user, created, error: null, code: null });
   if (setCookie) {
     const token = await createSessionToken(user.id);

@@ -9,6 +9,8 @@
 export const runtime = 'edge';
 
 import { verifyGoogleIdToken } from '@/lib/googleIdToken';
+import { sendEmail } from '@/lib/email';
+import { welcomeEmail } from '@/lib/emailTemplates';
 import { getUserByEmailAdmin, createUserAdmin } from '@/lib/supabaseAdmin';
 import { creditReferral } from '@/lib/affiliateServer';
 import { dbUserToApp } from '@/lib/supabase';
@@ -76,6 +78,7 @@ export async function POST(request: Request) {
     if (res.error || !res.data?.[0]) return fail('We couldn’t create your account. Please try again.', 'unknown', 502);
     dbUser = res.data[0];
     created = true;
+    await sendEmail({ to: g.email, kind: 'welcome', relatedId: dbUser.id, ...welcomeEmail(g.name, role, false) });
     // Signed up through an affiliate's referral link? Credit the affiliate.
     if (role === 'director') await creditReferral(request, dbUser.id).catch(() => null);
   }

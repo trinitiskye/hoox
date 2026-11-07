@@ -62,6 +62,17 @@ export default function SupportInbox() {
   const [loaded, setLoaded] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [startFor, setStartFor] = useState<Visitor | null>(null);
+  // Deep link from an alert email: /admin/support?thread=<id>
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get('thread');
+    if (id) setSelected(id);
+  }, []);
+  const deepLinked = useRef(false);
+  useEffect(() => {
+    if (deepLinked.current || !selected || !threads.length) return;
+    const t = threads.find((x) => x.id === selected);
+    if (t) { deepLinked.current = true; setBox(t.kind); }
+  }, [threads, selected]);
 
   const load = useCallback(async () => {
     try {
