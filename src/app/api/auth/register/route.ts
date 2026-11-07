@@ -13,7 +13,8 @@
 
 export const runtime = 'edge';
 
-import { getUserByEmailAdmin, createUserAdmin } from '@/lib/supabaseAdmin';
+import { claimJudgeInvites } from '@/lib/judgeServer';
+import { getUserByEmailAdmin, createUserAdmin, supabaseAdminFetch } from '@/lib/supabaseAdmin';
 import { dbUserToApp, type DbUserInsert } from '@/lib/supabase';
 import { createSessionToken, sessionCookieOptions, AUTH_COOKIE_NAME } from '@/lib/serverSession';
 import { hashPasswordServer, passwordProblem } from '@/lib/passwordServer';
@@ -23,6 +24,11 @@ const ROLES = { angler: 'angler', director: 'director', judge: 'judge', partner:
 type SignupRole = keyof typeof ROLES;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const fail = (error: string, status = 400) => Response.json({ user: null, error }, { status });
+
+async function hasJudgeInvite(email: string) {
+  const { data } = await supabaseAdminFetch<{ id: string }[]>(`tournament_judges?email=eq.${encodeURIComponent(email)}&status=eq.invited&select=id`);
+  return !!data?.length;
+}
 
 export async function POST(request: Request) {
   let b: Record<string, unknown>;
@@ -47,11 +53,14 @@ export async function POST(request: Request) {
   let status: DbUserInsert['status'] = role === 'partner' ? 'pending' : 'active';
   let directorName: string | undefined;
   let directorEmail = '';
+  // Judges invited from a tournament (tournament_judges) are approved already
+  const invited = role === 'judge' ? await hasJudgeInvite(email) : false;
   if (role === 'judge') {
     directorEmail = s('directorEmail', 254).toLowerCase();
-    if (!EMAIL_RE.test(directorEmail)) return fail('Enter your tournament director’s email.');
-    const { data: dir } = await getUserByEmailAdmin(directorEmail);
-    if (dir?.[0]?.role === 'director') { status = 'pending'; directorName = dir[0].name; }
+    if (!EMAIL_RE.test(directorEmail) && !invited) return fail('Enter your tournament director’s email.');
+    if (!EMAIL_RE.test(directorEmail)) directorEmail = '';
+    const { data: dir } = directorEmail ? await getUserByEmailAdmin(directorEmail) : { data: null };
+    if (dir?.[0]?.role === 'director') { directorName = dir[0].name; if (!invited) status = 'pending'; }
   }
 
   let password_hash: string;
@@ -78,10 +87,11 @@ export async function POST(request: Request) {
   }
 
   const dbUser = created[0];
+  if (invited) await claimJudgeInvites(dbUser.id, email).catch(() => 0);
   const user = dbUserToApp(dbUser);
   const credited = role === 'director' ? (await creditReferral(request, dbUser.id).catch(() => ({ credited: false }))).credited : false;
 
-  const outcome = role === 'judge' ? (status === 'pending' ? 'pending_approval' : 'invite_sent') : undefined;
+  const outcome = role === 'judge' ? (invited ? 'invite_accepted' : status === 'pending' ? 'pending_approval' : 'invite_sent') : undefined;
   const response = Response.json({ user, error: null, outcome, directorName });
   if (credited) response.headers.append('Set-Cookie', clearRefCookie);
   if (status === 'active') {

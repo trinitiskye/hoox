@@ -27,7 +27,7 @@ export interface TournamentInput {
   maxParticipants?: number | string | null; image?: string; status?: 'upcoming' | 'active' | 'completed';
   // Format (src/lib/tournamentFormat.ts)
   entryType?: 'individual' | 'team'; teamMin?: number; teamMax?: number; feeBasis?: 'per_entry' | 'per_angler';
-  scoring?: 'weight' | 'length' | 'both'; primaryMeasure?: 'weight' | 'length'; fishLimit?: number | null;
+  scoring?: 'weight' | 'length' | 'both'; primaryMeasure?: 'weight' | 'length'; fishLimit?: number | null; speciesLimits?: Record<string, number>;
   placePrizes?: PlacePrize[]; sidePots?: Partial<SidePot>[];
 }
 export interface CatchInput { species: string; weight?: number; length?: number; catchDate: string; catchTime: string; location?: string; photo?: string; image?: string }

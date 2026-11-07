@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Scale, Eye, EyeOff, Clock, Mail, CheckCircle } from 'lucide-react';
 import { registerJudge } from '@/lib/auth';
 import { User } from '@/types';
@@ -12,6 +12,7 @@ interface RegisterJudgePageProps {
 }
 
 type SuccessState =
+  | { type: 'invite_accepted'; tournament: string }
   | { type: 'pending_approval'; directorName?: string; directorEmail: string }
   | { type: 'invite_sent'; directorEmail: string };
 
@@ -27,12 +28,24 @@ export default function RegisterJudgePage({ onNavigate, onLogin }: RegisterJudge
     email: '', password: '', confirmPassword: '',
   });
 
+  // Invited from a tournament: /register/judge?invite=<id>
+  const [invite, setInvite] = useState<{ email: string; name: string; tournament: string; directorName: string; directorEmail: string } | null>(null);
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get('invite');
+    if (!id) return;
+    fetch(`/api/judge-invites/${encodeURIComponent(id)}`, { cache: 'no-store' }).then((r) => r.json()).then((j) => {
+      if (!j.invite) return;
+      setInvite(j.invite);
+      setForm((f) => ({ ...f, email: f.email || j.invite.email, name: f.name || j.invite.name, directorEmail: f.directorEmail || j.invite.directorEmail }));
+    }).catch(() => {});
+  }, []);
+
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm(f => ({ ...f, [k]: e.target.value }));
 
   const handleSubmit = async () => {
     setError('');
-    if (!form.directorEmail) { setError('Tournament Director email is required.'); return; }
+    if (!form.directorEmail && !invite) { setError('Tournament Director email is required.'); return; }
     if (!form.name || !form.email || !form.password) { setError('Name, email, and password are required.'); return; }
     if (form.password.length < 8) { setError('Password must be at least 8 characters.'); return; }
     if (form.password !== form.confirmPassword) { setError('Passwords do not match.'); return; }
@@ -40,7 +53,10 @@ export default function RegisterJudgePage({ onNavigate, onLogin }: RegisterJudge
     const { user, outcome, directorName, error: err } = await registerJudge(form);
     setLoading(false);
     if (err) { setError(err); return; }
-    if (outcome === 'pending_approval') {
+    if (outcome === 'invite_accepted') {
+      setSuccess({ type: 'invite_accepted', tournament: invite?.tournament || 'your tournament' });
+      if (user) onLogin(user);
+    } else if (outcome === 'pending_approval') {
       setSuccess({ type: 'pending_approval', directorName, directorEmail: form.directorEmail });
     } else if (outcome === 'invite_sent') {
       setSuccess({ type: 'invite_sent', directorEmail: form.directorEmail });
@@ -48,6 +64,22 @@ export default function RegisterJudgePage({ onNavigate, onLogin }: RegisterJudge
       if (user) onLogin(user);
     }
   };
+
+  // ── Success: invited to judge a tournament ───────────────────────────────
+  if (success?.type === 'invite_accepted') {
+    return (
+      <div className="bg-white flex-grow flex items-center justify-center px-4 py-12">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 w-full max-w-md text-center">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5">
+            <CheckCircle className="w-8 h-8 text-green-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">You’re a judge for {success.tournament}</h2>
+          <p className="text-gray-500 text-sm mb-6 leading-relaxed">Your judge account is active. You can now review catch submissions for this tournament.</p>
+          <button onClick={() => onNavigate('home')} className="w-full py-3 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition">Continue</button>
+        </div>
+      </div>
+    );
+  }
 
   // ── Success: pending director approval ──────────────────────────────────
   if (success?.type === 'pending_approval') {
@@ -145,8 +177,15 @@ export default function RegisterJudgePage({ onNavigate, onLogin }: RegisterJudge
         <h1 className="text-2xl font-bold text-gray-900 text-center mb-1">Judge Registration</h1>
         <p className="text-gray-500 text-sm text-center mb-6">Register as a tournament judge to manage catch submissions</p>
 
+        {invite && (
+          <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6 text-sm text-green-800">
+            <p className="font-semibold">You’ve been invited to judge {invite.tournament}</p>
+            {invite.directorName && <p className="mt-1">Invited by {invite.directorName}. Create your account with <span className="font-semibold">{invite.email}</span> to accept.</p>}
+          </div>
+        )}
+
         {/* Director referral */}
-        <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-6">
+        {!invite && <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-6">
           <label className="block text-sm font-semibold text-gray-700 mb-1.5">
             Email of the Tournament Director that referred you *
           </label>
@@ -161,7 +200,7 @@ export default function RegisterJudgePage({ onNavigate, onLogin }: RegisterJudge
             Enter the email address of the Tournament Director who referred you to register as a judge.
             If they don't have a HOOX account yet, we'll send them an invitation.
           </p>
-        </div>
+        </div>}
 
         {/* Personal Info */}
         <h2 className="font-bold text-gray-900 mb-3">Personal Information</h2>

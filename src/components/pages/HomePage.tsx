@@ -101,7 +101,8 @@ const DEMO_UPCOMING: UpcomingCard[] = [
 
 const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 
-function parseDate(s: string) {
+function parseDate(s: string | null | undefined) {
+  if (!s) return null;
   const d = new Date(s.length <= 10 ? `${s}T00:00:00` : s);
   return isNaN(d.getTime()) ? null : d;
 }

@@ -1,14 +1,14 @@
 // Tournament scoring (pure, client + server safe).
 //
 // Entries are individual anglers or teams. Only APPROVED catches count.
-//   Main leaderboard: each entry's best N fish (fish limit) by the main
+//   Main leaderboard: each entry's best N fish (catch limit, plus any per-species limits) by the main
 //   measure; ranked by total, then (judged by both) the other measure's total,
 //   then biggest fish. Ties share a place (1, 2, 2, 4).
 //   Place prizes go to those places.
 //   Side pots / bonus awards: winners by their rule among eligible entries
 //   (pots: entries that bought in; awards: everyone).
 
-import { measuresFor, unitOf, buyInPots, type TournamentFormat, type SidePot, type Measure } from './tournamentFormat';
+import { measuresFor, unitOf, buyInPots, countedCatches, type TournamentFormat, type SidePot, type Measure } from './tournamentFormat';
 
 export interface ScoreRegistration { id: string; angler: string; angler_id: string | null; team_id?: string | null; side_pots?: string[] | null }
 export interface ScoreTeam { id: string; name: string; captain_id: string }
@@ -23,7 +23,7 @@ export interface EntryStanding {
   name: string;             // angler or team name
   members: string[];        // team member names (empty for individuals)
   rank: number | null;      // null = no approved catch yet
-  fish: number;             // approved fish counted (after the fish limit)
+  fish: number;             // approved fish counted (after the catch limits)
   caught: number;           // all approved fish
   total: number;            // main measure total
   secondaryTotal: number | null;
@@ -90,7 +90,7 @@ export function computeScoreboard(
     const team = r.team_id ? teamById.get(r.team_id) : undefined;
     const all = (catches.get(r.id) ?? []).filter((s) => measureOf(s, primary, f) !== null)
       .sort((a, b) => measureOf(b, primary, f)! - measureOf(a, primary, f)!);
-    const counted = f.fishLimit ? all.slice(0, f.fishLimit) : all;
+    const counted = countedCatches(all, f);
     return {
       entryId: r.id,
       name: team?.name || r.angler,

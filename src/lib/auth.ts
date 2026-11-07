@@ -140,6 +140,7 @@ export async function registerDirector(data: BaseSignup & { website?: string }):
 export type JudgeRegistrationOutcome =
   | 'pending_approval'   // director exists, judge is pending their approval
   | 'invite_sent'        // director not found, invitation email would be sent
+  | 'invite_accepted'    // invited to judge a tournament: account active and linked
   | 'error';
 
 export async function registerJudge(data: BaseSignup & { directorEmail: string }): Promise<{ user: User | null; outcome: JudgeRegistrationOutcome; directorName?: string; error: string | null }> {

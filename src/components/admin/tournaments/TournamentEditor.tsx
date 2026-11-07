@@ -23,6 +23,8 @@ import { getTournamentById, getSeries, type DbTournament, type DbSeries } from '
 import { INPUT, LABEL, CARD, BTN, BTN_GHOST } from '@/components/admin/sponsors/shared';
 import HostPicker from './HostPicker';
 import ImageUpload from './ImageUpload';
+import JudgesPanel, { loadJudges, syncJudges, type JudgeRow } from './JudgesPanel';
+import { CATCH_LIMIT_MAX } from '@/lib/tournamentFormat';
 import type { FeaturePricing } from '@/lib/clubFeature';
 
 const TIMEZONES = [
@@ -43,7 +45,7 @@ interface Draft {
   fishTypes: string[]; vesselTypes: string[];
   entryType: 'individual' | 'team'; teamMin: string; teamMax: string; feeBasis: 'per_entry' | 'per_angler';
   entryFee: string; maxParticipants: string;
-  scoring: 'weight' | 'length' | 'both'; primaryMeasure: 'weight' | 'length'; fishLimit: string;
+  scoring: 'weight' | 'length' | 'both'; primaryMeasure: 'weight' | 'length'; fishLimit: string; speciesLimits: Record<string, string>;
   places: PlaceDraft[];
   pots: PotDraft[];
   details: TournamentDetails;
@@ -52,6 +54,7 @@ interface Draft {
 }
 
 const k = () => Math.random().toString(36).slice(2);
+const LIMITS = Array.from({ length: CATCH_LIMIT_MAX }, (_, i) => i + 1);
 const str = (v: unknown) => (v === null || v === undefined ? '' : String(v));
 const blankPlace = (): PlaceDraft => ({ key: k(), toPlace: '', amount: '', description: '' });
 const blank = (): Draft => ({
@@ -59,7 +62,7 @@ const blank = (): Draft => ({
   startDate: '', startTime: '06:00', endDate: '', endTime: '15:00', timezone: 'America/Los_Angeles',
   location: '', city: '', state: '', waterType: 'freshwater', fishTypes: [], vesselTypes: [],
   entryType: 'individual', teamMin: '2', teamMax: '2', feeBasis: 'per_entry', entryFee: '', maxParticipants: '',
-  scoring: 'weight', primaryMeasure: 'weight', fishLimit: '',
+  scoring: 'weight', primaryMeasure: 'weight', fishLimit: '', speciesLimits: {},
   places: [blankPlace()], pots: [], details: { ...DEFAULT_DETAILS, host: { ...DEFAULT_DETAILS.host }, sponsor: { ...DEFAULT_DETAILS.sponsor } },
   rulesText: '', closesDate: '', closesTime: '23:59',
 });
@@ -74,7 +77,7 @@ function fromRow(t: DbTournament): Draft {
     fishTypes: t.fish_types?.length ? t.fish_types : t.species ? [t.species] : [], vesselTypes: t.vessel_types || [],
     entryType: f.entryType, teamMin: String(f.teamMin), teamMax: String(f.teamMax), feeBasis: f.feeBasis,
     entryFee: str(t.entry_fee ?? t.registration_fee), maxParticipants: str(t.max_participants),
-    scoring: f.scoring, primaryMeasure: f.primaryMeasure, fishLimit: str(f.fishLimit),
+    scoring: f.scoring, primaryMeasure: f.primaryMeasure, fishLimit: str(f.fishLimit), speciesLimits: Object.fromEntries(Object.entries(f.speciesLimits).map(([sp, n]) => [sp, String(n)])),
     places: f.placePrizes.length ? f.placePrizes.map((p) => ({ key: k(), toPlace: str(p.toPlace), amount: str(p.amount), description: p.description })) : [blankPlace()],
     pots: f.sidePots.map((p) => ({ key: p.id, name: p.name, kind: p.kind, rule: p.rule, species: p.species || '', fee: str(p.fee || ''), payout: p.payout, amount: str(p.amount), description: p.description, splits: p.splits.join(', ') })),
     details: d, rulesText: d.rules.join('\n'),
@@ -93,6 +96,8 @@ function toInput(d: Draft, isAdmin: boolean): TournamentInput & { createdBy?: st
     entryType: d.entryType, teamMin: Number(d.teamMin) || 1, teamMax: Number(d.teamMax) || 1, feeBasis: d.feeBasis,
     entryFee: num(d.entryFee), maxParticipants: num(d.maxParticipants),
     scoring: d.scoring, primaryMeasure: d.scoring === 'both' ? d.primaryMeasure : d.scoring, fishLimit: num(d.fishLimit),
+    // Per-species limits only apply when more than one species is eligible
+    speciesLimits: d.fishTypes.length > 1 ? Object.fromEntries(d.fishTypes.filter((sp) => Number(d.speciesLimits[sp]) > 0).map((sp) => [sp, Number(d.speciesLimits[sp])])) : {},
     placePrizes: d.places.filter((p) => p.amount.trim() || p.description.trim()).map((p) => ({ place: 0, toPlace: num(p.toPlace), amount: num(p.amount), description: p.description })),
     sidePots: d.pots.map((p) => ({
       id: p.key, name: p.name, kind: p.kind, rule: p.rule, species: p.species || null, fee: p.kind === 'pot' ? Number(p.fee) || 0 : 0,
@@ -161,6 +166,8 @@ export default function TournamentEditor({ id }: { id?: string }) {
   const [pricing, setPricing] = useState<{ badge: FeaturePricing; hero: FeaturePricing } | null>(null);
   const [feature, setFeature] = useState<FeatureChoice>({ on: false, badge: '', hero: '', startDate: '', notes: '', approve: false });
   const [features, setFeatures] = useState<FeatureRow[]>([]);
+  const [judges, setJudges] = useState<JudgeRow[]>([]);
+  const [removedJudges, setRemovedJudges] = useState<string[]>([]);
   const [busy, setBusy] = useState<'save' | 'delete' | null>(null);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [loadErr, setLoadErr] = useState<string | null>(null);
@@ -173,6 +180,7 @@ export default function TournamentEditor({ id }: { id?: string }) {
       else setD(fromRow(data[0]));
     });
     fetch(`/api/tournaments/${encodeURIComponent(id)}/feature`, { cache: 'no-store' }).then((r) => r.json()).then((j) => setFeatures(j.requests || [])).catch(() => {});
+    loadJudges(id).then(setJudges);
   }, [id]);
   useEffect(() => {
     if (!isAdmin) return;
@@ -224,6 +232,12 @@ export default function TournamentEditor({ id }: { id?: string }) {
       if (!r.error && r.data) setSeriesChoice({ mode: 'existing', id: r.data.id });
     }
     getSeries().then(({ data }) => setAllSeries(data || []));
+    // Judges
+    if (removedJudges.length || judges.some((j) => !j.id)) {
+      const r = await syncJudges(tid, judges, removedJudges);
+      notes.push(...r.notes);
+      setJudges(r.rows); setRemovedJudges([]);
+    }
     // Featuring
     if (feature.on) {
       for (const [placement, plan] of [['badge', feature.badge], ['hero', feature.hero]] as const) {
@@ -523,7 +537,7 @@ export default function TournamentEditor({ id }: { id?: string }) {
           </Section>
 
           {/* ----------------------------- Judging ----------------------------- */}
-          <Section id="judging" title="Judging" sub="How catches are measured and ranked">
+          <Section id="judging" title="Judging" sub="How catches are measured, how many count, and who judges them">
             <Segmented label="Judged by" value={d.scoring} onChange={(v) => set({ scoring: v })} options={[['weight', 'Weight'], ['length', 'Length'], ['both', 'Weight & length']]} />
             <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
               {d.scoring === 'both' && (
@@ -532,8 +546,32 @@ export default function TournamentEditor({ id }: { id?: string }) {
                   <p className="mt-1.5 text-xs text-[#6B7D93]">The other measure breaks ties.</p>
                 </div>
               )}
-              <label><span className={LABEL}>Fish limit</span><input type="number" min={1} className={INPUT} value={d.fishLimit} onChange={(e) => set({ fishLimit: e.target.value })} placeholder="No limit: every approved fish counts" />
-                <span className="mt-1 block text-xs text-[#6B7D93]">e.g. 5 = each {d.entryType === 'team' ? 'team' : 'angler'}’s best 5 fish count</span></label>
+              <label><span className={LABEL}>Catch limit</span>
+                <select className={INPUT} value={d.fishLimit || '0'} onChange={(e) => set({ fishLimit: e.target.value === '0' ? '' : e.target.value })}>
+                  <option value="0">0 (Unlimited)</option>
+                  {LIMITS.map((n) => <option key={n} value={n}>{n}</option>)}
+                </select>
+                <span className="mt-1 block text-xs text-[#6B7D93]">{d.fishLimit ? `Each ${d.entryType === 'team' ? 'team' : 'angler'}’s best ${d.fishLimit} fish count toward their total.` : 'Every approved fish counts toward the total.'}</span></label>
+            </div>
+            {d.fishTypes.length > 1 && (
+              <div className="mt-5">
+                <span className={LABEL}>Catch limit by species</span>
+                <p className="-mt-0.5 mb-2 text-xs text-[#6B7D93]">Optional. The most fish of each species that count{d.fishLimit ? `, within the overall limit of ${d.fishLimit}` : ''}.</p>
+                <ul className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                  {d.fishTypes.map((sp) => (
+                    <li key={sp} className="grid grid-cols-[minmax(0,1fr)_170px] items-center gap-3 rounded-lg border border-[#E3EAF1] px-3 py-2">
+                      <span className="truncate text-sm font-medium text-[#0D1B4C]">{sp}</span>
+                      <select aria-label={`Catch limit for ${sp}`} className={INPUT} value={d.speciesLimits[sp] || '0'} onChange={(e) => set({ speciesLimits: { ...d.speciesLimits, [sp]: e.target.value } })}>
+                        <option value="0">0 (Unlimited)</option>
+                        {LIMITS.filter((n) => !d.fishLimit || n <= Number(d.fishLimit)).map((n) => <option key={n} value={n}>{n}</option>)}
+                      </select>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <div className="mt-6 border-t border-[#EEF3F8] pt-5">
+              <JudgesPanel rows={judges} onChange={setJudges} onRemoveSaved={(jid) => setRemovedJudges((x) => [...x, jid])} isAdmin={isAdmin} />
             </div>
           </Section>
 

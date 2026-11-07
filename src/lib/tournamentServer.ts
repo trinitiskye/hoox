@@ -13,6 +13,7 @@
 //                         review (approve/deny/edit): the owning director, their approved judges, admins
 //                         delete: the angler while pending, or the owning director/admin
 
+import { isTournamentJudge } from './judgeServer';
 import { supabaseAdminFetch, getUserByIdAdmin } from './supabaseAdmin';
 import { todayIso } from './featured';
 import type { DbTournament, DbSeries, DbRegistration, DbSubmission, DbTournamentInsert } from './supabase';
@@ -47,11 +48,13 @@ export const isAdmin = (u: User | null) => u?.role === 'admin';
 export const canCreateEvents = (u: User | null) => !!u && u.status === 'active' && (u.role === 'director' || u.role === 'admin');
 export const ownsEvent = (u: User | null, row: { created_by: string } | null) => !!u && !!row && (isAdmin(u) || (u.role === 'director' && row.created_by === u.id));
 
-/** Directors, their approved judges (judge.message = director's email) and admins can review catches */
+/** Directors, judges assigned to the tournament, the director's approved judges (judge.message = director's email) and admins can review catches */
 export async function canReview(u: User | null, t: DbTournament): Promise<boolean> {
   if (!u || u.status !== 'active') return false;
   if (ownsEvent(u, t)) return true;
-  if (u.role !== 'judge' || !u.message) return false;
+  if (u.role !== 'judge') return false;
+  if (await isTournamentJudge(t.id, u.id)) return true; // assigned on the tournament form
+  if (!u.message) return false;
   const { data } = await getUserByIdAdmin(t.created_by);
   return !!data?.[0] && data[0].email.toLowerCase() === u.message.toLowerCase();
 }
@@ -79,7 +82,7 @@ export function tournamentFromBody(b: Body, prev?: DbTournament): { value: Parti
     v.fish_types = (b.fishTypes as unknown[]).map((x) => String(x).trim().slice(0, 60)).filter(Boolean).slice(0, 30);
   }
   // Format: entry type, judging, prizes, side pots (merged over what's saved)
-  const FORMAT_KEYS = ['entryType', 'teamMin', 'teamMax', 'feeBasis', 'scoring', 'primaryMeasure', 'fishLimit', 'placePrizes', 'sidePots'];
+  const FORMAT_KEYS = ['entryType', 'teamMin', 'teamMax', 'feeBasis', 'scoring', 'primaryMeasure', 'fishLimit', 'speciesLimits', 'placePrizes', 'sidePots'];
   if (!prev || FORMAT_KEYS.some((k) => has(b, k))) {
     const fmt = parseFormat(Object.fromEntries(FORMAT_KEYS.filter((k) => has(b, k)).map((k) => [k, b[k]])), prev ? formatFromRow(prev) : undefined);
     if (!fmt.value) return fail(fmt.error!);

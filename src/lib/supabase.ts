@@ -311,6 +311,7 @@ export interface DbTournament {
   scoring?: string | null;
   primary_measure?: string | null;
   fish_limit?: number | null;
+  species_limits?: unknown;
   place_prizes?: unknown;
   side_pots?: unknown;
   start_date: string;

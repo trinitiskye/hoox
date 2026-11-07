@@ -3,7 +3,7 @@
 //
 //   Entry       individual, or team (min–max anglers). Team fee per team or per angler.
 //   Judging     weight, length, or both (main measure ranks; the other breaks ties).
-//               Optional fish limit: only the best N approved fish count.
+//               Optional catch limit: only the best N approved fish count (plus optional per-species limits).
 //   Prizes      main prizes by place (1st, 2nd …)
 //               side pots: optional buy-ins with their own fee and prize pool ("Big Fish")
 //               bonus awards: free awards nobody pays into ("Youth Big Fish")
@@ -54,14 +54,19 @@ export interface TournamentFormat {
   feeBasis: FeeBasis;
   scoring: Scoring;
   primaryMeasure: Measure;
+  /** Catch limit: how many of each entry's best fish count (null = unlimited) */
   fishLimit: number | null;
+  /** Per-species catch limits, keyed by species name (only species with a limit) */
+  speciesLimits: Record<string, number>;
   placePrizes: PlacePrize[];
   sidePots: SidePot[];
 }
 
+export const CATCH_LIMIT_MAX = 50;
+
 export const DEFAULT_FORMAT: TournamentFormat = {
   entryType: 'individual', teamMin: 1, teamMax: 1, feeBasis: 'per_entry',
-  scoring: 'weight', primaryMeasure: 'weight', fishLimit: null, placePrizes: [], sidePots: [],
+  scoring: 'weight', primaryMeasure: 'weight', fishLimit: null, speciesLimits: {}, placePrizes: [], sidePots: [],
 };
 
 /** Columns on public.tournaments */
@@ -73,6 +78,7 @@ export interface DbFormatColumns {
   scoring?: string | null;
   primary_measure?: string | null;
   fish_limit?: number | null;
+  species_limits?: unknown;
   place_prizes?: unknown;
   side_pots?: unknown;
 }
@@ -88,7 +94,7 @@ export function formatFromRow(t: DbFormatColumns): TournamentFormat {
   const primary: Measure = scoring === 'both' ? (t.primary_measure === 'length' ? 'length' : 'weight') : scoring;
   const parsed = parseFormat({
     entryType, teamMin: t.team_min, teamMax: t.team_max, feeBasis: t.fee_basis, scoring, primaryMeasure: primary,
-    fishLimit: t.fish_limit, placePrizes: t.place_prizes ?? [], sidePots: t.side_pots ?? [],
+    fishLimit: t.fish_limit, speciesLimits: t.species_limits ?? {}, placePrizes: t.place_prizes ?? [], sidePots: t.side_pots ?? [],
   });
   return parsed.value ?? { ...DEFAULT_FORMAT, entryType, scoring, primaryMeasure: primary };
 }
@@ -96,7 +102,7 @@ export function formatFromRow(t: DbFormatColumns): TournamentFormat {
 export function formatToRow(f: TournamentFormat): DbFormatColumns {
   return {
     entry_type: f.entryType, team_min: f.teamMin, team_max: f.teamMax, fee_basis: f.feeBasis,
-    scoring: f.scoring, primary_measure: f.primaryMeasure, fish_limit: f.fishLimit,
+    scoring: f.scoring, primary_measure: f.primaryMeasure, fish_limit: f.fishLimit, species_limits: f.speciesLimits,
     place_prizes: f.placePrizes, side_pots: f.sidePots,
   };
 }
@@ -127,7 +133,19 @@ export function parseFormat(input: Record<string, unknown>, base: TournamentForm
 
   const fl = get('fishLimit');
   const fishLimit = fl === null || fl === '' || fl === undefined || Number(fl) === 0 ? null : Number(fl);
-  if (fishLimit !== null && (!Number.isInteger(fishLimit) || fishLimit < 1 || fishLimit > 100)) return fail('Fish limit must be a whole number (or blank for no limit).');
+  if (fishLimit !== null && (!Number.isInteger(fishLimit) || fishLimit < 1 || fishLimit > CATCH_LIMIT_MAX)) return fail(`Catch limit must be 1–${CATCH_LIMIT_MAX} (or unlimited).`);
+
+  const slRaw = get('speciesLimits');
+  const speciesLimits: Record<string, number> = {};
+  if (slRaw && typeof slRaw === 'object' && !Array.isArray(slRaw)) {
+    for (const [k, v] of Object.entries(slRaw as Record<string, unknown>).slice(0, 40)) {
+      const name = String(k).trim().slice(0, 80);
+      const n = v === null || v === '' || v === undefined ? 0 : Number(v);
+      if (!name || n === 0) continue;
+      if (!Number.isInteger(n) || n < 1 || n > CATCH_LIMIT_MAX) return fail(`${name} catch limit must be 1–${CATCH_LIMIT_MAX} (or unlimited).`);
+      speciesLimits[name] = n;
+    }
+  }
 
   const pp = get('placePrizes');
   if (!Array.isArray(pp)) return fail('Place prizes must be a list.');
@@ -179,7 +197,23 @@ export function parseFormat(input: Record<string, unknown>, base: TournamentForm
     sidePots.push({ id, name, kind, rule, species, fee: kind === 'award' ? 0 : fee, payout, amount, description, splits, winnerId: typeof r.winnerId === 'string' && r.winnerId ? r.winnerId : null });
   }
 
-  return { value: { entryType, teamMin, teamMax, feeBasis, scoring, primaryMeasure, fishLimit, placePrizes, sidePots }, error: null };
+  return { value: { entryType, teamMin, teamMax, feeBasis, scoring, primaryMeasure, fishLimit, speciesLimits, placePrizes, sidePots }, error: null };
+}
+
+/** The fish that count toward an entry's total: best first, within the overall and per-species catch limits */
+export function countedCatches<T extends { species: string }>(sortedBestFirst: T[], f: Pick<TournamentFormat, 'fishLimit' | 'speciesLimits'>): T[] {
+  const caps = new Map(Object.entries(f.speciesLimits || {}).map(([k, v]) => [k.toLowerCase(), v]));
+  const used = new Map<string, number>();
+  const out: T[] = [];
+  for (const c of sortedBestFirst) {
+    if (f.fishLimit && out.length >= f.fishLimit) break;
+    const sp = (c.species || '').toLowerCase();
+    const cap = caps.get(sp);
+    if (cap !== undefined && (used.get(sp) ?? 0) >= cap) continue;
+    used.set(sp, (used.get(sp) ?? 0) + 1);
+    out.push(c);
+  }
+  return out;
 }
 
 /** Pots an entrant can buy into (awards are automatic) */
@@ -223,6 +257,9 @@ export function formatSummary(f: TournamentFormat): string[] {
     ? `Judged by weight and length. Ranked by total ${f.primaryMeasure}; total ${f.primaryMeasure === 'weight' ? 'length' : 'weight'} breaks ties.`
     : `Judged by ${f.scoring}: ranked by total ${f.scoring === 'weight' ? 'weight (lb)' : 'length (in)'}.`;
   lines.push(by);
-  if (f.fishLimit) lines.push(`Fish limit: each ${f.entryType === 'team' ? 'team' : 'angler'}’s best ${f.fishLimit} fish count.`);
+  const who = f.entryType === 'team' ? 'team' : 'angler';
+  const per = Object.entries(f.speciesLimits).map(([sp, n]) => `${n} ${sp}`);
+  if (f.fishLimit) lines.push(`Catch limit: each ${who}’s best ${f.fishLimit} fish count${per.length ? `, with no more than ${per.join(', ')}` : ''}.`);
+  else if (per.length) lines.push(`Catch limit by species: each ${who}’s best ${per.join(', ')} count.`);
   return lines;
 }

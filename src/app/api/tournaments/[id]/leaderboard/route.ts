@@ -26,7 +26,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     tournament: { id: t.id, name: t.name },
     format: {
       entryType: f.entryType, teamMin: f.teamMin, teamMax: f.teamMax, feeBasis: f.feeBasis,
-      scoring: f.scoring, primaryMeasure: f.primaryMeasure, fishLimit: f.fishLimit, placePrizes: f.placePrizes,
+      scoring: f.scoring, primaryMeasure: f.primaryMeasure, fishLimit: f.fishLimit, speciesLimits: f.speciesLimits, placePrizes: f.placePrizes,
       sidePots: f.sidePots.map((p) => ({ ...p, winnerId: undefined })),
     },
     ...board,
